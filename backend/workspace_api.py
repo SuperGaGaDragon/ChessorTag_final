@@ -35,9 +35,10 @@ class FolderUpdate(BaseModel):
 class FolderOut(FolderBase):
     id: str
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
 
     class Config:
+        orm_mode = True
         from_attributes = True
 
 
