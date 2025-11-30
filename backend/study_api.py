@@ -135,6 +135,7 @@ _compute_move_probabilities = None
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+ENGINE_DEFAULT = os.getenv("STOCKFISH_PATH", "/usr/games/stockfish")
 
 # ----------------------------
 # Helpers
@@ -264,13 +265,15 @@ def _predict_with_pipeline(fen: str, engine_path: Optional[str]) -> AnalyzeRespo
     if not _predictor_ready or not _fetch_engine_moves or not _tag_moves or not _load_player_summaries or not _compute_move_probabilities:
         raise HTTPException(status_code=500, detail=_predictor_err or "predictor not ready")
 
+    engine_bin = engine_path or ENGINE_DEFAULT
+
     tagged_moves = _tag_moves(
         fen,
         _fetch_engine_moves(
             fen,
-            engine_path=engine_path,
+            engine_path=engine_bin,
         ),
-        engine_path=engine_path,
+        engine_path=engine_bin,
     )
     player_summaries = _load_player_summaries(
         Path(__file__).resolve().parent.parent / "chess_imitator " / "rule_tagger_lichessbot" / "superchess_predictor" / "reports"
@@ -300,7 +303,7 @@ def _predict_with_pipeline(fen: str, engine_path: Optional[str]) -> AnalyzeRespo
         study_id="",
         players=list(player_summaries.keys()),
         moves=moves_output,
-        metadata={"engine_depth": 14, "top_n": len(moves_output)},
+        metadata={"engine_depth": 14, "top_n": len(moves_output), "engine_path": engine_bin},
     )
     return payload
 
@@ -366,7 +369,7 @@ def import_pgn(req: ImportPGNRequest):
 
 @router.post("/engine_top", response_model=EngineTopResponse)
 def engine_top(req: EngineTopRequest):
-    engine_path = req.engine_path or os.getenv("STOCKFISH_PATH") or "stockfish"
+    engine_path = req.engine_path or ENGINE_DEFAULT
     board = chess.Board(req.fen)
 
     try:
@@ -436,8 +439,9 @@ def engine_top(req: EngineTopRequest):
 
 @router.post("/analyze", response_model=AnalyzeResponse)
 def analyze(req: AnalyzeRequest, db: Session = Depends(get_db)):
-    payload = _predict_with_pipeline(req.fen, req.engine_path)
-    _log_predictor_call(req.fen, payload, req.engine_path)
+    engine_bin = req.engine_path or ENGINE_DEFAULT
+    payload = _predict_with_pipeline(req.fen, engine_bin)
+    _log_predictor_call(req.fen, payload, engine_bin)
 
     result_data = payload.model_dump()
     result_data.pop("study_id", None)
