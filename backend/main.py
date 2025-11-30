@@ -13,9 +13,16 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 # 允许前端访问后端
+origins = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "https://chessortag.org",
+    "https://www.chessortag.org",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

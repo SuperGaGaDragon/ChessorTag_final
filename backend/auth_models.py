@@ -2,6 +2,7 @@ from uuid import uuid4
 
 from sqlalchemy import Column, String, DateTime, func
 
+# Reuse the shared Base so metadata.create_all picks up the users table.
 from .db import Base
 
 
