@@ -64,8 +64,9 @@ class WorkspaceSnapshot(BaseModel):
 def get_workspace_snapshot(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
-    folders = db.query(Folder).filter(Folder.owner_id == current_user.id).all()
-    studies = db.query(Study).filter(Study.owner_id == current_user.id).all()
+    owner_id = (current_user.id[:32] if current_user and current_user.id else None)
+    folders = db.query(Folder).filter(Folder.owner_id == owner_id).all()
+    studies = db.query(Study).filter(Study.owner_id == owner_id).all()
     return WorkspaceSnapshot(folders=folders, studies=studies)
 
 
@@ -76,10 +77,11 @@ def create_folder(
     current_user: User = Depends(get_current_user),
 ):
     try:
+        owner_id = (current_user.id[:32] if current_user and current_user.id else None)
         if payload.parent_id:
             parent = (
                 db.query(Folder)
-                .filter(Folder.id == payload.parent_id, Folder.owner_id == current_user.id)
+                .filter(Folder.id == payload.parent_id, Folder.owner_id == owner_id)
                 .first()
             )
             if not parent:
@@ -90,7 +92,7 @@ def create_folder(
             parent_id=payload.parent_id,
             color=payload.color,
             image_key=payload.image_key,
-            owner_id=(current_user.id[:32] if current_user and current_user.id else None),
+            owner_id=owner_id,
         )
         db.add(folder)
         db.commit()
@@ -111,9 +113,10 @@ def update_folder(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    owner_id = (current_user.id[:32] if current_user and current_user.id else None)
     folder = (
         db.query(Folder)
-        .filter(Folder.id == folder_id, Folder.owner_id == current_user.id)
+        .filter(Folder.id == folder_id, Folder.owner_id == owner_id)
         .first()
     )
     if not folder:
@@ -122,7 +125,7 @@ def update_folder(
     if payload.parent_id:
         parent = (
             db.query(Folder)
-            .filter(Folder.id == payload.parent_id, Folder.owner_id == current_user.id)
+            .filter(Folder.id == payload.parent_id, Folder.owner_id == owner_id)
             .first()
         )
         if not parent:
@@ -140,6 +143,41 @@ def update_folder(
     db.commit()
     db.refresh(folder)
     return folder
+
+
+def _delete_folder_recursive(db: Session, folder: Folder, owner_id: str):
+    """Delete a folder, its studies, and any child folders recursively."""
+    studies = db.query(Study).filter(Study.folder_id == folder.id, Study.owner_id == owner_id).all()
+    for study in studies:
+        db.delete(study)
+    children = db.query(Folder).filter(Folder.parent_id == folder.id, Folder.owner_id == owner_id).all()
+    for child in children:
+        _delete_folder_recursive(db, child, owner_id)
+    db.delete(folder)
+
+
+@router.delete("/folders/{folder_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_folder(
+    folder_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    owner_id = (current_user.id[:32] if current_user and current_user.id else None)
+    folder = (
+        db.query(Folder)
+        .filter(Folder.id == folder_id, Folder.owner_id == owner_id)
+        .first()
+    )
+    if not folder:
+        raise HTTPException(status_code=404, detail="Folder not found")
+
+    try:
+        _delete_folder_recursive(db, folder, owner_id)
+        db.commit()
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete folder: {exc}")
+    return None
 
 
 class StudyCreate(BaseModel):
@@ -161,11 +199,12 @@ def create_study(
 ):
     """Create a new study"""
     try:
+        owner_id = (current_user.id[:32] if current_user and current_user.id else None)
         # Validate folder_id if provided
         if payload.folder_id:
             folder = (
                 db.query(Folder)
-                .filter(Folder.id == payload.folder_id, Folder.owner_id == current_user.id)
+                .filter(Folder.id == payload.folder_id, Folder.owner_id == owner_id)
                 .first()
             )
             if not folder:
@@ -175,7 +214,7 @@ def create_study(
         study = Study(
             name=payload.name,
             folder_id=payload.folder_id,
-            owner_id=(current_user.id[:32] if current_user and current_user.id else None),
+            owner_id=owner_id,
             data={},  # Initialize with empty data
             is_public=False,  # Default to private
         )
@@ -197,9 +236,10 @@ def update_study(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    owner_id = (current_user.id[:32] if current_user and current_user.id else None)
     study = (
         db.query(Study)
-        .filter(Study.id == study_id, Study.owner_id == current_user.id)
+        .filter(Study.id == study_id, Study.owner_id == owner_id)
         .first()
     )
     if not study:
@@ -208,7 +248,7 @@ def update_study(
     if payload.folder_id:
         folder = (
             db.query(Folder)
-            .filter(Folder.id == payload.folder_id, Folder.owner_id == current_user.id)
+            .filter(Folder.id == payload.folder_id, Folder.owner_id == owner_id)
             .first()
         )
         if not folder:
@@ -225,3 +265,27 @@ def update_study(
     db.commit()
     db.refresh(study)
     return study
+
+
+@router.delete("/studies/{study_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_study(
+    study_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    owner_id = (current_user.id[:32] if current_user and current_user.id else None)
+    study = (
+        db.query(Study)
+        .filter(Study.id == study_id, Study.owner_id == owner_id)
+        .first()
+    )
+    if not study:
+        raise HTTPException(status_code=404, detail="Study not found")
+
+    try:
+        db.delete(study)
+        db.commit()
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete study: {exc}")
+    return None

@@ -570,7 +570,7 @@
 
         <div class="report-list">
           <a class="report-card"
-             href="/style_report/Test_players/testYuYaochen/report_phase2.html"
+             href="/reports/yuyaochen.html"
              target="_blank" rel="noopener">
             <div class="report-top">
               <span class="report-name">ChessorTag Report: YuYaochen</span>
@@ -580,7 +580,7 @@
           </a>
 
           <a class="report-card"
-             href="/style_report/Test_players/XueHaowen/report_phase2.html"
+             href="/reports/xuehaowen.html"
              target="_blank" rel="noopener">
             <div class="report-top">
               <span class="report-name">ChessorTag Report: XueHaowen</span>
@@ -1102,6 +1102,37 @@
       element.addEventListener('keydown', handleKeydown);
     }
 
+    async function deleteWorkspaceItem(tile) {
+      if (!tile) return;
+      const id = tile.getAttribute('data-id');
+      const type = tile.getAttribute('data-type');
+      if (!id || !type) return;
+
+      try {
+        let url = null;
+        if (type === 'folder') {
+          url = `${API_BASE}/api/workspace/folders/${id}`;
+        } else if (type === 'study') {
+          url = `${API_BASE}/api/workspace/studies/${id}`;
+        }
+        if (!url) return;
+
+        const res = await fetch(url, {
+          method: 'DELETE',
+          headers: authHeaders(),
+        });
+        if (handleUnauthorized(res)) return;
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || res.statusText);
+        }
+        tile.remove();
+      } catch (err) {
+        console.error('Delete failed', err);
+        alert('Failed to delete item');
+      }
+    }
+
     // Handle double-click to open folder/study
     document.addEventListener('DOMContentLoaded', () => {
       const grid = document.getElementById('desktopGrid');
@@ -1137,7 +1168,7 @@
         const isFolder = type === 'folder';
         const confirmMsg = `Delete this ${isFolder ? 'folder' : 'study'}?\n${name}`;
         if (confirm(confirmMsg)) {
-          item.remove();
+          deleteWorkspaceItem(item);
         }
       });
 
