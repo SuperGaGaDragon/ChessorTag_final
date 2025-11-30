@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chess.js Test</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <style>
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, 50px);
+      grid-template-rows: repeat(8, 50px);
+      gap: 0;
+      margin: 20px;
+    }
+    .square {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+    }
+    .light { background: #f0d9b5; }
+    .dark { background: #b58863; }
+  </style>
+</head>
+<body>
+  <h1>Chess.js Loading Test</h1>
+  <div id="status">Checking...</div>
+  <div id="board" class="board"></div>
+
+  <script>
+    const statusDiv = document.getElementById('status');
+    const boardDiv = document.getElementById('board');
+
+    console.log("Script started");
+    console.log("typeof Chess:", typeof Chess);
+
+    if (typeof Chess !== "function") {
+      statusDiv.textContent = "ERROR: Chess.js not loaded!";
+      statusDiv.style.color = "red";
+    } else {
+      statusDiv.textContent = "SUCCESS: Chess.js loaded!";
+      statusDiv.style.color = "green";
+
+      // Create chess game
+      const game = new Chess();
+      console.log("Chess game created");
+
+      // Get board
+      const board = game.board();
+      console.log("Board:", board);
+
+      // Piece unicode
+      const PIECES = {
+        "p": "♟", "r": "♜", "n": "♞", "b": "♝", "q": "♛", "k": "♚",
+        "P": "♙", "R": "♖", "N": "♘", "B": "♗", "Q": "♕", "K": "♔"
+      };
+
+      // Render board
+      for (let rank = 8; rank >= 1; rank--) {
+        for (let file = 0; file < 8; file++) {
+          const square = document.createElement('div');
+          square.className = 'square ' + ((file + rank) % 2 === 0 ? 'dark' : 'light');
+
+          const piece = board[8 - rank][file];
+          if (piece) {
+            const key = piece.color === 'w' ? piece.type.toUpperCase() : piece.type;
+            square.textContent = PIECES[key] || '';
+            console.log(`Square ${String.fromCharCode(97 + file)}${rank}: ${key} -> ${PIECES[key]}`);
+          }
+
+          boardDiv.appendChild(square);
+        }
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GM Axis Visualization Demo</title>
+  <link rel="stylesheet" href="assets/report_viz.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: #f5f5f5;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 3rem;
+    }
+    .demo-section {
+      background: white;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #555;
+      font-size: 1.3rem;
+      margin-bottom: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>GM Comparison Axis - Visualization Demo</h1>
+
+  <!-- Demo 1: 1.9 Forced Moves -->
+  <div class="demo-section">
+    <h2>1.9 Forced Moves Ratio</h2>
+
+    <div class="gm-axis-viz">
+      <div class="gm-axis-title">Comparison with Top GMs</div>
+
+      <div class="gm-axis-container">
+        <div class="gm-axis-line"></div>
+
+        <div class="gm-markers-layer" id="forced-moves-axis">
+          <!-- GM markers will be inserted here by JS -->
+        </div>
+      </div>
+
+      <div class="gm-axis-scale">
+        <span class="gm-scale-mark">0%</span>
+        <span class="gm-scale-mark">25%</span>
+        <span class="gm-scale-mark">50%</span>
+        <span class="gm-scale-mark">75%</span>
+        <span class="gm-scale-mark">100%</span>
+      </div>
+
+      <div class="gm-axis-legend">
+        <div class="legend-item">
+          <div class="legend-dot"></div>
+          <span>Top GMs</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot player"></div>
+          <span>Your Position</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demo 2: 2.1 Maneuver -->
+  <div class="demo-section">
+    <h2>2.1 Maneuver Ratio</h2>
+
+    <div class="gm-axis-viz">
+      <div class="gm-axis-title">Overall Maneuver Frequency vs GMs</div>
+
+      <div class="gm-axis-container">
+        <div class="gm-axis-line"></div>
+
+        <div class="gm-markers-layer" id="maneuver-axis">
+          <!-- GM markers will be inserted here by JS -->
+        </div>
+      </div>
+
+      <div class="gm-axis-scale">
+        <span class="gm-scale-mark">0%</span>
+        <span class="gm-scale-mark">10%</span>
+        <span class="gm-scale-mark">20%</span>
+        <span class="gm-scale-mark">30%</span>
+        <span class="gm-scale-mark">40%</span>
+      </div>
+
+      <div class="gm-axis-legend">
+        <div class="legend-item">
+          <div class="legend-dot"></div>
+          <span>Top GMs</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot player"></div>
+          <span>Your Position</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demo 3: 2.4 Control Over Dynamics -->
+  <div class="demo-section">
+    <h2>2.4 Control Over Dynamics Ratio</h2>
+
+    <div class="gm-axis-viz">
+      <div class="gm-axis-title">CoD Frequency Compared to Control Masters</div>
+
+      <div class="gm-axis-container">
+        <div class="gm-axis-line"></div>
+
+        <div class="gm-markers-layer" id="cod-axis">
+          <!-- GM markers will be inserted here by JS -->
+        </div>
+      </div>
+
+      <div class="gm-axis-scale">
+        <span class="gm-scale-mark">0%</span>
+        <span class="gm-scale-mark">15%</span>
+        <span class="gm-scale-mark">30%</span>
+        <span class="gm-scale-mark">45%</span>
+        <span class="gm-scale-mark">60%</span>
+      </div>
+
+      <div class="gm-axis-legend">
+        <div class="legend-item">
+          <div class="legend-dot"></div>
+          <span>Top GMs</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot player"></div>
+          <span>Your Position</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Utility function to create axis visualization
+    function createAxisViz(containerId, data) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      const { min, max, player, gms } = data;
+      const range = max - min;
+
+      // Create GM markers
+      gms.forEach(gm => {
+        const percentage = ((gm.value - min) / range) * 100;
+        const marker = createMarker(gm.name, gm.value, percentage, false);
+        container.appendChild(marker);
+      });
+
+      // Create player marker
+      const playerPercentage = ((player.value - min) / range) * 100;
+      const playerMarker = createMarker(player.name, player.value, playerPercentage, true);
+      container.appendChild(playerMarker);
+    }
+
+    function createMarker(name, value, percentage, isPlayer) {
+      const marker = document.createElement('div');
+      marker.className = isPlayer ? 'player-marker' : 'gm-marker';
+      marker.style.left = `${percentage}%`;
+
+      const dot = document.createElement('div');
+      dot.className = isPlayer ? 'player-marker-dot' : 'gm-marker-dot';
+
+      const line = document.createElement('div');
+      line.className = isPlayer ? 'player-marker-line' : 'gm-marker-line';
+
+      const label = document.createElement('div');
+      label.className = isPlayer ? 'player-marker-label' : 'gm-marker-label';
+      label.textContent = name;
+
+      const valueLabel = document.createElement('div');
+      valueLabel.className = isPlayer ? 'player-marker-value' : 'gm-marker-value';
+      valueLabel.textContent = `${value.toFixed(1)}%`;
+
+      marker.appendChild(label);
+      marker.appendChild(dot);
+      marker.appendChild(line);
+      marker.appendChild(valueLabel);
+
+      return marker;
+    }
+
+    // Demo data for 1.9 Forced Moves
+    createAxisViz('forced-moves-axis', {
+      min: 0,
+      max: 100,
+      player: { name: 'You', value: 42.5 },
+      gms: [
+        { name: 'Tal', value: 28.3 },
+        { name: 'Kasparov', value: 35.7 },
+        { name: 'Carlsen', value: 45.2 },
+        { name: 'Petrosian', value: 52.8 },
+        { name: 'Karpov', value: 48.6 }
+      ]
+    });
+
+    // Demo data for 2.1 Maneuver
+    createAxisViz('maneuver-axis', {
+      min: 0,
+      max: 40,
+      player: { name: 'You', value: 18.3 },
+      gms: [
+        { name: 'Karpov', value: 24.5 },
+        { name: 'Petrosian', value: 22.8 },
+        { name: 'Kramnik', value: 21.2 },
+        { name: 'Carlsen', value: 19.7 },
+        { name: 'Aronian', value: 17.4 }
+      ]
+    });
+
+    // Demo data for 2.4 Control Over Dynamics
+    createAxisViz('cod-axis', {
+      min: 0,
+      max: 60,
+      player: { name: 'You', value: 32.1 },
+      gms: [
+        { name: 'Tal', value: 12.3 },
+        { name: 'Kasparov', value: 18.5 },
+        { name: 'Carlsen', value: 28.7 },
+        { name: 'Kramnik', value: 38.9 },
+        { name: 'Petrosian', value: 52.4 },
+        { name: 'Karpov', value: 45.6 }
+      ]
+    });
+  </script>
+</body>
+</html>

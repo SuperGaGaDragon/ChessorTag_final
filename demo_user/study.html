@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo User Study</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css" integrity="sha512-7WhRkNF7sVhBJA4rQv3vjUxPht4UtmR3UijwExhJpXY3X1oX3eLWTu13BzIkO13JpFKsf3M5EsyCzHCkN7LiOA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    :root {
+      --ink: #0f172a;
+      --muted: #6b7280;
+      --accent: #0ea5e9;
+      --card: #ffffff;
+      --bg: linear-gradient(135deg, rgba(14,165,233,0.16), rgba(34,197,94,0.1));
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f7f8fb;
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+      background: #ffffff;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(14, 165, 233, 0.12);
+      color: #0369a1;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    main {
+      width: min(1100px, 96vw);
+      margin: 24px auto 40px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 18px;
+    }
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+    .panel {
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+      padding: 14px 16px 18px;
+    }
+    .panel h2 {
+      margin: 4px 0 10px;
+    }
+    #board {
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+    .status {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 10px;
+    }
+    .move-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .move-list li {
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #f3f4f6;
+      border: 1px solid rgba(15, 23, 42, 0.06);
+      font-weight: 600;
+    }
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .linkish {
+      text-decoration: none;
+      color: var(--ink);
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: #eef2ff;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      font-weight: 700;
+    }
+    .meta {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+    .pill.mini {
+      background: rgba(34,197,94,0.14);
+      color: #15803d;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span style="width: 30px; height: 30px; border-radius: 10px; background: linear-gradient(135deg, #0ea5e9, #22c55e); display: grid; place-items: center; color: #ffffff;">♜</span>
+      <span id="studyTitle">Loading study…</span>
+    </div>
+    <div class="header-actions">
+      <a class="linkish" href="home.html">← Back home</a>
+      <span class="pill">demo_user</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <div class="meta">Drag pieces to make a move. Each move is sent to FastAPI immediately with its FEN + SAN.</div>
+      <div id="board"></div>
+      <div class="status" id="boardStatus">Waiting for backend…</div>
+    </section>
+
+    <section class="panel">
+      <h2>Moves</h2>
+      <div class="meta">Autoloads from <code>/api/studies/:id</code>. Reopen the page to replay saved moves.</div>
+      <ol class="move-list" id="moveList"></ol>
+      <div class="status" id="moveStatus"></div>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.0.0/chess.min.js" integrity="sha512-8XUSbSkNUXCU9jEnoA6UciC/hz7bpSd2KN1m57MPcuxfnfYOGUJw5RXVb4Gdho0i2+j9wPrdLwpuZ8W+YiuOXQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js" integrity="sha512-FsJQZfePfJWkYkLfA6a904lPck/KvKpmraZBVp4G6P+JsYlvOKVNkVSMXYtcn7t7bSlazRVp1OQijUWN+KrwVA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
+    const API_BASE = "http://localhost:8001";
+    const params = new URLSearchParams(window.location.search);
+    const studyId = params.get("id");
+    const titleEl = document.getElementById("studyTitle");
+    const moveList = document.getElementById("moveList");
+    const boardStatus = document.getElementById("boardStatus");
+    const moveStatus = document.getElementById("moveStatus");
+
+    const game = new Chess();
+    let board = null;
+    let moveIndex = 0;
+    let movesState = [];
+
+    if (!studyId) {
+      titleEl.textContent = "Missing study id in URL";
+    }
+
+    function renderMoves() {
+      moveList.innerHTML = "";
+      movesState.sort((a, b) => a.move_index - b.move_index);
+      movesState.forEach((mv) => {
+        const li = document.createElement("li");
+        li.textContent = `${mv.move_index}. ${mv.move_san}`;
+        moveList.appendChild(li);
+      });
+      moveStatus.textContent = movesState.length
+        ? `Showing ${movesState.length} saved move(s).`
+        : "No moves yet.";
+    }
+
+    async function saveMove(fenBefore, san) {
+      const payload = {
+        move_index: moveIndex + 1,
+        fen_before: fenBefore,
+        move_san: san,
+      };
+      movesState.push(payload);
+      moveIndex = payload.move_index;
+      renderMoves();
+      boardStatus.textContent = "Saving move…";
+
+      try {
+        const resp = await fetch(`${API_BASE}/api/studies/${encodeURIComponent(studyId)}/moves`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!resp.ok) throw new Error("save failed");
+        boardStatus.textContent = "Saved to SQLite via FastAPI.";
+      } catch (err) {
+        console.error(err);
+        game.undo();
+        movesState.pop();
+        moveIndex -= 1;
+        board.position(game.fen());
+        renderMoves();
+        boardStatus.textContent = "Save failed. Move was reverted.";
+      }
+    }
+
+    function setupBoard() {
+      board = Chessboard("board", {
+        draggable: true,
+        position: game.fen(),
+        onDragStart: (source, piece) => {
+          if (game.isGameOver()) return false;
+          if (game.turn() === "w" && piece.startsWith("b")) return false;
+          if (game.turn() === "b" && piece.startsWith("w")) return false;
+          return true;
+        },
+        onDrop: (source, target) => {
+          const fenBefore = game.fen();
+          const move = game.move({ from: source, to: target, promotion: "q" });
+          if (move === null) return "snapback";
+          board.position(game.fen());
+          saveMove(fenBefore, move.san);
+        },
+        onSnapEnd: () => board.position(game.fen()),
+      });
+    }
+
+    async function loadStudy() {
+      boardStatus.textContent = "Loading study from backend…";
+      try {
+        const resp = await fetch(`${API_BASE}/api/studies/${encodeURIComponent(studyId)}`);
+        if (!resp.ok) throw new Error("Study not found");
+        const data = await resp.json();
+        titleEl.textContent = data.name;
+        game.reset();
+        movesState = [];
+        data.moves.forEach((mv) => {
+          const applied = game.move(mv.move_san);
+          if (applied) {
+            movesState.push(mv);
+            moveIndex = mv.move_index;
+          }
+        });
+        board.position(game.fen());
+        renderMoves();
+        boardStatus.textContent = "Study ready. Make a move!";
+      } catch (err) {
+        console.error(err);
+        boardStatus.textContent = "Failed to load study. Is the backend running?";
+      }
+    }
+
+    setupBoard();
+    if (studyId) {
+      loadStudy();
+    }
+  </script>
+</body>
+</html>

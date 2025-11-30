@@ -1,0 +1,50 @@
+Other Metrics needed for report:
+
+1. Win rate when player is white
+2. Win rate when player is black
+3. Opponent average elo when player is white (when no elo data, show no data) 
+4. Opponent average elo when player is black 
+
+5. Total accuracy(dp)
+6. Opening accuracy 
+7. Middle game accuracy 
+8. Accuracy with queen on board (exclude position larger than +5 or smaller than -5)
+9. Accuracy without queen on board 
+
+When white|when black|in total
+6. Win/lose/draw rate when +10 cp
+7. Win/lose/draw rate when +30 cp
+8. Win/lose/draw rate when +50 cp
+9. Win/lose/draw rate when +70 cp
+
+When white|when black|in total
+10. Win/lose/draw rate when -10 cp
+11. Win/lose/draw rate when -30 cp
+12. Win/lose/draw rate when -50 cp
+13. Win/lose/draw rate when -70 cp
+
+When white|when black|in total
+14. 速胜对局占比（全程压制对手）：
+15. 速败对局占比（全程被压制）：
+16. 小波澜对局占比（2个左右+1到-1以上的起伏）：
+17. 起伏对局占比（2个左右+2到-2以上的起伏）：
+18. 大起伏对局占比（4个左右+2到-2以上的起伏）
+19. 高精度和棋对局占比（没有大于+-0.8的起伏）：
+
+
+When white|when black|in total
+20. Best moves rate (engine top 2)
+21. Inaccuracies rate (-5 cp)
+22. Mistakes rate(-10 cp)
+23. Blunder rate (-30 cp)
+
+
+When white|when black|in total
+24. total tactical positions
+25. Exploited
+26. Missed 
+
+
+
+
+All other tags that are shown in my_model.txt yet not shown here, is in the chess_imitator (black box) folder

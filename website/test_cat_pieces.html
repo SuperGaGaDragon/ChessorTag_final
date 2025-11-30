@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cat Pieces Test</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script src="cat_pieces.js"></script>
+  <style>
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, 60px);
+      grid-template-rows: repeat(8, 60px);
+      gap: 0;
+      margin: 20px;
+    }
+    .square {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      position: relative;
+    }
+    .light { background: #f0d9b5; }
+    .dark { background: #b58863; }
+    .cat-piece-img {
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 80%;
+    }
+    button {
+      margin: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cat Pieces Test</h1>
+  <div id="status">Checking...</div>
+  <button id="toggleBtn">Toggle Cat Pieces</button>
+  <div id="board" class="board"></div>
+
+  <script>
+    const statusDiv = document.getElementById('status');
+    const boardDiv = document.getElementById('board');
+    const toggleBtn = document.getElementById('toggleBtn');
+    let useCatPieces = false;
+
+    console.log("=== CAT PIECES TEST ===");
+    console.log("typeof Chess:", typeof Chess);
+    console.log("typeof getCatPieceImage:", typeof getCatPieceImage);
+
+    if (typeof Chess !== "function") {
+      statusDiv.innerHTML = "<span style='color:red'>ERROR: Chess.js not loaded!</span>";
+    } else if (typeof getCatPieceImage !== "function") {
+      statusDiv.innerHTML = "<span style='color:orange'>WARNING: cat_pieces.js not loaded!</span>";
+    } else {
+      statusDiv.innerHTML = "<span style='color:green'>SUCCESS: All libraries loaded!</span>";
+    }
+
+    // Piece unicode
+    const PIECES = {
+      "p": "♟", "r": "♜", "n": "♞", "b": "♝", "q": "♛", "k": "♚",
+      "P": "♙", "R": "♖", "N": "♘", "B": "♗", "Q": "♕", "K": "♔"
+    };
+
+    const game = new Chess();
+
+    function renderBoard() {
+      console.log("Rendering board, useCatPieces:", useCatPieces);
+      boardDiv.innerHTML = '';
+      const board = game.board();
+
+      for (let rank = 8; rank >= 1; rank--) {
+        for (let file = 0; file < 8; file++) {
+          const square = document.createElement('div');
+          square.className = 'square ' + ((file + rank) % 2 === 0 ? 'dark' : 'light');
+
+          const piece = board[8 - rank][file];
+          if (piece) {
+            const key = piece.color === 'w' ? piece.type.toUpperCase() : piece.type;
+
+            if (useCatPieces) {
+              const imgPath = getCatPieceImage({ type: piece.type, color: piece.color });
+              console.log(`Piece ${key}: ${imgPath}`);
+              if (imgPath) {
+                square.style.backgroundImage = `url("${imgPath}")`;
+                square.classList.add('cat-piece-img');
+                square.textContent = ''; // Clear text when using images
+              } else {
+                square.textContent = PIECES[key] || '';
+              }
+            } else {
+              square.textContent = PIECES[key] || '';
+              square.style.backgroundImage = '';
+              square.classList.remove('cat-piece-img');
+            }
+          }
+
+          boardDiv.appendChild(square);
+        }
+      }
+    }
+
+    toggleBtn.onclick = () => {
+      useCatPieces = !useCatPieces;
+      toggleBtn.textContent = useCatPieces ? 'Change to Normal Pieces' : 'Toggle Cat Pieces';
+      renderBoard();
+    };
+
+    renderBoard();
+  </script>
+</body>
+</html>

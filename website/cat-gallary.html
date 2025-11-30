@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ChessorTag – Developer Gallery</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --green: #22c55e;
+      --bg: #f8f9fa;
+      --text-main: #1f2937;
+      --text-sub: #4b5563;
+      --card-bg: #ffffff;
+      --border-soft: #e5e7eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+    a { color: var(--green); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px 56px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    header h1 { margin: 0; font-size: 30px; font-weight: 700; }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .photo {
+      position: relative;
+      overflow: hidden;
+      border-radius: 18px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.18s ease;
+    }
+    .photo:hover img { transform: scale(1.04); }
+    .photo-caption {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      padding: 4px 9px;
+      background: rgba(15, 23, 42, 0.85);
+      border-radius: 999px;
+      color: #f9fafb;
+      font-size: 11px;
+      pointer-events: none;
+    }
+    @media (max-width: 900px) {
+      .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 600px) {
+      .gallery { grid-template-columns: 1fr; }
+      header h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header>
+      <h1>Developer Photo Gallery</h1>
+      <a href="developers.html">← Back to developers</a>
+    </header>
+
+    <section class="gallery">
+      <figure class="photo">
+        <img src="assets/Cats/Cat1.jpg" alt="Cat 1" />
+        <figcaption class="photo-caption">Intern era: learning forks & pins.</figcaption>
+      </figure>
+
+      <figure class="photo">
+        <img src="assets/Cats/Cat2.jpg" alt="Cat 2" />
+        <figcaption class="photo-caption">Sitting like a world champion.</figcaption>
+      </figure>
+
+      <figure class="photo">
+        <img src="assets/Cats/Cat3.jpg" alt="Cat 3" />
+        <figcaption class="photo-caption">Crossed paws, uncrossed code.</figcaption>
+      </figure>
+
+      <figure class="photo">
+        <img src="assets/Cats/Cat4.jpg" alt="Cat 4" />
+        <figcaption class="photo-caption">Thinking cap: shuttle edition.</figcaption>
+      </figure>
+
+      <figure class="photo">
+        <img src="assets/Cats/Cat5.jpg" alt="Cat 5" />
+        <figcaption class="photo-caption">Queen of prophylaxis.</figcaption>
+      </figure>
+
+      <figure class="photo">
+        <img src="assets/Cats/Cat6.jpg" alt="Cat 6" />
+        <figcaption class="photo-caption">When the engine misses mate in 3.</figcaption>
+      </figure>
+
+      <figure class="photo">
+        <img src="assets/Cats/Cat7.jpg" alt="Cat 7" />
+        <figcaption class="photo-caption">Executive meeting selfie.</figcaption>
+      </figure>
+    </section>
+  </div>
+</body>
+</html>

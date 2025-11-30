@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(open:*)",
+      "Bash(for file in style_prophylaxis.md style_semantic_control.md style_cod.md style_tension.md style_sacrifice.md style_exchanges_forced.md)",
+      "Bash(do)",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(curl:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,291 @@
+/* ============================================================ */
+/* VISUALIZATION: GM COMPARISON AXIS */
+/* ============================================================ */
+
+.gm-axis-viz {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+}
+
+.gm-axis-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.gm-axis-container {
+  position: relative;
+  padding: 2rem 0;
+  margin: 0 2rem;
+}
+
+/* Main axis line */
+.gm-axis-line {
+  position: relative;
+  height: 4px;
+  background: linear-gradient(90deg, #e3f2fd 0%, #1976d2 50%, #0d47a1 100%);
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Scale markers (0%, 25%, 50%, 75%, 100%) */
+.gm-axis-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  padding: 0 0.5rem;
+}
+
+.gm-scale-mark {
+  font-size: 0.75rem;
+  color: #888;
+  font-weight: 500;
+}
+
+/* GM markers container */
+.gm-markers-layer {
+  position: absolute;
+  top: -2rem;
+  left: 0;
+  right: 0;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Individual GM marker */
+.gm-marker {
+  position: absolute;
+  transform: translateX(-50%);
+  pointer-events: all;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gm-marker:hover {
+  transform: translateX(-50%) translateY(-3px);
+  z-index: 10;
+}
+
+.gm-marker-dot {
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border: 2px solid #1976d2;
+  border-radius: 50%;
+  margin: 0 auto;
+  box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
+  transition: all 0.2s ease;
+}
+
+.gm-marker:hover .gm-marker-dot {
+  width: 14px;
+  height: 14px;
+  border-width: 3px;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.5);
+}
+
+.gm-marker-line {
+  width: 2px;
+  height: 1.5rem;
+  background: linear-gradient(to bottom, #1976d2, transparent);
+  margin: 0 auto;
+}
+
+.gm-marker-label {
+  position: absolute;
+  top: -2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1976d2;
+  background: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid #e3f2fd;
+}
+
+.gm-marker-value {
+  position: absolute;
+  top: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  color: #666;
+  background: rgba(255,255,255,0.9);
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+}
+
+.gm-marker-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #dbeafe;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+/* Player marker (highlighted) */
+.player-marker {
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 20;
+  pointer-events: all;
+  animation: pulsePlayer 2s ease-in-out infinite;
+}
+
+@keyframes pulsePlayer {
+  0%, 100% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.05);
+  }
+}
+
+.player-marker-dot {
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  border: 3px solid #fff;
+  border-radius: 50%;
+  margin: 0 auto;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+  position: relative;
+}
+
+.player-marker-dot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+}
+
+.player-marker-line {
+  width: 3px;
+  height: 2rem;
+  background: linear-gradient(to bottom, #ff6b6b, transparent);
+  margin: 0 auto;
+}
+
+.player-marker-label {
+  position: absolute;
+  top: -3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+  border: 2px solid #fff;
+}
+
+.player-marker-label::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #ee5a6f;
+}
+
+.player-marker-value {
+  position: absolute;
+  top: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ff6b6b;
+  background: #fff;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ff6b6b;
+  box-shadow: 0 2px 6px rgba(255, 107, 107, 0.2);
+}
+
+/* Legend */
+.gm-axis-legend {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #1976d2;
+  background: white;
+}
+
+.legend-dot.player {
+  width: 14px;
+  height: 14px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(255, 107, 107, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .gm-axis-container {
+    margin: 0 1rem;
+  }
+
+  .gm-marker-label,
+  .player-marker-label {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.4rem;
+  }
+
+  .gm-axis-legend {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+/* Tooltip on hover */
+.gm-marker:hover .gm-marker-label,
+.player-marker:hover .player-marker-label {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  transform: translateX(-50%) translateY(-2px);
+}

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ChessorTag – About</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: #f8f9fa;
+      color: #1f2937;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    .header {
+      display: flex;
+      align-items: flex-start;
+      gap: 60px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        gap: 30px;
+      }
+    }
+
+    .logo-section {
+      flex-shrink: 0;
+    }
+
+    .logo-img {
+      width: 220px;
+      height: auto;
+      display: block;
+    }
+
+    .intro-section {
+      flex: 1;
+      padding-top: 10px;
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      font-size: 48px;
+      font-weight: 700;
+      color: #111827;
+      line-height: 1.1;
+    }
+
+    .tagline {
+      font-size: 18px;
+      color: #4b5563;
+      margin-bottom: 28px;
+      line-height: 1.7;
+      border: 2px solid #e5e7eb;
+      padding: 24px;
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .section-label {
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      margin-bottom: 14px;
+      font-weight: 600;
+    }
+
+    .feature-list {
+      font-size: 16px;
+      color: #374151;
+      margin: 0 0 0;
+      padding: 24px 24px 24px 48px;
+      line-height: 1.9;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .feature-list li {
+      margin-bottom: 10px;
+    }
+
+    /* 漫画对话框样式 */
+    .comic-speech-bubble {
+      position: relative;
+      background: #fffef5;
+      border: 3px solid #1f2937;
+      border-radius: 20px;
+      padding: 20px 24px;
+      margin: 8px 0 32px;
+      font-size: 17px;
+      color: #1f2937;
+      font-weight: 600;
+      text-align: center;
+      max-width: 500px;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.15);
+    }
+
+    .comic-speech-bubble::before {
+      content: '';
+      position: absolute;
+      bottom: -20px;
+      right: 30px;
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 20px solid #1f2937;
+    }
+
+    .comic-speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -14px;
+      right: 33px;
+      width: 0;
+      height: 0;
+      border-left: 17px solid transparent;
+      border-right: 17px solid transparent;
+      border-top: 17px solid #fffef5;
+    }
+
+    .cat-character {
+      position: absolute;
+      top: -200px;
+      right: -280px;
+      width: 240px;
+      height: auto;
+      filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.1));
+      z-index: 5;
+    }
+
+    .speech-wrapper {
+      position: relative;
+      margin-bottom: -80px;
+      margin-left: 120px;
+      margin-top: 20px;
+      z-index: 4;
+    }
+
+    .cta-section {
+      background: #ffffff;
+      border-radius: 16px;
+      border: 2px solid #e5e7eb;
+      padding: 36px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      position: relative;
+      z-index: 1;
+    }
+
+    .cta-title {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #111827;
+    }
+
+    .cta-description {
+      font-size: 15px;
+      color: #6b7280;
+      margin-bottom: 28px;
+      line-height: 1.7;
+    }
+
+    .cta-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .btn-main {
+      padding: 14px 28px;
+      border-radius: 10px;
+      border: none;
+      background: #22c55e;
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+    }
+
+    .btn-main:hover {
+      background: #16a34a;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35);
+    }
+
+    .btn-secondary {
+      padding: 14px 28px;
+      border-radius: 10px;
+      border: 2px solid #d1d5db;
+      background: #ffffff;
+      color: #374151;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: #f9fafb;
+      border-color: #9ca3af;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 48px;
+    }
+
+    @media (max-width: 900px) {
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .info-card {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 2px solid #e5e7eb;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: all 0.2s ease;
+    }
+
+    .info-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .info-card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-card-text {
+      font-size: 14px;
+      color: #6b7280;
+      line-height: 1.7;
+    }
+
+    .mini-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: #dcfce7;
+      color: #16a34a;
+      font-size: 12px;
+      font-weight: 700;
+      margin-left: 8px;
+      border: 1px solid #bbf7d0;
+    }
+
+    .footer {
+      margin-top: 80px;
+      padding-top: 32px;
+      border-top: 2px solid #e5e7eb;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .footer-link {
+      color: #6b7280;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .footer-link:hover {
+      color: #1f2937;
+    }
+
+    .footer-text {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo-section">
+        <img src="assets/logo1.png" alt="ChessorTag Logo" class="logo-img" />
+      </div>
+
+      <div class="intro-section">
+        <h1>ChessorTag</h1>
+        <p class="tagline">
+          A playground for understanding chess style: generate personalized reports,
+          build interactive studies, and let AI speak in the voice of your favorite grandmasters.
+        </p>
+
+        <div class="section-label">What is this?</div>
+        <ul class="feature-list">
+          <li>Style report engine that analyzes your games like a GM coach</li>
+          <li>Lichess-inspired study boards with draggable desktop organization</li>
+          <li>Cloud storage so your reports and studies follow your account</li>
+          <li>AI-powered move suggestions in the style of legendary players</li>
+        </ul>
+
+        <div class="speech-wrapper">
+          <div class="comic-speech-bubble">
+            "Let's work to improve your chess together!"
+            <img src="assets/loading.png" alt="Cat mascot" class="cat-character" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-section">
+      <div class="cta-title">
+        Try ChessorTag <span class="mini-badge">Beta</span>
+      </div>
+      <p class="cta-description">
+        Jump into your personal workspace where you can access your latest reports,
+        create new studies, and organize everything in a customizable desktop layout.
+        No sign-up required for the demo.
+      </p>
+      <div class="cta-buttons">
+        <button class="btn-main" onclick="window.location.href='home.html'">
+          Try Chessortag
+        </button>
+        <button class="btn-secondary" onclick="window.location.href='developers.html'">
+          About Developers
+        </button>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-title">
+          📊 Style Reports
+        </div>
+        <div class="info-card-text">
+          Get detailed analysis of your playing style with comparisons to famous grandmasters.
+          Understand your strengths and areas for improvement.
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-card-title">♟️ Study Workspace</div>
+        <div class="info-card-text">
+          Create and organize chess studies with an intuitive board interface.
+          Import PGN files, add variations, and annotate your games.
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-card-title">🤖 GM-Style AI</div>
+        <div class="info-card-text">
+          Receive move suggestions in the playing style of chess legends.
+          Learn different approaches from Tal's tactics to Petrosian's prophylaxis.
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="developers.html" class="footer-link">About Developer</a>
+        <span style="color: #d1d5db;">|</span>
+        <a href="https://github.com/yourusername/chessortag" class="footer-link" target="_blank">GitHub</a>
+        <span style="color: #d1d5db;">|</span>
+        <a href="#" class="footer-link">Contact</a>
+      </div>
+      <p class="footer-text">© 2024 ChessorTag. Built with ♟️ for chess enthusiasts.</p>
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GM Photos Demo - Chess Style Report</title>
+  <link rel="stylesheet" href="../assets/report.css" />
+  <style>
+    .demo-section {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    .demo-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #0f172a;
+    }
+    .demo-description {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #4b5563;
+      margin-bottom: 30px;
+    }
+    .demo-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      margin-bottom: 30px;
+    }
+  </style>
+</head>
+<body style="padding: 40px; background: #f3f4f6;">
+  <div class="demo-section">
+    <h1 class="demo-title">GM照片功能演示 (GM Photos Feature Demo)</h1>
+    <p class="demo-description">
+      这个页面展示了棋手报告中的GM相似度卡片功能。系统会自动从分析文本中提取与玩家风格最相似的大师，并显示他们的照片和相似度百分比。
+    </p>
+
+    <div class="demo-card">
+      <h2 style="margin-top: 0; font-size: 20px; margin-bottom: 16px;">示例1: 完整的GM照片</h2>
+      <div class="gm-strip">
+        <div class="gm-card">
+          <div class="gm-avatar">
+            <img src="../assets/gm_photos/Petrosian.jpg" alt="Tigran Petrosian" />
+          </div>
+          <div>
+            <div class="gm-name">Tigran Petrosian</div>
+            <div class="gm-score">Similarity: 85%</div>
+          </div>
+        </div>
+        <div class="gm-card">
+          <div class="gm-avatar">
+            <img src="../assets/gm_photos/Fischer.jpg" alt="Bobby Fischer" />
+          </div>
+          <div>
+            <div class="gm-name">Bobby Fischer</div>
+            <div class="gm-score">Similarity: 72%</div>
+          </div>
+        </div>
+        <div class="gm-card">
+          <div class="gm-avatar">
+            <img src="../assets/gm_photos/Tal.jpg" alt="Mikhail Tal" />
+          </div>
+          <div>
+            <div class="gm-name">Mikhail Tal</div>
+            <div class="gm-score">Similarity: 68%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-card">
+      <h2 style="margin-top: 0; font-size: 20px; margin-bottom: 16px;">示例2: 混合显示（部分GM有照片）</h2>
+      <div class="gm-strip">
+        <div class="gm-card">
+          <div class="gm-avatar">
+            <img src="../assets/gm_photos/Kasparov.jpg" alt="Garry Kasparov" />
+          </div>
+          <div>
+            <div class="gm-name">Garry Kasparov</div>
+            <div class="gm-score">Similarity: 78%</div>
+          </div>
+        </div>
+        <div class="gm-card">
+          <div class="gm-avatar">AK</div>
+          <div>
+            <div class="gm-name">Anatoly Karpov</div>
+            <div class="gm-score">Similarity: 71%</div>
+          </div>
+        </div>
+        <div class="gm-card">
+          <div class="gm-avatar">
+            <img src="../assets/gm_photos/Petrosian.jpg" alt="Tigran Petrosian" />
+          </div>
+          <div>
+            <div class="gm-name">Tigran Petrosian</div>
+            <div class="gm-score">Similarity: 65%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-card">
+      <h2 style="margin-top: 0; font-size: 20px; margin-bottom: 16px;">所有可用的GM照片</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+        <div style="text-align: center;">
+          <div class="gm-avatar" style="width: 80px; height: 80px; margin: 0 auto 10px;">
+            <img src="../assets/gm_photos/Petrosian.jpg" alt="Tigran Petrosian" />
+          </div>
+          <div style="font-weight: 600;">Tigran Petrosian</div>
+          <div style="font-size: 13px; color: #6b7280;">防御大师</div>
+        </div>
+        <div style="text-align: center;">
+          <div class="gm-avatar" style="width: 80px; height: 80px; margin: 0 auto 10px;">
+            <img src="../assets/gm_photos/Fischer.jpg" alt="Bobby Fischer" />
+          </div>
+          <div style="font-weight: 600;">Bobby Fischer</div>
+          <div style="font-size: 13px; color: #6b7280;">世界冠军</div>
+        </div>
+        <div style="text-align: center;">
+          <div class="gm-avatar" style="width: 80px; height: 80px; margin: 0 auto 10px;">
+            <img src="../assets/gm_photos/Tal.jpg" alt="Mikhail Tal" />
+          </div>
+          <div style="font-weight: 600;">Mikhail Tal</div>
+          <div style="font-size: 13px; color: #6b7280;">魔术师</div>
+        </div>
+        <div style="text-align: center;">
+          <div class="gm-avatar" style="width: 80px; height: 80px; margin: 0 auto 10px;">
+            <img src="../assets/gm_photos/Kasparov.jpg" alt="Garry Kasparov" />
+          </div>
+          <div style="font-weight: 600;">Garry Kasparov</div>
+          <div style="font-size: 13px; color: #6b7280;">传奇冠军</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-card" style="background: #f8f9fa; border: 2px solid #e5e7eb;">
+      <h2 style="margin-top: 0; font-size: 18px; margin-bottom: 12px;">📝 使用说明</h2>
+      <ul style="line-height: 1.8; color: #4b5563;">
+        <li>系统会自动从"Overall Synthesis"部分提取GM相似度信息</li>
+        <li>支持的格式：<code>GM Name (85%)</code> 或 <code>GM Name: 85%</code></li>
+        <li>如果找到匹配的照片，会自动显示；否则显示GM姓名缩写</li>
+        <li>最多显示3位最相似的GM</li>
+        <li>照片自动适配圆形显示，支持响应式布局</li>
+      </ul>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px; padding: 20px; color: #6b7280;">
+      <p>要查看完整的集成指南，请参阅 <code>GM_PHOTOS_GUIDE.md</code></p>
+    </div>
+  </div>
+</body>
+</html>

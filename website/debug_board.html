@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Debug Board</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <style>
+    .board-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 50px);
+      grid-template-rows: repeat(8, 50px);
+      gap: 1px;
+      background: #333;
+      margin: 20px;
+      width: fit-content;
+    }
+    .board-square {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      user-select: none;
+      width: 50px;
+      height: 50px;
+    }
+    .sq-light { background: #f0d9b5; }
+    .sq-dark { background: #b58863; }
+  </style>
+</head>
+<body>
+  <h1>Debug Board Test</h1>
+  <div id="log"></div>
+  <div class="board-grid" id="boardGrid"></div>
+
+  <script>
+    const log = document.getElementById('log');
+    const boardGrid = document.getElementById('boardGrid');
+
+    function logMsg(msg) {
+      console.log(msg);
+      log.innerHTML += msg + '<br>';
+    }
+
+    logMsg('Step 1: Check Chess');
+    logMsg('typeof Chess: ' + typeof Chess);
+
+    if (typeof Chess !== 'function') {
+      logMsg('ERROR: Chess not loaded!');
+    } else {
+      logMsg('Step 2: Create game');
+      const game = new Chess();
+      logMsg('Game created: ' + (game ? 'YES' : 'NO'));
+
+      logMsg('Step 3: Init board grid');
+      const files = ["a","b","c","d","e","f","g","h"];
+      for (let rank = 8; rank >= 1; rank--) {
+        for (let fileIndex = 0; fileIndex < 8; fileIndex++) {
+          const file = files[fileIndex];
+          const square = file + rank;
+          const isDark = (fileIndex + rank) % 2 === 0;
+          const div = document.createElement("div");
+          div.className = (isDark ? "sq-dark" : "sq-light") + " board-square";
+          div.dataset.square = square;
+          boardGrid.appendChild(div);
+        }
+      }
+      logMsg('Grid created, squares: ' + boardGrid.children.length);
+
+      logMsg('Step 4: Get board state');
+      const board = game.board();
+      logMsg('Board array length: ' + board.length);
+
+      logMsg('Step 5: Render pieces');
+      const PIECE_UNICODE = {
+        "p": "♟", "r": "♜", "n": "♞", "b": "♝", "q": "♛", "k": "♚",
+        "P": "♙", "R": "♖", "N": "♘", "B": "♗", "Q": "♕", "K": "♔"
+      };
+
+      let pieceCount = 0;
+      for (let rankIndex = 0; rankIndex < 8; rankIndex++) {
+        for (let fileIndex = 0; fileIndex < 8; fileIndex++) {
+          const piece = board[rankIndex][fileIndex];
+          if (!piece) continue;
+          
+          const squareName = files[fileIndex] + (8 - rankIndex);
+          const el = boardGrid.querySelector(`[data-square="${squareName}"]`);
+          
+          if (!el) {
+            logMsg(`ERROR: Cannot find element for ${squareName}`);
+            continue;
+          }
+          
+          const key = piece.color === "w" ? piece.type.toUpperCase() : piece.type;
+          const glyph = PIECE_UNICODE[key] || "";
+          el.textContent = glyph;
+          pieceCount++;
+          
+          logMsg(`Placed ${glyph} at ${squareName}`);
+        }
+      }
+      
+      logMsg(`Total pieces placed: ${pieceCount}`);
+    }
+  </script>
+</body>
+</html>

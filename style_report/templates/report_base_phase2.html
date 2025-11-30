@@ -1,0 +1,2304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chessortag Style Report - {{PLAYER_ID}}</title>
+  <link rel="stylesheet" href="../assets/report.css" id="report-css" />
+  <link rel="stylesheet" href="../assets/report_viz.css" id="report-viz-css" />
+  <style>
+    .tag-help {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 6px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #e4e9ff;
+      color: #1f2a44;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .tag-help:hover {
+      background: #d6ddff;
+    }
+    .tag-cell {
+      position: relative;
+    }
+    .tag-help-tooltip {
+      position: absolute;
+      left: 22px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #0f172a;
+      color: #fff;
+      padding: 6px 8px;
+      border-radius: 6px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+      font-size: 12px;
+      line-height: 1.3;
+      min-width: 180px;
+      max-width: 260px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.15s ease, visibility 0.15s ease;
+      z-index: 5;
+      pointer-events: none;
+    }
+    .tag-cell:hover .tag-help-tooltip {
+      opacity: 1;
+      visibility: visible;
+    }
+  </style>
+  <script>
+    // Fallback loader: if relative paths fail (e.g., served from a different base), retry with root-based paths.
+    (function() {
+      const ensureCss = (id, fallbackHref) => {
+        const linkEl = document.getElementById(id);
+        if (!linkEl) return;
+
+        let loaded = false;
+        linkEl.addEventListener('load', () => { loaded = true; });
+        linkEl.addEventListener('error', () => {
+          linkEl.href = fallbackHref;
+        });
+
+        // If the CSS hasn't loaded shortly after DOM start, switch to fallback.
+        setTimeout(() => {
+          if (!loaded && !linkEl.href.endsWith(fallbackHref)) {
+            linkEl.href = fallbackHref;
+          }
+        }, 300);
+      };
+
+      ensureCss('report-css', '/style_report/assets/report.css');
+      ensureCss('report-viz-css', '/style_report/assets/report_viz.css');
+    })();
+  </script>
+</head>
+<body>
+  <div class="report-root">
+    <aside class="report-sidebar">
+      <div class="sidebar-title">Chess Style Report</div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <a href="#section1-performance" class="sidebar-link parent-link">1. Performance Profile</a>
+          <div class="nav-subsections">
+            <a href="#perf-winrate" class="sidebar-sublink">1.1 Win rate</a>
+            <a href="#perf-accuracy" class="sidebar-sublink">1.2 Accuracy</a>
+            <a href="#perf-advantage" class="sidebar-sublink">1.3 Advantage conversion</a>
+            <a href="#perf-defensive" class="sidebar-sublink">1.4 Defensive conversion</a>
+            <a href="#perf-volatility" class="sidebar-sublink">1.5 Volatility/trajectory</a>
+            <a href="#perf-engine" class="sidebar-sublink">1.6 Engine decision quality</a>
+            <a href="#perf-tactical" class="sidebar-sublink">1.7 Tactical conversion</a>
+            <a href="#perf-exchanges" class="sidebar-sublink">1.8 Knight/bishop exchanges</a>
+            <a href="#perf-forced" class="sidebar-sublink">1.9 Forced moves</a>
+            <a href="#perf-positions" class="sidebar-sublink">1.10 Winning/losing position handling</a>
+          </div>
+        </div>
+        <div class="nav-section">
+          <a href="#section2-style" class="sidebar-link parent-link">2. Style Parameters</a>
+          <div class="nav-subsections">
+            <a href="#style-maneuver" class="sidebar-sublink">2.1 Maneuver</a>
+            <a href="#style-prophylaxis" class="sidebar-sublink">2.2 Prophylaxis</a>
+            <a href="#style-semantic_control" class="sidebar-sublink">2.3 Semantic control</a>
+            <a href="#style-control_over_dynamics" class="sidebar-sublink">2.4 Control over dynamics</a>
+            <a href="#style-initiative" class="sidebar-sublink">2.5 Initiative</a>
+            <a href="#style-tension" class="sidebar-sublink">2.6 Tension management</a>
+            <a href="#style-structural" class="sidebar-sublink">2.7 Structural play</a>
+            <a href="#style-sacrifice" class="sidebar-sublink">2.8 Sacrificial play</a>
+            <a href="#style-exchanges_forced" class="sidebar-sublink">2.9 Style synthesis</a>
+          </div>
+        </div>
+        <a href="#section3-overall" class="sidebar-link">3. Overall Synthesis</a>
+        <div class="nav-subsections">
+          <a href="#section-3-1-ability" class="sidebar-sublink">3.1 Ability evaluation</a>
+          <a href="#section-3-2-rating" class="sidebar-sublink">3.2 FIDE rating estimation</a>
+        </div>
+        <div class="nav-section">
+          <a href="#section4-openings" class="sidebar-link parent-link">4. Opening Repertoire</a>
+          <div class="nav-subsections">
+            <a href="#opening-white-table" class="sidebar-sublink">4.1 White openings table</a>
+            <a href="#opening-black-table" class="sidebar-sublink">4.2 Black openings</a>
+            <a href="#opening-main-repertoires" class="sidebar-sublink">4.3 Main repertoires</a>
+            <a href="#opening-secondary" class="sidebar-sublink">4.4 Secondary weapons</a>
+            <a href="#opening-depth" class="sidebar-sublink">4.5 Theoretical depth</a>
+            <a href="#opening-style" class="sidebar-sublink">4.6 Connection to style</a>
+            <a href="#opening-performance" class="sidebar-sublink">4.7 Underperforming vs shining</a>
+            <a href="#opening-takeaways" class="sidebar-sublink">4.8 Practical takeaways</a>
+          </div>
+        </div>
+        <div class="nav-section">
+          <a href="#section5-training" class="sidebar-link parent-link">5. Training Recommendations</a>
+          <div class="nav-subsections">
+            <a href="#training-priorities" class="sidebar-sublink">5.1 Key priorities</a>
+            <a href="#training-study" class="sidebar-sublink">5.2 Study methods</a>
+            <a href="#training-habits" class="sidebar-sublink">5.3 Practical habits</a>
+          </div>
+        </div>
+        <div class="nav-section">
+          <a href="#section6-opponent" class="sidebar-link parent-link">6. Opponent Preparation</a>
+          <div class="nav-subsections">
+            <a href="#opponent-white" class="sidebar-sublink">6.1 Opening choices vs white</a>
+            <a href="#opponent-black" class="sidebar-sublink">6.2 Opening choices vs black</a>
+            <a href="#opponent-middlegame" class="sidebar-sublink">6.3 Middlegame strategies</a>
+            <a href="#opponent-endgame" class="sidebar-sublink">6.4 Endgame strategies</a>
+            <a href="#opponent-psychology" class="sidebar-sublink">6.5 Psychology / risk</a>
+            <a href="#opponent-gameplan" class="sidebar-sublink">6.6 Summary game plan</a>
+          </div>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="report-main">
+      <div class="main-inner">
+        <!-- HEADER -->
+        <section class="section-card report-header" id="top">
+          <p class="eyebrow">Player Overview</p>
+          <h1 class="report-title">Chessortag Style Report: {{PLAYER_ID}}</h1>
+          <p class="report-subtitle">Comprehensive breakdown across performance, style tags, openings, and preparation.</p>
+          <div class="gm-strip">{{GM_CARDS}}</div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SECTION 1: PERFORMANCE PROFILE -->
+        <!-- ============================================================ -->
+        <section id="section1-performance" class="report-section">
+          <div class="section-card">
+            <h2 class="section-heading">1. Performance Profile</h2>
+            <div class="section-body markdown-body">
+
+              <!-- 1.1 WIN RATE -->
+              <div id="perf-winrate" class="subsection">
+                <h3>1.1 Win Rate</h3>
+                <h4>Win–Loss–Draw by Color</h4>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Color</th>
+                        <th>Win %</th>
+                        <th>Loss %</th>
+                        <th>Draw %</th>
+                        <th>Avg Opponent Elo</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>White</td>
+                        <td id="data-white-win"></td>
+                        <td id="data-white-loss"></td>
+                        <td id="data-white-draw"></td>
+                        <td id="data-white-elo"></td>
+                      </tr>
+                      <tr>
+                        <td>Black</td>
+                        <td id="data-black-win"></td>
+                        <td id="data-black-loss"></td>
+                        <td id="data-black-draw"></td>
+                        <td id="data-black-elo"></td>
+                      </tr>
+                      <tr>
+                        <td><strong>Total</strong></td>
+                        <td id="data-total-win"></td>
+                        <td id="data-total-loss"></td>
+                        <td id="data-total-draw"></td>
+                        <td id="data-total-elo"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div id="section-1-1-winrate-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 1.2 ACCURACY -->
+              <div id="perf-accuracy" class="subsection">
+                <h3>1.2 Accuracy: Player vs Phases and Structures</h3>
+                <h4>Accuracy System (Player)</h4>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Phase / Structure</th>
+                        <th>Moves</th>
+                        <th>Avg Loss (cp)</th>
+                        <th>Accuracy Score</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Overall</td>
+                        <td id="data-acc-overall-moves"></td>
+                        <td id="data-acc-overall-loss"></td>
+                        <td id="data-acc-overall-score"></td>
+                      </tr>
+                      <tr>
+                        <td>Opening</td>
+                        <td id="data-acc-opening-moves"></td>
+                        <td id="data-acc-opening-loss"></td>
+                        <td id="data-acc-opening-score"></td>
+                      </tr>
+                      <tr>
+                        <td>Middlegame</td>
+                        <td id="data-acc-middlegame-moves"></td>
+                        <td id="data-acc-middlegame-loss"></td>
+                        <td id="data-acc-middlegame-score"></td>
+                      </tr>
+                      <tr>
+                        <td>Endgame</td>
+                        <td id="data-acc-endgame-moves"></td>
+                        <td id="data-acc-endgame-loss"></td>
+                        <td id="data-acc-endgame-score"></td>
+                      </tr>
+                      <tr>
+                        <td>Queenful</td>
+                        <td id="data-acc-queenful-moves"></td>
+                        <td id="data-acc-queenful-loss"></td>
+                        <td id="data-acc-queenful-score"></td>
+                      </tr>
+                      <tr>
+                        <td>Queenless</td>
+                        <td id="data-acc-queenless-moves"></td>
+                        <td id="data-acc-queenless-loss"></td>
+                        <td id="data-acc-queenless-score"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <h4>Comparison with Peer and GM Baseline</h4>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Phase</th>
+                        <th>Player</th>
+                        <th>Same-Age Peer</th>
+                        <th>GM Baseline</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Overall</td>
+                        <td id="data-cmp-overall-player"></td>
+                        <td id="data-cmp-overall-peer"></td>
+                        <td id="data-cmp-overall-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Opening</td>
+                        <td id="data-cmp-opening-player"></td>
+                        <td id="data-cmp-opening-peer"></td>
+                        <td id="data-cmp-opening-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Middlegame</td>
+                        <td id="data-cmp-middlegame-player"></td>
+                        <td id="data-cmp-middlegame-peer"></td>
+                        <td id="data-cmp-middlegame-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Endgame</td>
+                        <td id="data-cmp-endgame-player"></td>
+                        <td id="data-cmp-endgame-peer"></td>
+                        <td id="data-cmp-endgame-gm"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div id="section-1-2-accuracy-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 1.3 ADVANTAGE CONVERSION -->
+              <div id="perf-advantage" class="subsection">
+                <h3>1.3 Advantage Conversion</h3>
+                <div class="table-wrapper">
+                  <table class="report-table metric-table">
+                    <thead>
+                      <tr>
+                        <th>Advantage Threshold</th>
+                        <th>White: W / D / L</th>
+                        <th>Black: W / D / L</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Reached +1</td>
+                        <td id="data-adv-white-1"></td>
+                        <td id="data-adv-black-1"></td>
+                      </tr>
+                      <tr>
+                        <td>Reached +3</td>
+                        <td id="data-adv-white-3"></td>
+                        <td id="data-adv-black-3"></td>
+                      </tr>
+                      <tr>
+                        <td>Reached +5</td>
+                        <td id="data-adv-white-5"></td>
+                        <td id="data-adv-black-5"></td>
+                      </tr>
+                      <tr>
+                        <td>Reached +7</td>
+                        <td id="data-adv-white-7"></td>
+                        <td id="data-adv-black-7"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div id="section-1-3-advantage-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 1.4 DEFENSIVE CONVERSION -->
+              <div id="perf-defensive" class="subsection">
+                <h3>1.4 Defensive Conversion</h3>
+                <div class="table-wrapper">
+                  <table class="report-table metric-table">
+                    <thead>
+                      <tr>
+                        <th>Deficit Threshold</th>
+                        <th>White: W / D / L</th>
+                        <th>Black: W / D / L</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Reached -1</td>
+                        <td id="data-def-white-1"></td>
+                        <td id="data-def-black-1"></td>
+                      </tr>
+                      <tr>
+                        <td>Reached -3</td>
+                        <td id="data-def-white-3"></td>
+                        <td id="data-def-black-3"></td>
+                      </tr>
+                      <tr>
+                        <td>Reached -5</td>
+                        <td id="data-def-white-5"></td>
+                        <td id="data-def-black-5"></td>
+                      </tr>
+                      <tr>
+                        <td>Reached -7</td>
+                        <td id="data-def-white-7"></td>
+                        <td id="data-def-black-7"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div id="section-1-4-defensive-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 1.5 VOLATILITY/TRAJECTORY -->
+              <div id="perf-volatility" class="subsection">
+                <h3>1.5 Volatility/Trajectory</h3>
+                <div class="table-wrapper">
+                  <table class="report-table metric-table">
+                    <thead>
+                      <tr>
+                        <th>Volatility Type</th>
+                        <th>White</th>
+                        <th>Black</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Smooth crush (controlled opponent)</td>
+                        <td id="data-vol-smooth-crush-white"></td>
+                        <td id="data-vol-smooth-crush-black"></td>
+                      </tr>
+                      <tr>
+                        <td>Smooth collapse (opponent controlled)</td>
+                        <td id="data-vol-smooth-collapse-white"></td>
+                        <td id="data-vol-smooth-collapse-black"></td>
+                      </tr>
+                      <tr>
+                        <td>Small swings (~±1.0)</td>
+                        <td id="data-vol-small-swings-white"></td>
+                        <td id="data-vol-small-swings-black"></td>
+                      </tr>
+                      <tr>
+                        <td>Medium swings (~±2.0)</td>
+                        <td id="data-vol-medium-swings-white"></td>
+                        <td id="data-vol-medium-swings-black"></td>
+                      </tr>
+                      <tr>
+                        <td>Big swings (4+ swings of ±2.0)</td>
+                        <td id="data-vol-big-swings-white"></td>
+                        <td id="data-vol-big-swings-black"></td>
+                      </tr>
+                      <tr>
+                        <td>High-precision draws (no swings &gt; ±0.8)</td>
+                        <td id="data-vol-precision-draws-white"></td>
+                        <td id="data-vol-precision-draws-black"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div id="section-1-5-volatility-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 1.6 ENGINE DECISION QUALITY -->
+              <div id="perf-engine" class="subsection">
+                <h3>1.6 Engine Decision Quality</h3>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Metric</th>
+                        <th>Player</th>
+                        <th>Peer Avg</th>
+                        <th>GM Baseline</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Top-1 move %</td>
+                        <td id="data-eng-top1-player"></td>
+                        <td id="data-eng-top1-peer"></td>
+                        <td id="data-eng-top1-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Top-3 move %</td>
+                        <td id="data-eng-top3-player"></td>
+                        <td id="data-eng-top3-peer"></td>
+                        <td id="data-eng-top3-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Blunder rate (&gt;100cp loss)</td>
+                        <td id="data-eng-blunder-player"></td>
+                        <td id="data-eng-blunder-peer"></td>
+                        <td id="data-eng-blunder-gm"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div id="section-1-6-engine-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 1.7 TACTICAL CONVERSION -->
+              <div id="perf-tactical" class="subsection">
+                <h3>1.7 Tactical Conversion</h3>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Tactical opportunities found</td>
+                        <td id="data-tac-found"></td>
+                      </tr>
+                      <tr>
+                        <td>Tactical opportunities missed</td>
+                        <td id="data-tac-missed"></td>
+                      </tr>
+                      <tr>
+                        <td>Tactical conversion rate</td>
+                        <td id="data-tac-rate"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div id="section-1-7-tactical-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 1.8 KNIGHT/BISHOP EXCHANGES -->
+              <div id="perf-exchanges" class="subsection">
+                <h3>1.8 Knight/Bishop Exchanges</h3>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Tag Name</th>
+                        <th>Player Count</th>
+                        <th>Player Ratio</th>
+                        <th>Top GM Ratio</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Accurate knight/bishop exchange</td>
+                        <td id="data-exch-accurate-count"></td>
+                        <td id="data-exch-accurate-ratio"></td>
+                        <td id="data-exch-accurate-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Inaccurate knight/bishop exchange</td>
+                        <td id="data-exch-inaccurate-count"></td>
+                        <td id="data-exch-inaccurate-ratio"></td>
+                        <td id="data-exch-inaccurate-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Bad knight/bishop exchange</td>
+                        <td id="data-exch-bad-count"></td>
+                        <td id="data-exch-bad-ratio"></td>
+                        <td id="data-exch-bad-gm"></td>
+                      </tr>
+                      <tr>
+                        <td><strong>Total exchange frequency</strong></td>
+                        <td id="data-exch-total-count"></td>
+                        <td id="data-exch-total-ratio"></td>
+                        <td id="data-exch-total-gm"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div id="section-1-8-exchanges-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 1.9 FORCED MOVES -->
+              <div id="perf-forced" class="subsection">
+                <h3>1.9 Forced Moves</h3>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Tag Name</th>
+                        <th>Player Count</th>
+                        <th>Player Ratio</th>
+                        <th>Top GM Ratio</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Forced moves</td>
+                        <td id="data-forced-count"></td>
+                        <td id="data-forced-ratio"></td>
+                        <td id="data-forced-gm"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- GM Comparison Axis Visualization -->
+                <div class="gm-axis-viz">
+                  <div class="gm-axis-title">Forced Moves Frequency vs Top GMs</div>
+                  <div class="gm-axis-container">
+                    <div class="gm-axis-line"></div>
+                    <div class="gm-markers-layer" id="viz-forced-moves-axis"></div>
+                  </div>
+                  <div class="gm-axis-scale">
+                    <span class="gm-scale-mark">0%</span>
+                    <span class="gm-scale-mark">25%</span>
+                    <span class="gm-scale-mark">50%</span>
+                    <span class="gm-scale-mark">75%</span>
+                    <span class="gm-scale-mark">100%</span>
+                  </div>
+                  <div class="gm-axis-legend">
+                    <div class="legend-item">
+                      <div class="legend-dot"></div>
+                      <span>Top GMs</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-dot player"></div>
+                      <span>You</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="section-1-9-forced-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 1.10 WINNING/LOSING POSITION HANDLING -->
+              <div id="perf-positions" class="subsection">
+                <h3>1.10 Winning/Losing Position Handling</h3>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Tag Name</th>
+                        <th>Player Count</th>
+                        <th>Player Ratio</th>
+                        <th>Top GM Ratio</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Winning position handling</td>
+                        <td id="data-pos-winning-count"></td>
+                        <td id="data-pos-winning-ratio"></td>
+                        <td id="data-pos-winning-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Losing position handling</td>
+                        <td id="data-pos-losing-count"></td>
+                        <td id="data-pos-losing-ratio"></td>
+                        <td id="data-pos-losing-gm"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- GM Comparison Axis Visualization -->
+                <div class="gm-axis-viz">
+                  <div class="gm-axis-title">Winning Position Handling vs Top GMs</div>
+                  <div class="gm-axis-container">
+                    <div class="gm-axis-line"></div>
+                    <div class="gm-markers-layer" id="viz-positions-axis"></div>
+                  </div>
+                  <div class="gm-axis-scale">
+                    <span class="gm-scale-mark">0%</span>
+                    <span class="gm-scale-mark">25%</span>
+                    <span class="gm-scale-mark">50%</span>
+                    <span class="gm-scale-mark">75%</span>
+                    <span class="gm-scale-mark">100%</span>
+                  </div>
+                  <div class="gm-axis-legend">
+                    <div class="legend-item">
+                      <div class="legend-dot"></div>
+                      <span>Top GMs</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-dot player"></div>
+                      <span>You</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="section-1-10-positions-llm" class="llm-slot"></div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SECTION 2: STYLE PARAMETERS -->
+        <!-- ============================================================ -->
+        <section id="section2-style" class="report-section">
+          <div class="section-card">
+            <h2 class="section-heading">2. Style Parameters</h2>
+            <div class="section-body markdown-body">
+
+              <!-- 2.1 MANEUVER -->
+              <div id="style-maneuver" class="subsection">
+                <h3>2.1 Maneuver</h3>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Tag Name</th>
+                        <th>Player Count</th>
+                        <th>Player Ratio</th>
+                        <th>Top GM Ratio</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Constructive maneuver</td>
+                        <td id="data-style-maneuver-constructive-count"></td>
+                        <td id="data-style-maneuver-constructive-ratio"></td>
+                        <td id="data-style-maneuver-constructive-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Constructive maneuver (prepare)</td>
+                        <td id="data-style-maneuver-prepare-count"></td>
+                        <td id="data-style-maneuver-prepare-ratio"></td>
+                        <td id="data-style-maneuver-prepare-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Neutral maneuver</td>
+                        <td id="data-style-maneuver-neutral-count"></td>
+                        <td id="data-style-maneuver-neutral-ratio"></td>
+                        <td id="data-style-maneuver-neutral-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Misplaced maneuver</td>
+                        <td id="data-style-maneuver-misplaced-count"></td>
+                        <td id="data-style-maneuver-misplaced-ratio"></td>
+                        <td id="data-style-maneuver-misplaced-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Opening maneuver</td>
+                        <td id="data-style-maneuver-opening-count"></td>
+                        <td id="data-style-maneuver-opening-ratio"></td>
+                        <td id="data-style-maneuver-opening-gm"></td>
+                      </tr>
+                      <tr>
+                        <td><strong>Overall maneuver ratio</strong></td>
+                        <td id="data-style-maneuver-total-count"></td>
+                        <td id="data-style-maneuver-total-ratio"></td>
+                        <td id="data-style-maneuver-total-gm"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- GM Comparison Axis Visualization -->
+                <div class="gm-axis-viz">
+                  <div class="gm-axis-title">Overall Maneuver Ratio vs Top GMs</div>
+                  <div class="gm-axis-container">
+                    <div class="gm-axis-line"></div>
+                    <div class="gm-markers-layer" id="viz-maneuver-axis"></div>
+                  </div>
+                  <div class="gm-axis-scale">
+                    <span class="gm-scale-mark">0%</span>
+                    <span class="gm-scale-mark">10%</span>
+                    <span class="gm-scale-mark">20%</span>
+                    <span class="gm-scale-mark">30%</span>
+                    <span class="gm-scale-mark">40%</span>
+                  </div>
+                  <div class="gm-axis-legend">
+                    <div class="legend-item">
+                      <div class="legend-dot"></div>
+                      <span>Top GMs</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-dot player"></div>
+                      <span>You</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="section-2-1-maneuver-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 2.2 PROPHYLAXIS -->
+              <div id="style-prophylaxis" class="subsection">
+                <h3>2.2 Prophylaxis</h3>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Tag Name</th>
+                        <th>Player Count</th>
+                        <th>Player Ratio</th>
+                        <th>Top GM Ratio</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Direct prophylactic</td>
+                        <td id="data-style-prophylaxis-direct-count"></td>
+                        <td id="data-style-prophylaxis-direct-ratio"></td>
+                        <td id="data-style-prophylaxis-direct-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Latent prophylactic</td>
+                        <td id="data-style-prophylaxis-latent-count"></td>
+                        <td id="data-style-prophylaxis-latent-ratio"></td>
+                        <td id="data-style-prophylaxis-latent-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Meaningless prophylactic</td>
+                        <td id="data-style-prophylaxis-meaningless-count"></td>
+                        <td id="data-style-prophylaxis-meaningless-ratio"></td>
+                        <td id="data-style-prophylaxis-meaningless-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Failed prophylactic</td>
+                        <td id="data-style-prophylaxis-failed-count"></td>
+                        <td id="data-style-prophylaxis-failed-ratio"></td>
+                        <td id="data-style-prophylaxis-failed-gm"></td>
+                      </tr>
+                      <tr>
+                        <td><strong>Overall prophylaxis ratio</strong></td>
+                        <td id="data-style-prophylaxis-total-count"></td>
+                        <td id="data-style-prophylaxis-total-ratio"></td>
+                        <td id="data-style-prophylaxis-total-gm"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- GM Comparison Axis Visualization -->
+                <div class="gm-axis-viz">
+                  <div class="gm-axis-title">Overall Prophylaxis Ratio vs Top GMs</div>
+                  <div class="gm-axis-container">
+                    <div class="gm-axis-line"></div>
+                    <div class="gm-markers-layer" id="viz-prophylaxis-axis"></div>
+                  </div>
+                  <div class="gm-axis-scale">
+                    <span class="gm-scale-mark">0%</span>
+                    <span class="gm-scale-mark">10%</span>
+                    <span class="gm-scale-mark">20%</span>
+                    <span class="gm-scale-mark">30%</span>
+                    <span class="gm-scale-mark">40%</span>
+                  </div>
+                  <div class="gm-axis-legend">
+                    <div class="legend-item">
+                      <div class="legend-dot"></div>
+                      <span>Top GMs</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-dot player"></div>
+                      <span>You</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="section-2-2-prophylaxis-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 2.3 SEMANTIC CONTROL -->
+              <div id="style-semantic_control" class="subsection">
+                <h3>2.3 Semantic Control</h3>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Tag Name</th>
+                        <th>Player Count</th>
+                        <th>Player Ratio</th>
+                        <th>Top GM Ratio</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Control: simplify</td>
+                        <td id="data-style-control-simplify-count"></td>
+                        <td id="data-style-control-simplify-ratio"></td>
+                        <td id="data-style-control-simplify-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Control: plan kill</td>
+                        <td id="data-style-control-plankill-count"></td>
+                        <td id="data-style-control-plankill-ratio"></td>
+                        <td id="data-style-control-plankill-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Control: freeze/bind</td>
+                        <td id="data-style-control-freeze-count"></td>
+                        <td id="data-style-control-freeze-ratio"></td>
+                        <td id="data-style-control-freeze-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Control: blockade passed pawn</td>
+                        <td id="data-style-control-blockade-count"></td>
+                        <td id="data-style-control-blockade-ratio"></td>
+                        <td id="data-style-control-blockade-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Control: file seal</td>
+                        <td id="data-style-control-fileseal-count"></td>
+                        <td id="data-style-control-fileseal-ratio"></td>
+                        <td id="data-style-control-fileseal-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Control: king safety shell</td>
+                        <td id="data-style-control-kingsafety-count"></td>
+                        <td id="data-style-control-kingsafety-ratio"></td>
+                        <td id="data-style-control-kingsafety-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Control: space clamp</td>
+                        <td id="data-style-control-spaceclamp-count"></td>
+                        <td id="data-style-control-spaceclamp-ratio"></td>
+                        <td id="data-style-control-spaceclamp-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Control: regroup/consolidate</td>
+                        <td id="data-style-control-regroup-count"></td>
+                        <td id="data-style-control-regroup-ratio"></td>
+                        <td id="data-style-control-regroup-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Control: slowdown</td>
+                        <td id="data-style-control-slowdown-count"></td>
+                        <td id="data-style-control-slowdown-ratio"></td>
+                        <td id="data-style-control-slowdown-gm"></td>
+                      </tr>
+                      <tr>
+                        <td><strong>Overall semantic control ratio</strong></td>
+                        <td id="data-style-control-total-count"></td>
+                        <td id="data-style-control-total-ratio"></td>
+                        <td id="data-style-control-total-gm"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- GM Comparison Axis Visualization -->
+                <div class="gm-axis-viz">
+                  <div class="gm-axis-title">Semantic Control Ratio vs Top GMs</div>
+                  <div class="gm-axis-container">
+                    <div class="gm-axis-line"></div>
+                    <div class="gm-markers-layer" id="viz-semantic-control-axis"></div>
+                  </div>
+                  <div class="gm-axis-scale">
+                    <span class="gm-scale-mark">0%</span>
+                    <span class="gm-scale-mark">15%</span>
+                    <span class="gm-scale-mark">30%</span>
+                    <span class="gm-scale-mark">45%</span>
+                    <span class="gm-scale-mark">60%</span>
+                  </div>
+                  <div class="gm-axis-legend">
+                    <div class="legend-item">
+                      <div class="legend-dot"></div>
+                      <span>Top GMs</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-dot player"></div>
+                      <span>You</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="section-2-3-semantic-control-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 2.4 CONTROL OVER DYNAMICS -->
+              <div id="style-control_over_dynamics" class="subsection">
+                <h3>2.4 Control Over Dynamics</h3>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Tag Name</th>
+                        <th>Player Count</th>
+                        <th>Player Ratio</th>
+                        <th>Top GM Ratio</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Control over dynamics (overall)</td>
+                        <td id="data-style-cod-overall-count"></td>
+                        <td id="data-style-cod-overall-ratio"></td>
+                        <td id="data-style-cod-overall-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>CoD: file seal</td>
+                        <td id="data-style-cod-fileseal-count"></td>
+                        <td id="data-style-cod-fileseal-ratio"></td>
+                        <td id="data-style-cod-fileseal-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>CoD: freeze/bind</td>
+                        <td id="data-style-cod-freeze-count"></td>
+                        <td id="data-style-cod-freeze-ratio"></td>
+                        <td id="data-style-cod-freeze-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>CoD: king safety</td>
+                        <td id="data-style-cod-kingsafety-count"></td>
+                        <td id="data-style-cod-kingsafety-ratio"></td>
+                        <td id="data-style-cod-kingsafety-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>CoD: regroup/consolidate</td>
+                        <td id="data-style-cod-regroup-count"></td>
+                        <td id="data-style-cod-regroup-ratio"></td>
+                        <td id="data-style-cod-regroup-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>CoD: plan kill</td>
+                        <td id="data-style-cod-plankill-count"></td>
+                        <td id="data-style-cod-plankill-ratio"></td>
+                        <td id="data-style-cod-plankill-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>CoD: blockade passed pawn</td>
+                        <td id="data-style-cod-blockade-count"></td>
+                        <td id="data-style-cod-blockade-ratio"></td>
+                        <td id="data-style-cod-blockade-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>CoD: simplify</td>
+                        <td id="data-style-cod-simplify-count"></td>
+                        <td id="data-style-cod-simplify-ratio"></td>
+                        <td id="data-style-cod-simplify-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>CoD: space clamp</td>
+                        <td id="data-style-cod-spaceclamp-count"></td>
+                        <td id="data-style-cod-spaceclamp-ratio"></td>
+                        <td id="data-style-cod-spaceclamp-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>CoD: slowdown</td>
+                        <td id="data-style-cod-slowdown-count"></td>
+                        <td id="data-style-cod-slowdown-ratio"></td>
+                        <td id="data-style-cod-slowdown-gm"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- GM Comparison Axis Visualization -->
+                <div class="gm-axis-viz">
+                  <div class="gm-axis-title">Control Over Dynamics vs Top GMs</div>
+                  <div class="gm-axis-container">
+                    <div class="gm-axis-line"></div>
+                    <div class="gm-markers-layer" id="viz-cod-axis"></div>
+                  </div>
+                  <div class="gm-axis-scale">
+                    <span class="gm-scale-mark">0%</span>
+                    <span class="gm-scale-mark">15%</span>
+                    <span class="gm-scale-mark">30%</span>
+                    <span class="gm-scale-mark">45%</span>
+                    <span class="gm-scale-mark">60%</span>
+                  </div>
+                  <div class="gm-axis-legend">
+                    <div class="legend-item">
+                      <div class="legend-dot"></div>
+                      <span>Top GMs</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-dot player"></div>
+                      <span>You</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="section-2-4-cod-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 2.5 INITIATIVE -->
+              <div id="style-initiative" class="subsection">
+                <h3>2.5 Initiative</h3>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Tag Name</th>
+                        <th>Player Count</th>
+                        <th>Player Ratio</th>
+                        <th>Top GM Ratio</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Initiative attempt</td>
+                        <td id="data-style-initiative-attempt-count"></td>
+                        <td id="data-style-initiative-attempt-ratio"></td>
+                        <td id="data-style-initiative-attempt-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Deferred initiative</td>
+                        <td id="data-style-initiative-deferred-count"></td>
+                        <td id="data-style-initiative-deferred-ratio"></td>
+                        <td id="data-style-initiative-deferred-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Premature attack</td>
+                        <td id="data-style-initiative-premature-count"></td>
+                        <td id="data-style-initiative-premature-ratio"></td>
+                        <td id="data-style-initiative-premature-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>C-file pressure</td>
+                        <td id="data-style-initiative-cfile-count"></td>
+                        <td id="data-style-initiative-cfile-ratio"></td>
+                        <td id="data-style-initiative-cfile-gm"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- GM Comparison Axis Visualization -->
+                <div class="gm-axis-viz">
+                  <div class="gm-axis-title">Initiative Attempt Ratio vs Top GMs</div>
+                  <div class="gm-axis-container">
+                    <div class="gm-axis-line"></div>
+                    <div class="gm-markers-layer" id="viz-initiative-axis"></div>
+                  </div>
+                  <div class="gm-axis-scale">
+                    <span class="gm-scale-mark">0%</span>
+                    <span class="gm-scale-mark">10%</span>
+                    <span class="gm-scale-mark">20%</span>
+                    <span class="gm-scale-mark">30%</span>
+                    <span class="gm-scale-mark">40%</span>
+                  </div>
+                  <div class="gm-axis-legend">
+                    <div class="legend-item">
+                      <div class="legend-dot"></div>
+                      <span>Top GMs</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-dot player"></div>
+                      <span>You</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="section-2-5-initiative-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 2.6 TENSION MANAGEMENT -->
+              <div id="style-tension" class="subsection">
+                <h3>2.6 Tension Management</h3>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Tag Name</th>
+                        <th>Player Count</th>
+                        <th>Player Ratio</th>
+                        <th>Top GM Ratio</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Tension creation</td>
+                        <td id="data-style-tension-creation-count"></td>
+                        <td id="data-style-tension-creation-ratio"></td>
+                        <td id="data-style-tension-creation-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Neutral tension creation</td>
+                        <td id="data-style-tension-neutral-count"></td>
+                        <td id="data-style-tension-neutral-ratio"></td>
+                        <td id="data-style-tension-neutral-gm"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- GM Comparison Axis Visualization -->
+                <div class="gm-axis-viz">
+                  <div class="gm-axis-title">Tension Creation Ratio vs Top GMs</div>
+                  <div class="gm-axis-container">
+                    <div class="gm-axis-line"></div>
+                    <div class="gm-markers-layer" id="viz-tension-axis"></div>
+                  </div>
+                  <div class="gm-axis-scale">
+                    <span class="gm-scale-mark">0%</span>
+                    <span class="gm-scale-mark">5%</span>
+                    <span class="gm-scale-mark">10%</span>
+                    <span class="gm-scale-mark">15%</span>
+                    <span class="gm-scale-mark">20%</span>
+                  </div>
+                  <div class="gm-axis-legend">
+                    <div class="legend-item">
+                      <div class="legend-dot"></div>
+                      <span>Top GMs</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-dot player"></div>
+                      <span>You</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="section-2-6-tension-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 2.7 STRUCTURAL PLAY -->
+              <div id="style-structural" class="subsection">
+                <h3>2.7 Structural Play</h3>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Tag Name</th>
+                        <th>Player Count</th>
+                        <th>Player Ratio</th>
+                        <th>Top GM Ratio</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Structural integrity</td>
+                        <td id="data-style-structural-integrity-count"></td>
+                        <td id="data-style-structural-integrity-ratio"></td>
+                        <td id="data-style-structural-integrity-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Structural compromise (dynamic)</td>
+                        <td id="data-style-structural-dynamic-count"></td>
+                        <td id="data-style-structural-dynamic-ratio"></td>
+                        <td id="data-style-structural-dynamic-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Structural compromise (static)</td>
+                        <td id="data-style-structural-static-count"></td>
+                        <td id="data-style-structural-static-ratio"></td>
+                        <td id="data-style-structural-static-gm"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- GM Comparison Axis Visualization -->
+                <div class="gm-axis-viz">
+                  <div class="gm-axis-title">Structural Integrity Ratio vs Top GMs</div>
+                  <div class="gm-axis-container">
+                    <div class="gm-axis-line"></div>
+                    <div class="gm-markers-layer" id="viz-structural-axis"></div>
+                  </div>
+                  <div class="gm-axis-scale">
+                    <span class="gm-scale-mark">0%</span>
+                    <span class="gm-scale-mark">20%</span>
+                    <span class="gm-scale-mark">40%</span>
+                    <span class="gm-scale-mark">60%</span>
+                    <span class="gm-scale-mark">80%</span>
+                  </div>
+                  <div class="gm-axis-legend">
+                    <div class="legend-item">
+                      <div class="legend-dot"></div>
+                      <span>Top GMs</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-dot player"></div>
+                      <span>You</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="section-2-7-structural-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 2.8 SACRIFICIAL PLAY -->
+              <div id="style-sacrifice" class="subsection">
+                <h3>2.8 Sacrificial Play</h3>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Tag Name</th>
+                        <th>Player Count</th>
+                        <th>Player Ratio</th>
+                        <th>Top GM Ratio</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Tactical sacrifice</td>
+                        <td id="data-style-sacrifice-tactical-count"></td>
+                        <td id="data-style-sacrifice-tactical-ratio"></td>
+                        <td id="data-style-sacrifice-tactical-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Positional sacrifice</td>
+                        <td id="data-style-sacrifice-positional-count"></td>
+                        <td id="data-style-sacrifice-positional-ratio"></td>
+                        <td id="data-style-sacrifice-positional-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Inaccurate tactical sacrifice</td>
+                        <td id="data-style-sacrifice-inaccurate-count"></td>
+                        <td id="data-style-sacrifice-inaccurate-ratio"></td>
+                        <td id="data-style-sacrifice-inaccurate-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Speculative sacrifice</td>
+                        <td id="data-style-sacrifice-speculative-count"></td>
+                        <td id="data-style-sacrifice-speculative-ratio"></td>
+                        <td id="data-style-sacrifice-speculative-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Desperate sacrifice</td>
+                        <td id="data-style-sacrifice-desperate-count"></td>
+                        <td id="data-style-sacrifice-desperate-ratio"></td>
+                        <td id="data-style-sacrifice-desperate-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Tactical combination sacrifice</td>
+                        <td id="data-style-sacrifice-combination-count"></td>
+                        <td id="data-style-sacrifice-combination-ratio"></td>
+                        <td id="data-style-sacrifice-combination-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Tactical initiative sacrifice</td>
+                        <td id="data-style-sacrifice-init-count"></td>
+                        <td id="data-style-sacrifice-init-ratio"></td>
+                        <td id="data-style-sacrifice-init-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Positional structure sacrifice</td>
+                        <td id="data-style-sacrifice-structure-count"></td>
+                        <td id="data-style-sacrifice-structure-ratio"></td>
+                        <td id="data-style-sacrifice-structure-gm"></td>
+                      </tr>
+                      <tr>
+                        <td>Positional space sacrifice</td>
+                        <td id="data-style-sacrifice-space-count"></td>
+                        <td id="data-style-sacrifice-space-ratio"></td>
+                        <td id="data-style-sacrifice-space-gm"></td>
+                      </tr>
+                      <tr>
+                        <td><strong>Overall sacrifice ratio</strong></td>
+                        <td id="data-style-sacrifice-total-count"></td>
+                        <td id="data-style-sacrifice-total-ratio"></td>
+                        <td id="data-style-sacrifice-total-gm"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- GM Comparison Axis Visualization -->
+                <div class="gm-axis-viz">
+                  <div class="gm-axis-title">Overall Sacrifice Ratio vs Top GMs</div>
+                  <div class="gm-axis-container">
+                    <div class="gm-axis-line"></div>
+                    <div class="gm-markers-layer" id="viz-sacrifice-axis"></div>
+                  </div>
+                  <div class="gm-axis-scale">
+                    <span class="gm-scale-mark">0%</span>
+                    <span class="gm-scale-mark">3%</span>
+                    <span class="gm-scale-mark">6%</span>
+                    <span class="gm-scale-mark">9%</span>
+                    <span class="gm-scale-mark">12%</span>
+                  </div>
+                  <div class="gm-axis-legend">
+                    <div class="legend-item">
+                      <div class="legend-dot"></div>
+                      <span>Top GMs</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-dot player"></div>
+                      <span>You</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="section-2-8-sacrifice-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 2.9 STYLE SYNTHESIS -->
+              <div id="style-exchanges_forced" class="subsection">
+                <h3>2.9 Style Synthesis</h3>
+                <div id="section-2-9-synthesis-llm" class="llm-slot"></div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SECTION 3: OVERALL SYNTHESIS -->
+        <!-- ============================================================ -->
+        <section id="section3-overall" class="report-section">
+          <div class="section-card">
+            <h2 class="section-heading">3. Overall Synthesis</h2>
+            <div class="section-body markdown-body">
+              <div id="section-3-1-ability" class="subsection">
+                <h3>3.1 Ability Evaluation</h3>
+                <div id="section-3-1-ability-llm" class="llm-slot"></div>
+              </div>
+              <div id="section-3-2-rating" class="subsection">
+                <h3>3.2 FIDE Rating Estimation</h3>
+                <div id="section-3-2-rating-llm" class="llm-slot"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SECTION 4: OPENING REPERTOIRE -->
+        <!-- ============================================================ -->
+        <section id="section4-openings" class="report-section">
+          <div class="section-card">
+            <h2 class="section-heading">4. Opening Repertoire</h2>
+            <div class="section-body markdown-body">
+
+              <!-- 4.1 WHITE OPENINGS TABLE -->
+              <div id="opening-white-table" class="subsection">
+                <h3>4.1 White Openings</h3>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Opening Line</th>
+                        <th>Variation Name</th>
+                        <th>Games</th>
+                        <th>Win %</th>
+                        <th>Draw %</th>
+                        <th>Loss %</th>
+                        <th>Avg Accuracy</th>
+                      </tr>
+                    </thead>
+                    <tbody id="data-opening-white-tbody">
+                      <!-- Rows will be dynamically inserted -->
+                    </tbody>
+                  </table>
+                </div>
+                <div id="section-4-1-white-openings-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 4.2 BLACK OPENINGS TABLE -->
+              <div id="opening-black-table" class="subsection">
+                <h3>4.2 Black Openings</h3>
+                <div class="table-wrapper">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>Opening Line</th>
+                        <th>Variation Name</th>
+                        <th>Games</th>
+                        <th>Win %</th>
+                        <th>Draw %</th>
+                        <th>Loss %</th>
+                        <th>Avg Accuracy</th>
+                      </tr>
+                    </thead>
+                    <tbody id="data-opening-black-tbody">
+                      <!-- Rows will be dynamically inserted -->
+                    </tbody>
+                  </table>
+                </div>
+                <div id="section-4-2-black-openings-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 4.3 MAIN REPERTOIRES -->
+              <div id="opening-main-repertoires" class="subsection">
+                <h3>4.3 Main Repertoires</h3>
+                <div id="section-4-3-main-repertoires-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 4.4 SECONDARY WEAPONS -->
+              <div id="opening-secondary" class="subsection">
+                <h3>4.4 Secondary Weapons</h3>
+                <div id="section-4-4-secondary-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 4.5 THEORETICAL DEPTH -->
+              <div id="opening-depth" class="subsection">
+                <h3>4.5 Theoretical Depth</h3>
+                <div id="section-4-5-depth-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 4.6 CONNECTION TO STYLE -->
+              <div id="opening-style" class="subsection">
+                <h3>4.6 Connection to Style</h3>
+                <div id="section-4-6-style-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 4.7 UNDERPERFORMING VS SHINING -->
+              <div id="opening-performance" class="subsection">
+                <h3>4.7 Underperforming vs Shining Openings</h3>
+                <div id="section-4-7-performance-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 4.8 PRACTICAL TAKEAWAYS -->
+              <div id="opening-takeaways" class="subsection">
+                <h3>4.8 Practical Takeaways</h3>
+                <div id="section-4-8-takeaways-llm" class="llm-slot"></div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SECTION 5: TRAINING RECOMMENDATIONS -->
+        <!-- ============================================================ -->
+        <section id="section5-training" class="report-section">
+          <div class="section-card">
+            <h2 class="section-heading">5. Training Recommendations</h2>
+            <div class="section-body markdown-body">
+
+              <!-- 5.1 KEY PRIORITIES -->
+              <div id="training-priorities" class="subsection">
+                <h3>5.1 Key Priorities</h3>
+                <div id="section-5-1-priorities-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 5.2 STUDY METHODS -->
+              <div id="training-study" class="subsection">
+                <h3>5.2 Study Methods</h3>
+                <div id="section-5-2-study-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 5.3 PRACTICAL HABITS -->
+              <div id="training-habits" class="subsection">
+                <h3>5.3 Practical Habits</h3>
+                <div id="section-5-3-habits-llm" class="llm-slot"></div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SECTION 6: OPPONENT PREPARATION -->
+        <!-- ============================================================ -->
+        <section id="section6-opponent" class="report-section">
+          <div class="section-card">
+            <h2 class="section-heading">6. Opponent Preparation</h2>
+            <div class="section-body markdown-body">
+
+              <!-- 6.1 OPENING CHOICES VS WHITE -->
+              <div id="opponent-white" class="subsection">
+                <h3>6.1 Opening Choices When Facing This Player as White</h3>
+                <div id="section-6-1-vs-white-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 6.2 OPENING CHOICES VS BLACK -->
+              <div id="opponent-black" class="subsection">
+                <h3>6.2 Opening Choices When Facing This Player as Black</h3>
+                <div id="section-6-2-vs-black-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 6.3 MIDDLEGAME STRATEGIES -->
+              <div id="opponent-middlegame" class="subsection">
+                <h3>6.3 Middlegame Strategies</h3>
+                <div id="section-6-3-middlegame-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 6.4 ENDGAME STRATEGIES -->
+              <div id="opponent-endgame" class="subsection">
+                <h3>6.4 Endgame Strategies</h3>
+                <div id="section-6-4-endgame-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 6.5 PSYCHOLOGY / RISK -->
+              <div id="opponent-psychology" class="subsection">
+                <h3>6.5 Psychology and Risk Profile</h3>
+                <div id="section-6-5-psychology-llm" class="llm-slot"></div>
+              </div>
+
+              <!-- 6.6 SUMMARY GAME PLAN -->
+              <div id="opponent-gameplan" class="subsection">
+                <h3>6.6 Summary Game Plan</h3>
+                <div id="section-6-6-gameplan-llm" class="llm-slot"></div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      let vizLib;
+      // Collapsible navigation
+      const parentLinks = document.querySelectorAll(".parent-link");
+      parentLinks.forEach((link) => {
+        link.addEventListener("click", (e) => {
+          const navSection = link.parentElement;
+          const subsections = navSection.querySelector(".nav-subsections");
+          if (subsections) {
+            e.preventDefault();
+            navSection.classList.toggle("expanded");
+          }
+        });
+      });
+
+      // Expand first section by default
+      const firstNavSection = document.querySelector(".nav-section");
+      if (firstNavSection) {
+        firstNavSection.classList.add("expanded");
+      }
+
+      const sections = Array.from(document.querySelectorAll(".report-section"));
+      const links = Array.from(document.querySelectorAll(".sidebar-link, .sidebar-sublink"));
+      const linkMap = new Map(
+        links.map((link) => [link.getAttribute("href").replace("#", ""), link])
+      );
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const id = entry.target.id;
+              links.forEach((l) => l.classList.remove("active"));
+              const active = linkMap.get(id);
+              if (active) active.classList.add("active");
+            }
+          });
+        },
+        { rootMargin: "-40% 0px -45% 0px", threshold: 0.2 }
+      );
+
+      sections.forEach((sec) => observer.observe(sec));
+      if (links.length > 0) {
+        links[0].classList.add("active");
+      }
+
+      // Tag explainers (backend can override; fallback is built-in)
+      const DEFAULT_TAG_EXPLAINERS = {
+        "White": "Performance when you played the white pieces.",
+        "Black": "Performance when you played the black pieces.",
+        "Total": "Overall results combining both colors.",
+        "Overall": "All moves aggregated across games.",
+        "Opening": "Moves made in the opening phase.",
+        "Middlegame": "Moves made once development is mostly complete.",
+        "Endgame": "Moves in simplified positions with few pieces.",
+        "Queenful": "Positions where both sides still have queens.",
+        "Queenless": "Positions after queens are traded off.",
+        "Reached +1": "Games where you achieved at least a +1.0 engine edge.",
+        "Reached +3": "Games where you achieved at least a +3.0 engine edge.",
+        "Reached +5": "Games where you achieved at least a +5.0 engine edge.",
+        "Reached +7": "Games where you achieved at least a +7.0 engine edge.",
+        "Reached -1": "Games where you fell to -1.0 or worse.",
+        "Reached -3": "Games where you fell to -3.0 or worse.",
+        "Reached -5": "Games where you fell to -5.0 or worse.",
+        "Reached -7": "Games where you fell to -7.0 or worse.",
+        "Smooth crush (controlled opponent)": "You kept control from start to finish and converted cleanly.",
+        "Smooth collapse (opponent controlled)": "Opponent kept control and you lost without big swings.",
+        "Small swings (~±1.0)": "Advantage shifted modestly within about one pawn.",
+        "Medium swings (~±2.0)": "Advantage oscillated around two pawns.",
+        "Big swings (4+ swings of ±2.0)": "Multiple large lead changes of two-plus pawns.",
+        "High-precision draws (no swings > ±0.8)": "Draws with almost no evaluation swings.",
+        "Top-1 move %": "How often you played the engine’s first choice.",
+        "Top-3 move %": "How often you played one of the engine’s top three choices.",
+        "Blunder rate (>100cp loss)": "Moves that dropped over 100 centipawns.",
+        "Constructive maneuver": "Reroute that improves piece harmony and future activity.",
+        "Constructive maneuver (prepare)": "Quiet reroute that sets up a later plan or breakthrough.",
+        "Neutral maneuver": "Repositioning with limited impact—neither improves nor harms much.",
+        "Misplaced maneuver": "Reroute that wastes time or worsens coordination.",
+        "Opening maneuver": "Early-game reroute to better squares after initial development.",
+        "Overall maneuver ratio": "Share of moves classified as maneuvers.",
+        "Direct prophylactic": "Move that directly stops the opponent’s immediate threat or plan.",
+        "Latent prophylactic": "Restricts future ideas before they become concrete threats.",
+        "Meaningless prophylactic": "Prophylaxis that addresses no real threat.",
+        "Failed prophylactic": "Attempted prevention that still allows the threat.",
+        "Overall prophylaxis ratio": "Share of moves aimed at prevention.",
+        "Control: simplify": "Trades or simplifications to reduce complexity.",
+        "Control: plan kill": "Stops the opponent’s main strategic plan.",
+        "Control: freeze/bind": "Limits opponent mobility and counterplay.",
+        "Control: blockade passed pawn": "Holds back or fixes a passed pawn.",
+        "Control: file seal": "Secures or contests an open/semi-open file.",
+        "Control: king safety shell": "Strengthens the king’s pawn and square cover.",
+        "Control: space clamp": "Claims key squares to restrict counterplay.",
+        "Control: regroup/consolidate": "Re-coordinates pieces after operations.",
+        "Control: slowdown": "Tempers the position to avoid sharp forcing lines.",
+        "Overall semantic control ratio": "Share of moves aimed at positional control.",
+        "Control over dynamics (overall)": "Moves chosen to shape the game’s tactical temperature.",
+        "CoD: file seal": "Dynamic control by contesting files before tactics explode.",
+        "CoD: freeze/bind": "Dynamic restriction to keep the opponent cramped.",
+        "CoD: king safety": "Dynamic tweaks that keep the king safe during tactics.",
+        "CoD: regroup/consolidate": "Dynamic re-coordination to stabilize.",
+        "CoD: plan kill": "Dynamic strike that halts opponent initiative.",
+        "CoD: blockade passed pawn": "Dynamic blockading of a passed pawn in sharp play.",
+        "CoD: simplify": "Trades to cool down complications.",
+        "CoD: space clamp": "Dynamic space grab to limit enemy breaks.",
+        "CoD: slowdown": "Tempo moves to cool the position.",
+        "Initiative attempt": "Actively driving threats to keep the move-by-move pressure.",
+        "Deferred initiative": "Postpones attack to finish prep or development.",
+        "Premature attack": "Attack launched before position is ready.",
+        "C-file pressure": "Initiative built around control of the c-file.",
+        "Tension creation": "Creates or sustains pawn/piece tension.",
+        "Neutral tension creation": "Tension that neither helps nor harms notably.",
+        "Structural integrity": "Keeps pawn structure healthy and flexible.",
+        "Structural compromise (dynamic)": "Accepts structural weakness for activity.",
+        "Structural compromise (static)": "Weak structure without clear compensation.",
+        "Tactical sacrifice": "Material given for concrete tactical gain.",
+        "Positional sacrifice": "Material invested for long-term positional edge.",
+        "Inaccurate tactical sacrifice": "Dubious sac without enough payoff.",
+        "Speculative sacrifice": "High-risk sac with unclear compensation.",
+        "Desperate sacrifice": "Last-ditch sac from a bad position.",
+        "Tactical combination sacrifice": "Sac as part of a forcing combination.",
+        "Tactical initiative sacrifice": "Sac to keep initiative flowing.",
+        "Positional structure sacrifice": "Material for structural damage to opponent.",
+        "Positional space sacrifice": "Material for space or central control.",
+        "Overall sacrifice ratio": "Share of moves involving sacrifices.",
+        "Accurate knight/bishop exchange": "Trade that improves your minor-piece balance.",
+        "Inaccurate knight/bishop exchange": "Trade that hands the opponent better minors.",
+        "Bad knight/bishop exchange": "Clearly harmful minor-piece trade.",
+        "Total exchange frequency": "All tagged minor-piece exchanges.",
+        "Forced moves": "Moves compelled by tactics to avoid big loss.",
+        "Winning position handling": "Technique in converting clearly winning spots.",
+        "Losing position handling": "Resilience when position is bad.",
+        "Tactical opportunities found": "Tactics spotted and exploited.",
+        "Tactical opportunities missed": "Tactics available but not taken.",
+        "Tactical conversion rate": "Share of tactics you convert.",
+      };
+      let TAG_EXPLAINERS = { ...DEFAULT_TAG_EXPLAINERS };
+
+      const attachTagHelps = () => {
+        document.querySelectorAll('table.report-table tbody tr td:first-child').forEach((cell) => {
+          const label = cell.textContent.trim();
+          if (!TAG_EXPLAINERS || !TAG_EXPLAINERS[label]) return;
+          // Avoid duplicating icons
+          if (cell.querySelector('.tag-help')) return;
+          cell.classList.add('tag-cell');
+          const help = document.createElement('span');
+          help.className = 'tag-help';
+          help.textContent = '?';
+          help.title = TAG_EXPLAINERS[label];
+          help.setAttribute('aria-label', TAG_EXPLAINERS[label]);
+          cell.appendChild(help);
+          const tip = document.createElement('div');
+          tip.className = 'tag-help-tooltip';
+          tip.textContent = TAG_EXPLAINERS[label];
+          cell.appendChild(tip);
+        });
+      };
+
+      // PHASE 2: Data injection function
+      window.fillReportData = function(dataJson) {
+        const setText = (id, value) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = value;
+        };
+        const fmtPct = (v) => (v === null || v === undefined || Number.isNaN(v) ? '—' : `${v}%`);
+
+        const formatWDL = (record) => {
+          if (!record) return '—';
+          const w = record.win ?? record.w ?? record.W;
+          const d = record.draw ?? record.d ?? record.D;
+          const l = record.loss ?? record.l ?? record.L;
+          if ([w, d, l].some(v => v === undefined || v === null)) return '—';
+          const fmt = (v) => typeof v === 'number' ? `${v}%` : v;
+          return `${fmt(w)} / ${fmt(d)} / ${fmt(l)}`;
+        };
+
+        const formatCountRatio = (record) => {
+          if (!record) return '—';
+          const games = record.games ?? record.count ?? record.c;
+          const ratio = record.ratio ?? record.pct ?? record.perc;
+          if (games === undefined && ratio === undefined) return '—';
+          if (games !== undefined && ratio !== undefined) {
+            const r = typeof ratio === 'number' ? `${ratio}%` : ratio;
+            return `${games} (${r})`;
+          }
+          if (games !== undefined) return `${games}`;
+          return typeof ratio === 'number' ? `${ratio}%` : `${ratio}`;
+        };
+
+        // Apply player id to title/header when available
+        if (dataJson.player_id) {
+          const playerName = dataJson.player_display_name || dataJson.player_id || 'player';
+          const titleText = `Chessortag Style Report - ${playerName}`;
+          document.title = titleText;
+          const h1 = document.querySelector('.report-title');
+          if (h1) h1.textContent = `Chessortag Style Report: ${playerName}`;
+        }
+
+        // ========== SECTION 1: PERFORMANCE PROFILE ==========
+        if (dataJson.fixed_data) {
+          const d = dataJson.fixed_data;
+
+          // 1.1 Win rate
+          if (d.winrate) {
+            document.getElementById('data-white-win').textContent = d.winrate.white.win + '%';
+            document.getElementById('data-white-loss').textContent = d.winrate.white.loss + '%';
+            document.getElementById('data-white-draw').textContent = d.winrate.white.draw + '%';
+            document.getElementById('data-white-elo').textContent = d.winrate.white.elo;
+
+            document.getElementById('data-black-win').textContent = d.winrate.black.win + '%';
+            document.getElementById('data-black-loss').textContent = d.winrate.black.loss + '%';
+            document.getElementById('data-black-draw').textContent = d.winrate.black.draw + '%';
+            document.getElementById('data-black-elo').textContent = d.winrate.black.elo;
+
+            document.getElementById('data-total-win').textContent = d.winrate.total.win + '%';
+            document.getElementById('data-total-loss').textContent = d.winrate.total.loss + '%';
+            document.getElementById('data-total-draw').textContent = d.winrate.total.draw + '%';
+            document.getElementById('data-total-elo').textContent = d.winrate.total.elo;
+          }
+
+          // 1.2 Accuracy
+          if (d.accuracy) {
+            ['overall', 'opening', 'middlegame', 'endgame', 'queenful', 'queenless'].forEach(phase => {
+              const prefix = 'data-acc-' + phase;
+              if (d.accuracy[phase]) {
+                document.getElementById(prefix + '-moves').textContent = d.accuracy[phase].moves;
+                document.getElementById(prefix + '-loss').textContent = d.accuracy[phase].avg_loss;
+                document.getElementById(prefix + '-score').textContent = d.accuracy[phase].score;
+              }
+            });
+          }
+
+          if (d.accuracy_comparison) {
+            ['overall', 'opening', 'middlegame', 'endgame'].forEach(phase => {
+              const prefix = 'data-cmp-' + phase;
+              if (d.accuracy_comparison[phase]) {
+                document.getElementById(prefix + '-player').textContent = d.accuracy_comparison[phase].player;
+                document.getElementById(prefix + '-peer').textContent = d.accuracy_comparison[phase].peer;
+                document.getElementById(prefix + '-gm').textContent = d.accuracy_comparison[phase].gm;
+              }
+            });
+          }
+
+          // 1.3 Advantage conversion (threshold-based W/D/L)
+          if (d.advantage) {
+            const thresholds = [
+              { key: '+1', whiteId: 'data-adv-white-1', blackId: 'data-adv-black-1' },
+              { key: '+3', whiteId: 'data-adv-white-3', blackId: 'data-adv-black-3' },
+              { key: '+5', whiteId: 'data-adv-white-5', blackId: 'data-adv-black-5' },
+              { key: '+7', whiteId: 'data-adv-white-7', blackId: 'data-adv-black-7' },
+            ];
+            thresholds.forEach(({ key, whiteId, blackId }) => {
+              const rec = d.advantage[key] || (d.advantage.thresholds && d.advantage.thresholds[key]);
+              if (rec) {
+                setText(whiteId, formatWDL(rec.white));
+                setText(blackId, formatWDL(rec.black));
+              }
+            });
+          }
+
+          // 1.4 Defensive conversion (threshold-based W/D/L)
+          if (d.defensive) {
+            const thresholds = [
+              { key: '-1', whiteId: 'data-def-white-1', blackId: 'data-def-black-1' },
+              { key: '-3', whiteId: 'data-def-white-3', blackId: 'data-def-black-3' },
+              { key: '-5', whiteId: 'data-def-white-5', blackId: 'data-def-black-5' },
+              { key: '-7', whiteId: 'data-def-white-7', blackId: 'data-def-black-7' },
+            ];
+            thresholds.forEach(({ key, whiteId, blackId }) => {
+              const rec = d.defensive[key] || (d.defensive.thresholds && d.defensive.thresholds[key]);
+              if (rec) {
+                setText(whiteId, formatWDL(rec.white));
+                setText(blackId, formatWDL(rec.black));
+              }
+            });
+          }
+
+          // 1.5 Volatility (white/black by flow type)
+          if (d.volatility) {
+            const map = [
+              { key: 'smooth_crush', whiteId: 'data-vol-smooth-crush-white', blackId: 'data-vol-smooth-crush-black' },
+              { key: 'smooth_collapse', whiteId: 'data-vol-smooth-collapse-white', blackId: 'data-vol-smooth-collapse-black' },
+              { key: 'small_swings', whiteId: 'data-vol-small-swings-white', blackId: 'data-vol-small-swings-black' },
+              { key: 'medium_swings', whiteId: 'data-vol-medium-swings-white', blackId: 'data-vol-medium-swings-black' },
+              { key: 'big_swings', whiteId: 'data-vol-big-swings-white', blackId: 'data-vol-big-swings-black' },
+              { key: 'high_precision_draws', whiteId: 'data-vol-precision-draws-white', blackId: 'data-vol-precision-draws-black' },
+            ];
+            map.forEach(({ key, whiteId, blackId }) => {
+              const rec = d.volatility[key];
+              if (rec) {
+                setText(whiteId, formatCountRatio(rec.white));
+                setText(blackId, formatCountRatio(rec.black));
+              }
+            });
+          }
+
+          // 1.6 Engine decision quality
+          if (d.engine) {
+            document.getElementById('data-eng-top1-player').textContent = d.engine.top1.player + '%';
+            document.getElementById('data-eng-top1-peer').textContent = d.engine.top1.peer + '%';
+            document.getElementById('data-eng-top1-gm').textContent = d.engine.top1.gm + '%';
+
+            document.getElementById('data-eng-top3-player').textContent = d.engine.top3.player + '%';
+            document.getElementById('data-eng-top3-peer').textContent = d.engine.top3.peer + '%';
+            document.getElementById('data-eng-top3-gm').textContent = d.engine.top3.gm + '%';
+
+            document.getElementById('data-eng-blunder-player').textContent = d.engine.blunder.player + '%';
+            document.getElementById('data-eng-blunder-peer').textContent = d.engine.blunder.peer + '%';
+            document.getElementById('data-eng-blunder-gm').textContent = d.engine.blunder.gm + '%';
+          }
+
+          // 1.7 Tactical conversion
+          if (d.tactical) {
+            document.getElementById('data-tac-found').textContent = d.tactical.found;
+            document.getElementById('data-tac-missed').textContent = d.tactical.missed;
+            document.getElementById('data-tac-rate').textContent = d.tactical.rate + '%';
+          }
+
+          // 1.8 Knight/Bishop exchanges
+          if (d.exchanges) {
+            document.getElementById('data-exch-accurate-count').textContent = d.exchanges.accurate.count;
+            document.getElementById('data-exch-accurate-ratio').textContent = d.exchanges.accurate.ratio + '%';
+            document.getElementById('data-exch-accurate-gm').textContent = d.exchanges.accurate.gm + '%';
+
+            document.getElementById('data-exch-inaccurate-count').textContent = d.exchanges.inaccurate.count;
+            document.getElementById('data-exch-inaccurate-ratio').textContent = d.exchanges.inaccurate.ratio + '%';
+            document.getElementById('data-exch-inaccurate-gm').textContent = d.exchanges.inaccurate.gm + '%';
+
+            document.getElementById('data-exch-bad-count').textContent = d.exchanges.bad.count;
+            document.getElementById('data-exch-bad-ratio').textContent = d.exchanges.bad.ratio + '%';
+            document.getElementById('data-exch-bad-gm').textContent = d.exchanges.bad.gm + '%';
+
+            document.getElementById('data-exch-total-count').textContent = d.exchanges.total.count;
+            document.getElementById('data-exch-total-ratio').textContent = d.exchanges.total.ratio + '%';
+            document.getElementById('data-exch-total-gm').textContent = d.exchanges.total.gm + '%';
+          }
+
+          // 1.9 Forced moves
+          if (d.forced) {
+            document.getElementById('data-forced-count').textContent = d.forced.count;
+            document.getElementById('data-forced-ratio').textContent = d.forced.ratio + '%';
+            document.getElementById('data-forced-gm').textContent = d.forced.gm + '%';
+          }
+
+          // 1.10 Position handling
+          if (d.positions) {
+            document.getElementById('data-pos-winning-count').textContent = d.positions.winning.count;
+            document.getElementById('data-pos-winning-ratio').textContent = fmtPct(d.positions.winning.ratio);
+            document.getElementById('data-pos-winning-gm').textContent = fmtPct(d.positions.winning.gm);
+
+            document.getElementById('data-pos-losing-count').textContent = d.positions.losing.count;
+            document.getElementById('data-pos-losing-ratio').textContent = fmtPct(d.positions.losing.ratio);
+            document.getElementById('data-pos-losing-gm').textContent = fmtPct(d.positions.losing.gm);
+          }
+
+          // ========== SECTION 2: STYLE PARAMETERS ==========
+          const fillStyle = (section, prefixMap, includeTotal = false) => {
+            if (!section) return;
+            Object.entries(prefixMap).forEach(([key, baseId]) => {
+              const rec = section[key];
+              if (!rec) return;
+              setText(`${baseId}-count`, rec.count);
+              setText(`${baseId}-ratio`, fmtPct(rec.ratio));
+              setText(`${baseId}-gm`, fmtPct(rec.gm));
+            });
+            if (includeTotal && section.total) {
+              setText(`${prefixMap.total || 'data-style-total'}-count`, section.total.count);
+              setText(`${prefixMap.total || 'data-style-total'}-ratio`, fmtPct(section.total.ratio));
+              setText(`${prefixMap.total || 'data-style-total'}-gm`, fmtPct(section.total.gm));
+            }
+          };
+
+          fillStyle(d.style_maneuver, {
+            constructive: 'data-style-maneuver-constructive',
+            prepare: 'data-style-maneuver-prepare',
+            neutral: 'data-style-maneuver-neutral',
+            misplaced: 'data-style-maneuver-misplaced',
+            opening: 'data-style-maneuver-opening',
+            total: 'data-style-maneuver-total',
+          }, true);
+
+          fillStyle(d.style_prophylaxis, {
+            direct: 'data-style-prophylaxis-direct',
+            latent: 'data-style-prophylaxis-latent',
+            meaningless: 'data-style-prophylaxis-meaningless',
+            failed: 'data-style-prophylaxis-failed',
+            total: 'data-style-prophylaxis-total',
+          }, true);
+
+          fillStyle(d.style_semantic_control, {
+            simplify: 'data-style-control-simplify',
+            plankill: 'data-style-control-plankill',
+            freeze: 'data-style-control-freeze',
+            blockade: 'data-style-control-blockade',
+            fileseal: 'data-style-control-fileseal',
+            kingsafety: 'data-style-control-kingsafety',
+            spaceclamp: 'data-style-control-spaceclamp',
+            regroup: 'data-style-control-regroup',
+            slowdown: 'data-style-control-slowdown',
+            total: 'data-style-control-total',
+          }, true);
+
+          fillStyle(d.style_control_over_dynamics, {
+            overall: 'data-style-cod-overall',
+            fileseal: 'data-style-cod-fileseal',
+            freeze: 'data-style-cod-freeze',
+            kingsafety: 'data-style-cod-kingsafety',
+            regroup: 'data-style-cod-regroup',
+            plankill: 'data-style-cod-plankill',
+            blockade: 'data-style-cod-blockade',
+            simplify: 'data-style-cod-simplify',
+            spaceclamp: 'data-style-cod-spaceclamp',
+            slowdown: 'data-style-cod-slowdown',
+          });
+
+          fillStyle(d.style_initiative, {
+            attempt: 'data-style-initiative-attempt',
+            deferred: 'data-style-initiative-deferred',
+            premature: 'data-style-initiative-premature',
+            cfile: 'data-style-initiative-cfile',
+          });
+
+          fillStyle(d.style_tension, {
+            creation: 'data-style-tension-creation',
+            neutral: 'data-style-tension-neutral',
+          });
+
+          fillStyle(d.style_structural, {
+            integrity: 'data-style-structural-integrity',
+            dynamic: 'data-style-structural-dynamic',
+            static: 'data-style-structural-static',
+          });
+
+          fillStyle(d.style_sacrifice, {
+            tactical: 'data-style-sacrifice-tactical',
+            positional: 'data-style-sacrifice-positional',
+            inaccurate: 'data-style-sacrifice-inaccurate',
+            speculative: 'data-style-sacrifice-speculative',
+            desperate: 'data-style-sacrifice-desperate',
+            combination: 'data-style-sacrifice-combination',
+            init: 'data-style-sacrifice-init',
+            structure: 'data-style-sacrifice-structure',
+            space: 'data-style-sacrifice-space',
+            total: 'data-style-sacrifice-total',
+          }, true);
+
+          // ========== SECTION 4: OPENING REPERTOIRE ==========
+          // 4.1 & 4.2 Opening tables (dynamic row insertion)
+          if (d.openings) {
+            if (d.openings.white && d.openings.white.length > 0) {
+              const whiteTbody = document.getElementById('data-opening-white-tbody');
+              whiteTbody.innerHTML = '';
+              d.openings.white.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                  <td>${row.line}</td>
+                  <td>${row.variation}</td>
+                  <td>${row.games}</td>
+                  <td>${row.win}%</td>
+                  <td>${row.draw}%</td>
+                  <td>${row.loss}%</td>
+                  <td>${row.accuracy}</td>
+                `;
+                whiteTbody.appendChild(tr);
+              });
+            }
+
+            if (d.openings.black && d.openings.black.length > 0) {
+              const blackTbody = document.getElementById('data-opening-black-tbody');
+              blackTbody.innerHTML = '';
+              d.openings.black.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                  <td>${row.line}</td>
+                  <td>${row.variation}</td>
+                  <td>${row.games}</td>
+                  <td>${row.win}%</td>
+                  <td>${row.draw}%</td>
+                  <td>${row.loss}%</td>
+                  <td>${row.accuracy}</td>
+                `;
+                blackTbody.appendChild(tr);
+              });
+            }
+          }
+        }
+
+        // ========== LLM SLOTS ==========
+        if (dataJson.llm_slots) {
+          Object.keys(dataJson.llm_slots).forEach(slotId => {
+            const element = document.getElementById(slotId);
+            if (element) {
+              element.innerHTML = dataJson.llm_slots[slotId];
+            }
+          });
+        }
+
+        // ========== VISUALIZATIONS ==========
+        if (dataJson.visualizations && typeof vizLib !== 'undefined' && vizLib) {
+          vizLib.clear();
+          Object.keys(dataJson.visualizations).forEach(vizId => {
+            vizLib.create(vizId, dataJson.visualizations[vizId]);
+          });
+        }
+
+        window._payloadLoaded = true;
+      };
+
+      // Fetch report payload from backend and hydrate UI
+      async function loadReportData() {
+        const parts = window.location.pathname.split("/");
+        const playerId = parts[parts.length - 1] || "player";
+        try {
+          const resp = await fetch(`/api/report/${playerId}`);
+          if (!resp.ok) {
+            throw new Error(`HTTP ${resp.status}`);
+          }
+          const payload = await resp.json();
+          TAG_EXPLAINERS = { ...DEFAULT_TAG_EXPLAINERS, ...(payload.tag_explanations || {}) };
+          if (window.fillReportData) {
+            window.fillReportData(payload);
+          }
+          attachTagHelps();
+        } catch (err) {
+          console.error("Failed to load report data:", err);
+        }
+      }
+
+      // Example usage (backend will inject this):
+      // window.fillReportData({{REPORT_DATA_JSON}});
+
+      // Whitelisted GMs (must exist in "current GM metrics" folder) with photo paths
+      const GM_PHOTO_MAP = {
+        'bobby fischer': '../current GM metrics /Bobby Fischer/Fischer.jpg',
+        'garry kasparov': '../current GM metrics /Garry Kasparov/Kasparov.jpg',
+        'anatoly karpov': '../current GM metrics /Anatoly Karpov/Anatoly.jpeg',
+        'mihail tal': '../current GM metrics /Mihail Tal/Tal.jpg',
+        'tigran petrosian': '../current GM metrics /Tigran Petrosian/Petrosian.jpg',
+        'ding liren': '../current GM metrics /Ding Liren/Ding.jpg',
+      };
+
+      // ========== GM AXIS VISUALIZATION LIBRARY ==========
+      class GMAxisViz {
+        constructor() {
+          this.visualizations = [];
+        }
+
+        /**
+         * Create an axis visualization
+         * @param {string} containerId - ID of the container element
+         * @param {Object} config - Configuration object
+         *   - min: minimum value for the axis
+         *   - max: maximum value for the axis
+         *   - player: { name, value }
+         *   - gms: [{ name, value }, ...]
+         */
+        create(containerId, config) {
+          const container = document.getElementById(containerId);
+          if (!container) {
+            console.warn(`Container ${containerId} not found`);
+            return;
+          }
+
+          const player = config.player;
+          const gms = this.filterAndEnrichGMs(config.gms || []);
+          const { min, max } = this.computeRange(config, gms, player);
+          const range = max - min;
+
+          // Clear existing content
+          container.innerHTML = '';
+
+          // Create GM markers
+          if (gms && gms.length > 0) {
+            gms.forEach(gm => {
+              const percentage = this.calculatePercentage(gm.value, min, range);
+              const marker = this.createMarker(gm.name, gm.value, percentage, false, gm.photo);
+              container.appendChild(marker);
+            });
+          }
+
+          // Create player marker
+          if (player) {
+            const playerPercentage = this.calculatePercentage(player.value, min, range);
+            const playerMarker = this.createMarker(player.name, player.value, playerPercentage, true);
+            container.appendChild(playerMarker);
+          }
+
+          this.visualizations.push({ containerId, config });
+        }
+
+        filterAndEnrichGMs(gms) {
+          return gms
+            .map(gm => {
+              if (!gm || !gm.name) return null;
+              const key = gm.name.trim().toLowerCase();
+              const photo = GM_PHOTO_MAP[key];
+              if (!photo) return null; // Filter out non-whitelisted GMs
+              return { ...gm, photo };
+            })
+            .filter(Boolean);
+        }
+
+        computeRange(config, gms, player) {
+          const gmValues = gms
+            .map(gm => gm && typeof gm.value === 'number' ? gm.value : null)
+            .filter(v => v !== null);
+
+          let min = typeof config.min === 'number' ? config.min : null;
+          let max = typeof config.max === 'number' ? config.max : null;
+
+          if (gmValues.length > 0) {
+            const gmMin = Math.min(...gmValues);
+            const gmMax = Math.max(...gmValues);
+            min = min === null ? gmMin : Math.min(min, gmMin);
+            max = max === null ? gmMax : Math.max(max, gmMax);
+          }
+
+          const playerVal = player && typeof player.value === 'number' ? player.value : null;
+          if (playerVal !== null) {
+            min = min === null ? playerVal : Math.min(min, playerVal);
+            max = max === null ? playerVal : Math.max(max, playerVal);
+          }
+
+          // Fallback if still null (no data)
+          if (min === null || max === null) {
+            min = 0;
+            max = 1;
+          }
+
+          // Avoid zero range
+          if (min === max) {
+            min -= 1;
+            max += 1;
+          }
+
+          return { min, max };
+        }
+
+        calculatePercentage(value, min, range) {
+          if (range === 0) return 50; // Default to center if no range
+          const percentage = ((value - min) / range) * 100;
+          // Clamp between 2% and 98% to prevent edge overflow
+          return Math.max(2, Math.min(98, percentage));
+        }
+
+        createMarker(name, value, percentage, isPlayer, photo) {
+          const marker = document.createElement('div');
+          marker.className = isPlayer ? 'player-marker' : 'gm-marker';
+          marker.style.left = `${percentage}%`;
+
+          const label = document.createElement('div');
+          label.className = isPlayer ? 'player-marker-label' : 'gm-marker-label';
+          if (photo && !isPlayer) {
+            const img = document.createElement('img');
+            img.src = photo;
+            img.alt = name;
+            img.className = 'gm-marker-avatar';
+            label.appendChild(img);
+          }
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = name;
+          label.appendChild(nameSpan);
+
+          const dot = document.createElement('div');
+          dot.className = isPlayer ? 'player-marker-dot' : 'gm-marker-dot';
+
+          const line = document.createElement('div');
+          line.className = isPlayer ? 'player-marker-line' : 'gm-marker-line';
+
+          const valueLabel = document.createElement('div');
+          valueLabel.className = isPlayer ? 'player-marker-value' : 'gm-marker-value';
+          valueLabel.textContent = this.formatValue(value);
+
+          marker.appendChild(label);
+          marker.appendChild(dot);
+          marker.appendChild(line);
+          marker.appendChild(valueLabel);
+
+          return marker;
+        }
+
+        formatValue(value) {
+          if (typeof value === 'number') {
+            const fixed = value.toFixed(1);
+            return value % 1 === 0 ? `${Math.round(value)}%` : `${fixed}%`;
+          }
+          return value;
+        }
+
+        /**
+         * Batch create multiple visualizations
+         * @param {Object} configs - Object with containerId as key and config as value
+         */
+        createMultiple(configs) {
+          Object.keys(configs).forEach(containerId => {
+            this.create(containerId, configs[containerId]);
+          });
+        }
+
+        /**
+         * Update an existing visualization
+         * @param {string} containerId - ID of the container element
+         * @param {Object} newConfig - New configuration
+         */
+        update(containerId, newConfig) {
+          const index = this.visualizations.findIndex(v => v.containerId === containerId);
+          if (index !== -1) {
+            this.visualizations[index].config = newConfig;
+            this.create(containerId, newConfig);
+          }
+        }
+
+        /**
+         * Remove all visualizations
+         */
+        clear() {
+          this.visualizations.forEach(viz => {
+            const container = document.getElementById(viz.containerId);
+            if (container) {
+              container.innerHTML = '';
+            }
+          });
+          this.visualizations = [];
+        }
+      }
+
+      // Init visualization library
+      vizLib = new GMAxisViz();
+
+      // Prefer inline payload injected by generator; otherwise fetch from API.
+      if (window.__PHASE2_INLINE_PAYLOAD__) {
+        const payload = window.__PHASE2_INLINE_PAYLOAD__;
+        TAG_EXPLAINERS = { ...DEFAULT_TAG_EXPLAINERS, ...(payload.tag_explanations || {}) };
+        if (window.fillReportData) {
+          window.fillReportData(payload);
+        }
+        attachTagHelps();
+      } else {
+        loadReportData();
+        attachTagHelps();
+      }
+    });
+  </script>
+</body>
+</html>

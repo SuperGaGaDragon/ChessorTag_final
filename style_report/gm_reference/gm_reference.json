@@ -1,0 +1,22 @@
+{
+  "Garry Kasparov": {
+    "tags": {
+      "forced_move": {"count": 100, "ratio": 0.12},
+      "winning_position_handling": {"count": 50, "ratio": 0.15},
+      "losing_position_handling": {"count": 30, "ratio": 0.08},
+      "accurate_knight_bishop_exchange": {"count": 80, "ratio": 0.10},
+      "inaccurate_knight_bishop_exchange": {"count": 10, "ratio": 0.02},
+      "bad_knight_bishop_exchange": {"count": 5, "ratio": 0.01}
+    }
+  },
+  "Anatoly Karpov": {
+    "tags": {
+      "forced_move": {"count": 90, "ratio": 0.11},
+      "winning_position_handling": {"count": 60, "ratio": 0.18},
+      "losing_position_handling": {"count": 25, "ratio": 0.07},
+      "accurate_knight_bishop_exchange": {"count": 70, "ratio": 0.09},
+      "inaccurate_knight_bishop_exchange": {"count": 8, "ratio": 0.015},
+      "bad_knight_bishop_exchange": {"count": 4, "ratio": 0.008}
+    }
+  }
+}

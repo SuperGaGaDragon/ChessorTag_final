@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chessortag – Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: #f8f9fa;
+      color: #1f2937;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .topbar {
+      height: 120px;
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e5e7eb;
+      background: #ffffff;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+    }
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-mark {
+      width: clamp(64px, 6vw, 78px);
+      height: clamp(64px, 6vw, 78px);
+    }
+    .logo-text {
+      font-weight: 600;
+      font-size: clamp(22px, 2.8vw, 28px);
+    }
+    .top-links {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+    .top-links a {
+      color: #6b7280;
+      text-decoration: none;
+    }
+    .top-links a:hover {
+      color: #1f2937;
+    }
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #22c55e, #0ea5e9);
+      display: inline-block;
+    }
+
+    .page {
+      flex: 1;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      row-gap: 12px;
+      padding: 14px 18px 18px;
+    }
+
+    .profile-strip {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+    }
+    .profile-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 13px;
+    }
+    .username {
+      font-weight: 600;
+    }
+    .membership-row {
+      display: flex;
+      gap: 6px;
+      font-size: 11px;
+    }
+    .pill {
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: 14px;
+      margin-top: 6px;
+      min-height: 0;
+    }
+    @media (max-width: 880px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      padding: 12px 12px 10px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .panel-title {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .panel-sub {
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .btn-small {
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #1f2937;
+      font-size: 11px;
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+    .btn-small:hover {
+      background: #f3f4f6;
+    }
+
+    .report-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+      font-size: 12px;
+    }
+    .report-card {
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      padding: 8px 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      cursor: pointer;
+      background: #f9fafb;
+    }
+    .report-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .report-name {
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .report-meta {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .desktop {
+      flex: 1;
+      border-radius: 16px;
+      border: 1px solid #d8dce5;
+      background: linear-gradient(180deg, #f7f8fb 0%, #eef1f6 100%);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      box-shadow: inset 0 1px 0 #ffffff, 0 12px 30px rgba(31, 41, 55, 0.08);
+      max-height: 72vh;
+      overflow: auto;
+    }
+    .desktop-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+      align-content: flex-start;
+      padding-bottom: 12px;
+    }
+    .icon-folder {
+      position: relative;
+      border-radius: 20px;
+      border: 1px solid #e1e5ed;
+      padding: 32px 14px 32px;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: linear-gradient(145deg, #ffffff, #f5f7fb);
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.05), inset 0 1px 0 #ffffff;
+      overflow: hidden;
+      min-height: 210px;
+      user-select: none;
+    }
+    .icon-folder.drop-target {
+      outline: 2px dashed #6b9bff;
+      outline-offset: 3px;
+    }
+    .icon-folder:hover {
+      background: #ffffff;
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.12), inset 0 1px 0 #ffffff;
+      transform: translateY(-3px);
+    }
+    .icon-folder[data-type="study"] {
+      background: linear-gradient(160deg, #ffffff, #f5f7fb);
+      border: 1px solid #e1e5ed;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04), inset 0 1px 0 #ffffff;
+    }
+    .icon-folder[data-type="study"]:hover {
+      background: #ffffff;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08), inset 0 1px 0 #ffffff;
+    }
+    .icon-folder[data-type="folder"] {
+      --folder-base: #f3e7d1;
+      --folder-top: #f9f0de;
+      border: 1px solid #e6d7b8;
+      background: linear-gradient(180deg, var(--folder-top) 0%, var(--folder-top) 40%, var(--folder-base) 100%);
+      box-shadow:
+        0 16px 38px rgba(0, 0, 0, 0.09),
+        0 8px 18px rgba(214, 189, 152, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+    .icon-folder[data-type="folder"]::before {
+      content: "";
+      position: absolute;
+      top: 6px;
+      left: 12px;
+      width: 78%;
+      height: 22px;
+      background: linear-gradient(180deg, var(--folder-top) 0%, var(--folder-base) 100%);
+      border-radius: 14px 14px 10px 10px;
+      border: 1px solid #e2d3b4;
+      border-bottom: none;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 2px 6px rgba(210, 188, 148, 0.22),
+        0 8px 16px rgba(0, 0, 0, 0.05);
+      clip-path: polygon(0 0, 78% 0, 88% 50%, 100% 50%, 100% 100%, 0 100%);
+    }
+    .icon-folder[data-type="folder"]:hover {
+      background: linear-gradient(180deg, var(--folder-top) 0%, var(--folder-top) 40%, var(--folder-base) 100%);
+      box-shadow:
+        0 20px 38px rgba(0, 0, 0, 0.14),
+        0 10px 22px rgba(214, 189, 152, 0.46),
+        inset 0 1px 0 rgba(255, 255, 255, 0.88);
+    }
+    .cat-sticker {
+      position: absolute;
+      width: clamp(70px, 60%, 90px);
+      height: auto;
+      max-height: calc(100% - 88px);
+      bottom: 14px;
+      left: 58%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      opacity: 0.96;
+      filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.14));
+      object-fit: contain;
+      user-select: none;
+    }
+    .icon-folder strong {
+      font-size: 15px;
+    }
+    .folder-name {
+      cursor: text;
+      padding: 2px 4px;
+      margin: -2px -4px;
+      border-radius: 4px;
+      transition: background 0.15s ease;
+      word-break: break-word;
+    }
+    .folder-name:hover {
+      background: rgba(59, 130, 246, 0.1);
+    }
+    .folder-name.editing {
+      outline: 2px solid #3b82f6;
+      background: #ffffff;
+    }
+    .icon-caption {
+      font-size: 10px;
+      color: #6b7280;
+    }
+    .add-tile {
+      align-items: center;
+      text-align: center;
+      gap: 8px;
+      background: linear-gradient(160deg, #f7fbff 0%, #eef2ff 100%);
+      border: 1px solid #cfd7eb;
+    }
+    .add-tile .add-mark {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      margin: 0 auto;
+      display: grid;
+      place-items: center;
+      font-size: 26px;
+      color: #1f2937;
+      background: linear-gradient(135deg, #dbeafe, #e0f2fe);
+      box-shadow: inset 0 1px 0 #ffffff, 0 6px 16px rgba(99, 102, 241, 0.25);
+    }
+    .desktop-hint {
+      font-size: 11px;
+      color: #6b7280;
+      margin-top: 6px;
+    }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+      backdrop-filter: blur(3px);
+    }
+    .modal-overlay.show {
+      display: flex;
+    }
+    .modal-window {
+      width: 640px;
+      max-width: 90vw;
+      background: #fbfcff;
+      border-radius: 18px;
+      border: 1px solid #e5e7eb;
+      box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      overflow: hidden;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: linear-gradient(180deg, #f3f4f6 0%, #e7e9ee 100%);
+      border-bottom: 1px solid #d8dce5;
+    }
+    .modal-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      color: #1f2937;
+    }
+    .modal-back {
+      border: none;
+      background: transparent;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      color: #6b7280;
+      margin-right: 6px;
+    }
+    .modal-back:hover {
+      background: rgba(0, 0, 0, 0.04);
+      color: #111827;
+    }
+    .modal-folder-pill {
+      width: 28px;
+      height: 20px;
+      border-radius: 6px;
+      background: linear-gradient(180deg, #f9f0de 0%, #f3e7d1 100%);
+      border: 1px solid #e2d3b4;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+    .modal-close {
+      border: none;
+      background: transparent;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      color: #6b7280;
+    }
+    .modal-close:hover {
+      background: rgba(0, 0, 0, 0.04);
+      color: #111827;
+    }
+    .modal-body {
+      padding: 14px;
+      background: linear-gradient(180deg, #fbfcff 0%, #f5f6fb 100%);
+      min-height: 260px;
+    }
+    .modal-dropzone {
+      min-height: 230px;
+      border: 1px dashed #cfd7eb;
+      border-radius: 14px;
+      background: #ffffff;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+    .modal-dropzone.dragover {
+      border-color: #6b9bff;
+      background: #f4f7ff;
+    }
+    .modal-items {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+      flex: 1;
+    }
+    .modal-item {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #ffffff, #f6f7fb);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 2px;
+      padding: 10px;
+      color: #1f2937;
+      font-size: 12px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      min-height: 80px;
+    }
+    .modal-item.modal-item-folder {
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+    }
+    .modal-item.modal-item-folder:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+    .mini-cat {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.14));
+      margin-top: 4px;
+    }
+    .color-picker {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      background: rgba(15, 23, 42, 0.25);
+      backdrop-filter: blur(3px);
+    }
+    .color-picker.show {
+      display: flex;
+    }
+    .color-picker-panel {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.16);
+      width: min(520px, 92vw);
+    }
+    .color-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+      gap: 12px;
+    }
+    .color-swatch {
+      width: 54px;
+      height: 54px;
+      border-radius: 999px;
+      border: 2px solid #e5e7eb;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .color-swatch:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+    }
+    .modal-item .item-type {
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .modal-empty {
+      color: #6b7280;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 120px;
+      border: 1px dashed transparent;
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部导航条 -->
+  <header class="topbar">
+    <div class="logo-row">
+      <img class="logo-mark" src="assets/logo2.png" alt="Chessortag logo">
+      <div class="logo-text">Chessortag</div>
+    </div>
+    <div class="top-links">
+      <a href="index.html">About</a>
+      <span>|</span>
+      <span>Home</span>
+      <span>|</span>
+      <span>Log in · Sign up (later)</span>
+      <span class="avatar"></span>
+    </div>
+  </header>
+
+  <!-- 主内容 -->
+  <main class="page">
+    <!-- 上方用户 profile 条 -->
+    <section class="profile-strip">
+      <span class="avatar"></span>
+      <div class="profile-main">
+        <span class="username">Player Name (placeholder)</span>
+        <span style="font-size: 12px; color: #6b7280;">username · basic member</span>
+        <div class="membership-row">
+          <span class="pill">⭐ reports</span>
+          <span class="pill">📁 studies</span>
+          <span class="pill">☁ cloud sync (later)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 下方：左 report 列 + 右 study 桌面 -->
+    <section class="workspace">
+      <!-- 左：reports -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Your reports</div>
+            <div class="panel-sub">Recent style reports</div>
+          </div>
+          <button
+            class="btn-small"
+            onclick="window.location.href='../style_report/templates/report_base_phase2.html'">
+            View sample
+          </button>
+        </div>
+
+        <div class="report-list">
+          <div class="report-card"
+               onclick="window.location.href='../style_report/templates/report_base_phase2.html'">
+            <div class="report-top">
+              <span class="report-name">TestYuYaochen · full profile</span>
+              <span class="report-meta">sample</span>
+            </div>
+            <div class="report-meta">Last generated: demo · opens static phase2 report</div>
+          </div>
+
+          <div class="report-card"
+               onclick="window.location.href='new_report.html'">
+            <div class="report-top">
+              <span class="report-name">New report</span>
+              <span class="report-meta">beta</span>
+            </div>
+            <div class="report-meta">Upload PGN & generate via backend API.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右：study 桌面区 -->
+      <div class="desktop">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Study workspace</div>
+            <div class="panel-sub">Mac-style desktop — double-click to open</div>
+          </div>
+        </div>
+
+        <div class="desktop-grid" id="desktopGrid">
+          <div class="icon-folder add-tile" data-type="create-folder" data-id="starter-folder">
+            <div class="add-mark">+</div>
+            <strong class="folder-name" onclick="renameItem(event, this)">New folder</strong>
+            <span class="icon-caption">Create folder</span>
+          </div>
+          <div class="icon-folder add-tile" data-type="create-study" data-id="starter-study">
+            <div class="add-mark">+</div>
+            <strong class="folder-name" onclick="renameItem(event, this)">New study</strong>
+            <span class="icon-caption">Open study board</span>
+          </div>
+          <div class="icon-folder" data-type="folder" data-id="1">
+            <strong class="folder-name" onclick="renameItem(event, this)">My prep vs Tal</strong>
+            <span class="icon-caption">Folder · 3 studies</span>
+          </div>
+          <div class="icon-folder" data-type="folder" data-id="2">
+            <strong class="folder-name" onclick="renameItem(event, this)">Endgame drills</strong>
+            <span class="icon-caption">Folder · 5 studies</span>
+          </div>
+          <div class="icon-folder" data-type="study" data-id="3">
+            <strong class="folder-name" onclick="renameItem(event, this)">Study: Sample game</strong>
+            <span class="icon-caption">Open board workspace (demo)</span>
+          </div>
+        </div>
+
+        <p class="desktop-hint">
+          Plus tiles at the top-left stay fixed; double-click a study to open the board, a folder to preview, or the plus icons to add new items.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-overlay" id="folderModal">
+      <div class="modal-window">
+        <div class="modal-header">
+          <div class="modal-title">
+            <button class="modal-back" aria-label="Back" onclick="goBackFolder()">‹</button>
+            <div class="modal-folder-pill"></div>
+            <span id="modalFolderName">Folder</span>
+          </div>
+          <button class="modal-close" aria-label="Close" onclick="closeFolderModal()">✕</button>
+        </div>
+      <div class="modal-body">
+        <div class="modal-dropzone" id="modalDropzone">
+          <div class="modal-empty" id="modalEmpty">Drag studies or folders here</div>
+          <div class="modal-items" id="modalFileGrid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="color-picker" id="colorPicker">
+    <div class="color-picker-panel">
+      <div style="font-weight:600; margin-bottom:10px; font-size:14px;">Pick a folder color (double-click to apply)</div>
+      <div class="color-picker-grid" id="colorPickerGrid"></div>
+    </div>
+  </div>
+
+  <script>
+    let nextId = 4; // Starting ID for new items
+    const folderContents = {};
+    const itemRegistry = {}; // id -> meta
+    const itemParent = {};   // id -> folderId or null (desktop)
+    const folderHistory = [];
+    let currentModalFolderId = null;
+
+    const morandiPalette = [
+      { base: '#f3e7d1', top: '#f9f0de' },
+      { base: '#f1e4de', top: '#f7ede7' },
+      { base: '#e6e0d8', top: '#f0e8df' },
+      { base: '#e0ddd6', top: '#e9e5dd' },
+      { base: '#dcd9d2', top: '#e6e3dc' },
+      { base: '#d8d5cc', top: '#e2dfd6' },
+      { base: '#d6d8df', top: '#e1e3ea' },
+      { base: '#d5dde3', top: '#e0e7ec' },
+      { base: '#d6e3e1', top: '#e0ecea' },
+      { base: '#dbe6d9', top: '#e6efe4' },
+      { base: '#e7ead6', top: '#f2f5df' },
+      { base: '#e9e0d3', top: '#f3e9dc' },
+      { base: '#e2d8e0', top: '#ece1e9' },
+      { base: '#dcd7e6', top: '#e7e2ef' },
+      { base: '#d8dbe9', top: '#e3e6f3' },
+      { base: '#d9e0ed', top: '#e3e8f4' },
+      { base: '#d9e5f0', top: '#e3eef8' },
+      { base: '#dae8e6', top: '#e4f1ef' },
+      { base: '#e3e9de', top: '#edf3e8' },
+      { base: '#e9e5d8', top: '#f3efe2' },
+    ];
+
+    function snapshotTileMeta(tile) {
+      if (!tile) return null;
+      const id = tile.getAttribute('data-id');
+      const type = tile.getAttribute('data-type');
+      if (!id || !type) return null;
+      const name = tile.querySelector('.folder-name')?.textContent?.trim() || type;
+      const catImg = tile.querySelector('.cat-sticker');
+      const catSrc = catImg ? catImg.getAttribute('src') : null;
+      return { id, type, name, catSrc, color: itemRegistry[id]?.color || null };
+    }
+
+    function applyFolderColor(tile, color) {
+      if (!tile) return;
+      const palette = color || morandiPalette[Math.floor(Math.random() * morandiPalette.length)];
+      tile.style.setProperty('--folder-base', palette.base);
+      tile.style.setProperty('--folder-top', palette.top);
+      const id = tile.getAttribute('data-id');
+      if (id) {
+        itemRegistry[id] = { ...(itemRegistry[id] || {}), color: palette };
+        updateFolderCaption(id);
+      }
+    }
+
+    function registerTile(tile) {
+      if (!tile) return;
+      tile.setAttribute('draggable', 'true');
+      tile.querySelectorAll('*').forEach((child) => child.setAttribute('draggable', 'false'));
+      const meta = snapshotTileMeta(tile);
+      if (!meta) return;
+      itemRegistry[meta.id] = { ...itemRegistry[meta.id], ...meta };
+      if (!(meta.id in itemParent)) {
+        itemParent[meta.id] = null; // default on desktop
+      }
+      if (meta.type === 'folder') {
+        if (!folderContents[meta.id]) {
+          const caption = tile.querySelector('.icon-caption')?.textContent || "";
+          const match = caption.match(/Folder\s*·\s*(\d+)/i);
+          const initialCount = match ? Number(match[1]) : 0;
+          folderContents[meta.id] = Array.from({ length: initialCount }, (_, i) => `seed-${meta.id}-${i}`);
+        }
+        // ensure cat sticker recorded
+        if (!meta.catSrc) {
+          const cat = tile.querySelector('.cat-sticker');
+          if (cat) itemRegistry[meta.id].catSrc = cat.getAttribute('src');
+        }
+        if (!itemRegistry[meta.id].color) {
+          applyFolderColor(tile);
+        } else {
+          applyFolderColor(tile, itemRegistry[meta.id].color);
+        }
+      }
+    }
+
+    // Create a new folder
+    function createNewFolder() {
+      const grid = document.getElementById('desktopGrid');
+      const newFolder = document.createElement('div');
+      newFolder.className = 'icon-folder';
+      newFolder.setAttribute('data-type', 'folder');
+      newFolder.setAttribute('data-id', nextId);
+
+      newFolder.innerHTML = `
+        <strong class="folder-name" onclick="renameItem(event, this)">New Folder</strong>
+        <span class="icon-caption">Folder · 0 studies</span>
+      `;
+
+      // Keep the add tiles at the front, insert the new folder right after them
+      const firstRegularItem = grid.querySelector('.icon-folder:not(.add-tile)');
+      if (firstRegularItem) {
+        grid.insertBefore(newFolder, firstRegularItem);
+      } else {
+        grid.appendChild(newFolder);
+      }
+      nextId++;
+
+      // Auto-select the name for renaming
+      setTimeout(() => {
+        const nameEl = newFolder.querySelector('.folder-name');
+        startEditing(nameEl);
+      }, 50);
+
+      folderContents[newFolder.getAttribute('data-id')] = [];
+      registerTile(newFolder);
+
+      return newFolder;
+    }
+
+    // Create a new study tile (click to open later)
+    function createNewStudy() {
+      const grid = document.getElementById('desktopGrid');
+      const newStudy = document.createElement('div');
+      newStudy.className = 'icon-folder';
+      newStudy.setAttribute('data-type', 'study');
+      newStudy.setAttribute('data-id', nextId);
+
+      newStudy.innerHTML = `
+        <strong class="folder-name" onclick="renameItem(event, this)">New study</strong>
+        <span class="icon-caption">Open board workspace</span>
+      `;
+
+      const firstRegularItem = grid.querySelector('.icon-folder:not(.add-tile)');
+      if (firstRegularItem) {
+        grid.insertBefore(newStudy, firstRegularItem);
+      } else {
+        grid.appendChild(newStudy);
+      }
+      nextId++;
+
+      setTimeout(() => {
+        const nameEl = newStudy.querySelector('.folder-name');
+        startEditing(nameEl);
+      }, 50);
+
+      registerTile(newStudy);
+
+      return newStudy;
+    }
+
+    // Handle renaming items (Apple-style)
+    function renameItem(event, element) {
+      event.stopPropagation();
+
+      // Don't start editing if already editing
+      if (element.classList.contains('editing')) {
+        return;
+      }
+
+      startEditing(element);
+    }
+
+    function startEditing(element) {
+      const originalText = element.textContent;
+      element.classList.add('editing');
+      element.contentEditable = true;
+
+      // Select all text
+      const range = document.createRange();
+      const selection = window.getSelection();
+      range.selectNodeContents(element);
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      element.focus();
+
+      // Handle save on blur or Enter key
+      function finishEditing() {
+        element.classList.remove('editing');
+        element.contentEditable = false;
+
+        const newText = element.textContent.trim();
+        if (newText === '') {
+          element.textContent = originalText;
+        }
+
+        element.removeEventListener('blur', finishEditing);
+        element.removeEventListener('keydown', handleKeydown);
+      }
+
+      function handleKeydown(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          element.blur();
+        } else if (e.key === 'Escape') {
+          element.textContent = originalText;
+          element.blur();
+        }
+      }
+
+      element.addEventListener('blur', finishEditing);
+      element.addEventListener('keydown', handleKeydown);
+    }
+
+    // Handle double-click to open folder/study
+    document.addEventListener('DOMContentLoaded', () => {
+      const grid = document.getElementById('desktopGrid');
+
+      const catImages = [
+        'assets/cat_pieces/King.png',
+        'assets/cat_pieces/Knight.png',
+        'assets/cat_pieces/Queen.png',
+        'assets/cat_pieces/Rook.png',
+        'assets/cat_pieces/black_bishop.png',
+        'assets/cat_pieces/black_pawn.png',
+        'assets/cat_pieces/pawn.png',
+        'assets/cat_pieces/white_bishop.png',
+        'assets/cat_pieces/folder1.png',
+        'assets/cat_pieces/folder2.png',
+        'assets/cat_pieces/folder3.png',
+        'assets/cat_pieces/folder4.png',
+        'assets/cat_pieces/folder5.png',
+      ];
+
+      function addCatSticker(tile) {
+        if (!tile || tile.classList.contains('add-tile')) return;
+        const type = tile.getAttribute('data-type');
+        if (type !== 'folder') return;
+        const existing = tile.querySelector('.cat-sticker');
+        if (existing) existing.remove();
+        const img = document.createElement('img');
+        img.className = 'cat-sticker';
+        img.src = catImages[Math.floor(Math.random() * catImages.length)];
+        img.alt = 'cat sticker';
+        tile.appendChild(img);
+        const id = tile.getAttribute('data-id');
+        if (id) {
+          itemRegistry[id] = { ...(itemRegistry[id] || {}), catSrc: img.src };
+        }
+      }
+
+      // Seed existing folders with cats and init draggables
+      grid.querySelectorAll('.icon-folder[data-type="folder"]').forEach((tile) => {
+        addCatSticker(tile);
+        registerTile(tile);
+      });
+      grid.querySelectorAll('.icon-folder[data-type="study"]').forEach(registerTile);
+
+      // Single-click handler to create items from the fixed add tiles
+      grid.addEventListener('click', (e) => {
+        const tile = e.target.closest('.icon-folder');
+        if (!tile) return;
+
+        const type = tile.getAttribute('data-type');
+        if (type === 'create-folder') {
+          const newTile = createNewFolder();
+          addCatSticker(newTile);
+        } else if (type === 'create-study') {
+          createNewStudy();
+        }
+      });
+
+      // Right-click to delete folders or studies (not add tiles)
+      grid.addEventListener('contextmenu', (e) => {
+        const item = e.target.closest('.icon-folder');
+        if (!item || item.classList.contains('add-tile')) return;
+        e.preventDefault();
+
+        const type = item.getAttribute('data-type');
+        const name = item.querySelector('.folder-name')?.textContent?.trim() || type;
+        const isFolder = type === 'folder';
+        const confirmMsg = `Delete this ${isFolder ? 'folder' : 'study'}?\n${name}`;
+        if (confirm(confirmMsg)) {
+          item.remove();
+        }
+      });
+
+      grid.addEventListener('dblclick', (e) => {
+        const folder = e.target.closest('.icon-folder');
+        if (!folder) return;
+
+        const type = folder.getAttribute('data-type');
+        const name = folder.querySelector('.folder-name').textContent;
+        const id = folder.getAttribute('data-id');
+
+        if (type === 'create-study') {
+          createNewStudy();
+        } else if (type === 'create-folder') {
+          const newTile = createNewFolder();
+          addCatSticker(newTile);
+        } else if (type === 'study') {
+          window.location.href = 'study_board.html';
+        } else if (type === 'folder') {
+          openFolderModal(name, id);
+        }
+      });
+
+      // Drag support
+      grid.addEventListener('dragstart', (e) => {
+        const tile = e.target.closest('.icon-folder');
+        if (!tile || tile.classList.contains('add-tile')) return;
+        const id = tile.getAttribute('data-id');
+        const type = tile.getAttribute('data-type');
+        if (!id || (type !== 'folder' && type !== 'study')) return;
+        e.dataTransfer.effectAllowed = 'move';
+        const meta = itemRegistry[id] || snapshotTileMeta(tile) || { id, type, name: tile.querySelector('.folder-name').textContent.trim() };
+        itemRegistry[id] = { ...itemRegistry[id], ...meta };
+        e.dataTransfer.setData('application/x-workspace-item', JSON.stringify(meta));
+      });
+
+      grid.addEventListener('dragover', (e) => {
+        const target = e.target.closest('.icon-folder');
+        if (!target || target.classList.contains('add-tile')) return;
+        e.preventDefault();
+        target.classList.add('drop-target');
+      });
+
+      grid.addEventListener('dragleave', (e) => {
+        const target = e.target.closest('.icon-folder');
+        if (!target) return;
+        target.classList.remove('drop-target');
+      });
+
+      grid.addEventListener('drop', (e) => {
+        const target = e.target.closest('.icon-folder');
+        if (!target || target.classList.contains('add-tile')) return;
+        e.preventDefault();
+        target.classList.remove('drop-target');
+        const data = e.dataTransfer.getData('application/x-workspace-item');
+        if (!data) return;
+        const parsed = JSON.parse(data);
+        if (parsed.type !== 'folder' && parsed.type !== 'study') return;
+        const targetId = target.getAttribute('data-id');
+        if (!targetId || parsed.id === targetId) return;
+        const meta = itemRegistry[parsed.id] || parsed;
+        moveItemToFolder(targetId, meta);
+      });
+    });
+
+    function moveItemToFolder(targetFolderId, item) {
+      if (!targetFolderId || !item || !item.id) return;
+      const sourceParent = itemParent[item.id] ?? null;
+
+      // Remove from source parent list
+      if (sourceParent) {
+        folderContents[sourceParent] = (folderContents[sourceParent] || []).filter((id) => id !== item.id);
+        updateFolderCaption(sourceParent);
+      } else {
+        // from desktop: remove tile element
+        const grid = document.getElementById('desktopGrid');
+        const tile = grid.querySelector(`.icon-folder[data-id="${item.id}"]`);
+        if (tile && !tile.classList.contains('add-tile')) {
+          tile.remove();
+        }
+      }
+
+      // Add to target list if not present
+      folderContents[targetFolderId] = folderContents[targetFolderId] || [];
+      if (!folderContents[targetFolderId].includes(item.id)) {
+        folderContents[targetFolderId].push(item.id);
+      }
+
+      itemParent[item.id] = targetFolderId;
+      updateFolderCaption(targetFolderId);
+    }
+
+    function updateFolderCaption(folderId) {
+      const grid = document.getElementById('desktopGrid');
+      const tile = grid.querySelector(`.icon-folder[data-type="folder"][data-id="${folderId}"]`);
+      if (!tile) return;
+      const cap = tile.querySelector('.icon-caption');
+      if (!cap) return;
+      const count = folderContents[folderId]?.length || 0;
+      cap.textContent = `Folder · ${count} item${count === 1 ? "" : "s"}`;
+    }
+
+    function openFolderModal(name, folderId) {
+      const overlay = document.getElementById('folderModal');
+      const nameEl = document.getElementById('modalFolderName');
+      const grid = document.getElementById('modalFileGrid');
+      const dropzone = document.getElementById('modalDropzone');
+      const empty = document.getElementById('modalEmpty');
+      const headerPill = document.querySelector('.modal-folder-pill');
+      dropzone.dataset.folderId = folderId;
+      currentModalFolderId = folderId;
+      nameEl.textContent = name;
+      grid.innerHTML = '';
+      const list = folderContents[folderId] || [];
+      const color = itemRegistry[folderId]?.color;
+      if (color) {
+        headerPill.style.background = `linear-gradient(180deg, ${color.top} 0%, ${color.base} 100%)`;
+        headerPill.style.border = '1px solid #e2d3b4';
+      }
+      // history push if navigating deeper
+      const current = folderHistory[folderHistory.length - 1];
+      if (!current || current.id !== folderId) {
+        folderHistory.push({ id: folderId, name });
+      }
+      if (!list.length) {
+        empty.style.display = 'flex';
+      } else {
+        empty.style.display = 'none';
+        list.forEach((itemId) => {
+          const meta = itemRegistry[itemId];
+          if (!meta) return;
+          const el = document.createElement('div');
+          el.className = 'modal-item';
+          if (meta.type === 'folder') {
+            el.classList.add('modal-item-folder');
+            el.title = 'Open this folder';
+            el.addEventListener('click', (evt) => {
+              evt.stopPropagation();
+              openFolderModal(meta.name, meta.id);
+            });
+          }
+          const catImg = meta.catSrc ? `<img class="mini-cat" src="${meta.catSrc}" alt="">` : "";
+          const color = meta.color || morandiPalette[0];
+          const folderStyle = meta.type === 'folder'
+            ? `background:linear-gradient(180deg, ${color.top} 0%, ${color.top} 40%, ${color.base} 100%); border:1px solid #e6d7b8; box-shadow:0 6px 14px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8);`
+            : '';
+          el.innerHTML = `
+            <div style="display:flex; flex-direction:column; gap:4px; width:100%; ${folderStyle} padding:8px; border-radius:12px;">
+              <div style="font-weight:600;">${meta.name}</div>
+              <div class="item-type">${meta.type}</div>
+              ${catImg}
+            </div>
+          `;
+          grid.appendChild(el);
+        });
+      }
+
+      overlay.classList.add('show');
+    }
+
+    function closeFolderModal() {
+      document.getElementById('folderModal').classList.remove('show');
+      folderHistory.length = 0;
+      currentModalFolderId = null;
+    }
+
+    function goBackFolder() {
+      if (folderHistory.length <= 1) {
+        closeFolderModal();
+        return;
+      }
+      folderHistory.pop();
+      const prev = folderHistory[folderHistory.length - 1];
+      openFolderModal(prev.name, prev.id);
+    }
+
+    function goBackFolder() {
+      if (folderHistory.length <= 1) {
+        closeFolderModal();
+        return;
+      }
+      folderHistory.pop();
+      const prev = folderHistory[folderHistory.length - 1];
+      openFolderModal(prev.name, prev.id);
+    }
+
+    document.addEventListener('click', (e) => {
+      const overlay = document.getElementById('folderModal');
+      if (!overlay.classList.contains('show')) return;
+      if (e.target === overlay) {
+        closeFolderModal();
+      }
+    });
+
+    // Drop handling
+    const dropzone = document.getElementById('modalDropzone');
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('dragover');
+    });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      const data = e.dataTransfer.getData('application/x-workspace-item');
+      if (!data) return;
+      const parsed = JSON.parse(data);
+      if (parsed.type !== 'folder' && parsed.type !== 'study') return;
+
+      const targetId = dropzone.dataset.folderId;
+      if (!targetId || parsed.id === targetId) return;
+      const meta = itemRegistry[parsed.id] || parsed;
+      moveItemToFolder(targetId, meta);
+      openFolderModal(document.getElementById('modalFolderName').textContent, targetId);
+    });
+
+    // Color picker build + events
+    const colorPicker = document.getElementById('colorPicker');
+    const colorPickerGrid = document.getElementById('colorPickerGrid');
+    function buildColorPicker() {
+      colorPickerGrid.innerHTML = '';
+      morandiPalette.forEach((palette, idx) => {
+        const swatch = document.createElement('div');
+        swatch.className = 'color-swatch';
+        swatch.style.background = `linear-gradient(180deg, ${palette.top} 0%, ${palette.top} 40%, ${palette.base} 100%)`;
+        swatch.title = `Palette ${idx + 1}`;
+        swatch.addEventListener('dblclick', () => {
+          if (!currentModalFolderId) return;
+          const grid = document.getElementById('desktopGrid');
+          const tile = grid.querySelector(`.icon-folder[data-id="${currentModalFolderId}"]`);
+          if (tile) {
+            applyFolderColor(tile, palette);
+          }
+          itemRegistry[currentModalFolderId] = { ...(itemRegistry[currentModalFolderId] || {}), color: palette };
+          // refresh modal to reflect
+          const name = document.getElementById('modalFolderName').textContent;
+          openFolderModal(name, currentModalFolderId);
+          colorPicker.classList.remove('show');
+        });
+        colorPickerGrid.appendChild(swatch);
+      });
+    }
+    buildColorPicker();
+
+    document.querySelector('.modal-folder-pill').addEventListener('click', () => {
+      if (!currentModalFolderId) return;
+      colorPicker.classList.add('show');
+    });
+    colorPicker.addEventListener('click', (e) => {
+      if (e.target === colorPicker) {
+        colorPicker.classList.remove('show');
+      }
+    });
+  </script>
+</body>
+</html>

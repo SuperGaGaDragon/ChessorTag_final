@@ -1,0 +1,270 @@
+Garry Kasparov — Comprehensive Style Profile
+
+(Technical stylistic anatomy for engine-tag and LLM-analysis systems)
+
+Garry Kasparov’s style is a unique convergence of dynamic central authority, structural pressure, initiative-driven calculation, and forced-move manufacturing. He does not merely “attack”; rather, he constructs positions in which the opponent’s defensive resources evaporate by force. His games demonstrate a synthesis of hyper-active piece coordination, central dynamic control, and energetic tempo elevation, creating a style that is at once ferocious and technically disciplined.
+
+Below is a detailed breakdown of his stylistic identity across your main tag domains.
+
+1. Control-Over-Dynamics (COD) as the Central Spine of His Style
+
+Kasparov consistently ranks among the highest in control_over_dynamics across elite players.
+His defining trait is not chaos, but managed dynamism:
+
+He rarely allows positions to drift into “equal-but-complex”; instead he steers them into dynamic structures he already understands better than the opponent.
+
+His dynamic control expresses itself through:
+
+Early central pawn advances (e4, d4, c5, …)
+
+Long diagonal pressure from structures like the Najdorf and King’s Indian
+
+Rapid buildup of tension (high tension_creation)
+
+Turning that tension into forced-move sequences
+
+Kasparov’s COD is characterized by directive activity: he “turns up the temperature” until the opponent’s responses become limited.
+
+2. High Direct Prophylaxis (Not Latent) – The “Active Prevention” Model
+
+Unlike Petrosian’s “latent prophylaxis,” Kasparov uses direct prophylaxis:
+
+prophylactic_direct is high:
+He neutralizes opponent plans not by quiet manoeuvres but by assertive moves that seize initiative and kill counterplay outright.
+
+Example pattern:
+
+He plays a move that is both aggressive and preventative (e.g., h6 in the Najdorf, a6 to stop Nb5 while preparing b5).
+
+Kasparov’s prophylaxis → energetic suppression, not quiet avoidance.
+
+3. Initiative-Centric Identity
+
+Kasparov is arguably the highest-ranking world champion in initiative_attempt and initiative-driven branch selection.
+
+His initiative philosophy:
+
+Initiative > Material (he gladly sacs pawns for tempo)
+
+Initiative > Structure (he will compromise his pawn structure if the ensuing activity dominates)
+
+Initiative creates tempo, tempo creates threats, threats create errors
+
+Where Petrosian delays the initiative, Kasparov demands it early and amplifies it.
+
+4. Forced-Move Manufacturing – His Most Characteristic “Signature Tag”
+
+Kasparov is elite-level in forced_move frequency.
+This is not accidental; it is his strategic objective:
+
+He builds positions where the opponent has only one or two safe moves.
+
+Once the opponent’s options shrink, Kasparov calculates deeper than any human could practically manage.
+
+Unlike Tal, who often forces complications, Kasparov forces correctness — a much more stressful task for defenders.
+
+This makes his style resemble a dynamically oppressive machine: he tightens the screws until the defender collapses due to one inaccurate move.
+
+5. Structural Pressure + Dynamic Pressure: His “Dual Threat” System
+
+A unique Kasparov trademark is the combination of:
+
+(1) Structural threats (file pressure, central expansion, space clamp)
+
+with
+
+(2) Dynamic and tactical threats (queen–bishop battery, knight jumps, pawn storms)
+
+Tags associated with this dual system:
+
+control_file_seal
+
+file_pressure_c
+
+structural_compromise_dynamic
+
+opening_central_pawn_move
+
+positional_space_sacrifice
+
+Kasparov often:
+
+Gains space
+
+Opens a file
+
+Doubles rooks
+
+Forces the opponent into defensive passivity
+
+Launches a dynamic strike that the structure already supports
+
+This is why his positions often feel “inevitable” before the attack even begins.
+
+6. Constructive Maneuver (Not Neutral Maneuver)
+
+Kasparov’s maneuvering patterns differ sharply from maneuver-based players:
+
+constructive_maneuver is high
+
+neutral_maneuver is relatively low
+
+Interpretation:
+
+He doesn’t reposition pieces “waiting for something.”
+
+Instead, every maneuver is calculated to increase energy, improve piece alignment, or prepare a forcing breakthrough.
+
+Examples:
+
+Rf8–f6–g6 rook lifts in the Sicilian
+
+Qd1–d2–g5 queen migrations
+
+Knights rerouting via c6/e7 into d5/f5
+
+His manoeuvres always retain threat potential.
+
+7. Tension Creation → Conversion
+
+Kasparov’s games are textbook examples of pressure buildup:
+
+tension_creation is consistently high
+
+He keeps multiple pawn and piece tensions alive over many moves
+
+This maximizes the chance of favorable tactical ruptures
+
+Then, at the moment of maximum pressure, he transitions to:
+
+tactical_initiative_sacrifice
+
+forced_move
+
+positional_space_sacrifice
+
+structural_compromise_dynamic
+
+He uses tension not to confuse but to force the game into a region where his calculation and preparation dominate.
+
+8. Exceptional “Winning Position Handling”
+
+Kasparov is elite in winning_position_handling:
+
+When he gets an advantage, he rarely lets it slip
+
+He increases practical pressure
+
+Converts complex positions with machine-like accuracy
+
+Often wins “twice” — once tactically, once positionally
+
+This trait, combined with forced-move manufacturing, makes him one of history’s most dangerous advantage converters.
+
+9. Sacrifice Philosophy: Energy, Not Chaos
+
+Kasparov is not Tal. His sacrifices are:
+
+More positionally justified
+
+Often based on engine-grade dynamic compensation
+
+Usually backed by central control or structural collapse
+
+Common tags associated:
+
+tactical_sacrifice
+
+positional_structure_sacrifice
+
+tactical_initiative_sacrifice
+
+His sacrifices are about:
+
+“Turning positional advantages into unstoppable activity.”
+
+Never random, never “just creative” — always purposeful acceleration of the initiative.
+
+10. Opening Style Identity
+
+Kasparov’s openings are aligned with his tags:
+
+With White:
+
+1.e4 → central tension, initiative
+
+Open Sicilians → rapid piece activity
+
+Scotch, Ruy Lopez → long diagonal pressure & central control
+
+With Black:
+
+Najdorf Sicilian → maximum dynamic counterplay
+
+King’s Indian Defence → hyper-aggressive kingside play
+
+Grünfeld → dynamic central counterattack
+
+These openings maximize:
+
+tension_creation
+
+control_over_dynamics
+
+forced_move opportunities
+
+early initiative_attempt
+
+structural_compromise_dynamic (attacking the center with …c5, …d5)
+
+11. Psychological Style: Press, Escalate, Overwhelm
+
+Kasparov plays moves that:
+
+Force the opponent to choose difficult defensive lines
+
+Increase the constant “temperature” of the position
+
+Punish hesitation
+
+Drain the opponent’s clock and energy
+
+He wins by:
+
+creating positions that are objectively difficult AND psychologically crushing.
+
+This is why so many world-class defenders (Karpov, Anand, Shirov) described his play as “relentless pressure.”
+
+12. Signature Identity Summary
+
+Kasparov = Controlled Fury
+
+Highest-tier control_over_dynamics
+
+Direct prophylaxis (kill counterplay early)
+
+Initiative as the primary weapon
+
+Forced-move creation as a hallmark
+
+Dual structural + dynamic pressure
+
+Purposeful, constructive maneuver, not neutral wandering
+
+High winning-position conversion
+
+Aggressive but never chaotic
+
+Sacrifices based on long-term dynamic compensation
+
+He is a rare hybrid of:
+
+Tal’s emotional fire
+
+Fischer’s precision
+
+Karpov’s structural logic
+
+But ultimately, his style is unique:
+
+“Kasparov plays to own the center of gravity of the game — the moment you drift a little, the attack is already coming, and by the time you see it, you’re already lost.”

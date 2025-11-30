@@ -1,0 +1,1009 @@
+{
+  "player_id": "Yu,Yaochen",
+  "player_display_name": "Yu,Yaochen",
+  "player_key": "testyuyaochen",
+  "fixed_data": {
+    "winrate": {
+      "white": {
+        "win": 100.0,
+        "draw": 0.0,
+        "loss": 0.0,
+        "elo": 1618.5
+      },
+      "black": {
+        "win": 0.0,
+        "draw": 0.0,
+        "loss": 0.0,
+        "elo": null
+      },
+      "total": {
+        "win": 100.0,
+        "draw": 0.0,
+        "loss": 0.0,
+        "elo": 1618.5
+      }
+    },
+    "accuracy": {
+      "overall": {
+        "moves": 89,
+        "avg_loss": 14.54,
+        "score": 0.855
+      },
+      "opening": {
+        "moves": 0,
+        "avg_loss": null,
+        "score": null
+      },
+      "middlegame": {
+        "moves": 51,
+        "avg_loss": 15.06,
+        "score": 0.849
+      },
+      "endgame": {
+        "moves": 38,
+        "avg_loss": 13.84,
+        "score": 0.862
+      },
+      "queenful": {
+        "moves": 81,
+        "avg_loss": 14.93,
+        "score": 0.851
+      },
+      "queenless": {
+        "moves": 8,
+        "avg_loss": 10.62,
+        "score": 0.894
+      }
+    },
+    "accuracy_comparison": {
+      "overall": {
+        "player": 0.855,
+        "peer": null,
+        "gm": null
+      },
+      "opening": {
+        "player": null,
+        "peer": null,
+        "gm": null
+      },
+      "middlegame": {
+        "player": 0.849,
+        "peer": null,
+        "gm": null
+      },
+      "endgame": {
+        "player": 0.862,
+        "peer": null,
+        "gm": null
+      }
+    },
+    "advantage": {
+      "+1": {
+        "white": {
+          "win": 100.0,
+          "draw": 0.0,
+          "loss": 0.0
+        },
+        "black": {
+          "win": 0.0,
+          "draw": 0.0,
+          "loss": 0.0
+        }
+      },
+      "+3": {
+        "white": {
+          "win": 100.0,
+          "draw": 0.0,
+          "loss": 0.0
+        },
+        "black": {
+          "win": 0.0,
+          "draw": 0.0,
+          "loss": 0.0
+        }
+      },
+      "+5": {
+        "white": {
+          "win": 100.0,
+          "draw": 0.0,
+          "loss": 0.0
+        },
+        "black": {
+          "win": 0.0,
+          "draw": 0.0,
+          "loss": 0.0
+        }
+      },
+      "+7": {
+        "white": {
+          "win": 100.0,
+          "draw": 0.0,
+          "loss": 0.0
+        },
+        "black": {
+          "win": 0.0,
+          "draw": 0.0,
+          "loss": 0.0
+        }
+      }
+    },
+    "defensive": {
+      "-1": {
+        "white": {
+          "win": 0.0,
+          "draw": 0.0,
+          "loss": 0.0
+        },
+        "black": {
+          "win": 0.0,
+          "draw": 0.0,
+          "loss": 0.0
+        }
+      },
+      "-3": {
+        "white": {
+          "win": 0.0,
+          "draw": 0.0,
+          "loss": 0.0
+        },
+        "black": {
+          "win": 0.0,
+          "draw": 0.0,
+          "loss": 0.0
+        }
+      },
+      "-5": {
+        "white": {
+          "win": 0.0,
+          "draw": 0.0,
+          "loss": 0.0
+        },
+        "black": {
+          "win": 0.0,
+          "draw": 0.0,
+          "loss": 0.0
+        }
+      },
+      "-7": {
+        "white": {
+          "win": 0.0,
+          "draw": 0.0,
+          "loss": 0.0
+        },
+        "black": {
+          "win": 0.0,
+          "draw": 0.0,
+          "loss": 0.0
+        }
+      }
+    },
+    "volatility": {
+      "smooth_crush": {
+        "white": {
+          "games": 0,
+          "ratio": 0.0
+        },
+        "black": {
+          "games": 0,
+          "ratio": 0.0
+        }
+      },
+      "smooth_collapse": {
+        "white": {
+          "games": 0,
+          "ratio": 0.0
+        },
+        "black": {
+          "games": 0,
+          "ratio": 0.0
+        }
+      },
+      "small_swings": {
+        "white": {
+          "games": 0,
+          "ratio": 0.0
+        },
+        "black": {
+          "games": 0,
+          "ratio": 0.0
+        }
+      },
+      "medium_swings": {
+        "white": {
+          "games": 0,
+          "ratio": 0.0
+        },
+        "black": {
+          "games": 0,
+          "ratio": 0.0
+        }
+      },
+      "big_swings": {
+        "white": {
+          "games": 2,
+          "ratio": 100.0
+        },
+        "black": {
+          "games": 0,
+          "ratio": 0.0
+        }
+      },
+      "high_precision_draws": {
+        "white": {
+          "games": 0,
+          "ratio": 0.0
+        },
+        "black": {
+          "games": 0,
+          "ratio": 0.0
+        }
+      }
+    },
+    "engine": {
+      "top1": {
+        "player": 47.2,
+        "peer": 0,
+        "gm": 0
+      },
+      "top3": {
+        "player": 94.4,
+        "peer": 0,
+        "gm": 0
+      },
+      "blunder": {
+        "player": 2.2,
+        "peer": 0,
+        "gm": 0
+      }
+    },
+    "tactical": {
+      "found": 1,
+      "missed": 1,
+      "rate": 50.0
+    },
+    "exchanges": {
+      "accurate": {
+        "count": 5,
+        "ratio": 5.6,
+        "gm": 3.2
+      },
+      "inaccurate": {
+        "count": 0,
+        "ratio": 0.0,
+        "gm": 0.6
+      },
+      "bad": {
+        "count": 1,
+        "ratio": 1.1,
+        "gm": 0.4
+      },
+      "total": {
+        "count": 6,
+        "ratio": 6.7,
+        "gm": 4.3
+      }
+    },
+    "forced": {
+      "count": 8,
+      "ratio": 9.0,
+      "gm": 6.8
+    },
+    "positions": {
+      "winning": {
+        "count": 21,
+        "ratio": 23.6,
+        "gm": 6.8
+      },
+      "losing": {
+        "count": 0,
+        "ratio": 0.0,
+        "gm": 4.4
+      }
+    },
+    "openings": {
+      "white": [
+        {
+          "line": "Unknown",
+          "variation": "",
+          "games": 2,
+          "win": 100.0,
+          "draw": 0.0,
+          "loss": 0.0,
+          "accuracy": 0.85,
+          "first_moves": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6"
+        }
+      ],
+      "black": []
+    },
+    "style_maneuver": {
+      "constructive": {
+        "count": 9,
+        "ratio": 10.1,
+        "gm": 14.3
+      },
+      "prepare": {
+        "count": 2,
+        "ratio": 2.2,
+        "gm": 3.9
+      },
+      "neutral": {
+        "count": 8,
+        "ratio": 9.0,
+        "gm": 19.1
+      },
+      "misplaced": {
+        "count": 8,
+        "ratio": 9.0,
+        "gm": 4.2
+      },
+      "opening": {
+        "count": 10,
+        "ratio": 11.2,
+        "gm": 9.4
+      },
+      "total": {
+        "count": 37,
+        "ratio": 41.5,
+        "gm": 50.8
+      }
+    },
+    "style_prophylaxis": {
+      "direct": {
+        "count": 15,
+        "ratio": 16.9,
+        "gm": 8.5
+      },
+      "latent": {
+        "count": 17,
+        "ratio": 19.1,
+        "gm": 21.7
+      },
+      "meaningless": {
+        "count": 2,
+        "ratio": 2.2,
+        "gm": 1.6
+      },
+      "failed": {
+        "count": 0,
+        "ratio": 0.0,
+        "gm": 1.2
+      },
+      "total": {
+        "count": 34,
+        "ratio": 38.2,
+        "gm": 33.1
+      }
+    },
+    "style_semantic_control": {
+      "simplify": {
+        "count": 0,
+        "ratio": 0.0,
+        "gm": 0.0
+      },
+      "plankill": {
+        "count": 7,
+        "ratio": 7.9,
+        "gm": 5.5
+      },
+      "freeze": {
+        "count": 1,
+        "ratio": 1.1,
+        "gm": 1.9
+      },
+      "blockade": {
+        "count": 1,
+        "ratio": 1.1,
+        "gm": 0.4
+      },
+      "fileseal": {
+        "count": 7,
+        "ratio": 7.9,
+        "gm": 14.2
+      },
+      "kingsafety": {
+        "count": 2,
+        "ratio": 2.2,
+        "gm": 4.2
+      },
+      "spaceclamp": {
+        "count": 1,
+        "ratio": 1.1,
+        "gm": 0.8
+      },
+      "regroup": {
+        "count": 1,
+        "ratio": 1.1,
+        "gm": 6.9
+      },
+      "slowdown": {
+        "count": 0,
+        "ratio": 0.0,
+        "gm": 0.1
+      },
+      "total": {
+        "count": 20,
+        "ratio": 22.4,
+        "gm": 33.9
+      }
+    },
+    "style_control_over_dynamics": {
+      "overall": {
+        "count": 12,
+        "ratio": 13.5,
+        "gm": 23.6
+      },
+      "fileseal": {
+        "count": 7,
+        "ratio": 7.9,
+        "gm": 14.2
+      },
+      "freeze": {
+        "count": 1,
+        "ratio": 1.1,
+        "gm": 1.9
+      },
+      "kingsafety": {
+        "count": 2,
+        "ratio": 2.2,
+        "gm": 4.2
+      },
+      "regroup": {
+        "count": 1,
+        "ratio": 1.1,
+        "gm": 6.9
+      },
+      "plankill": {
+        "count": 7,
+        "ratio": 7.9,
+        "gm": 5.5
+      },
+      "blockade": {
+        "count": 1,
+        "ratio": 1.1,
+        "gm": 0.4
+      },
+      "simplify": {
+        "count": 0,
+        "ratio": 0.0,
+        "gm": 0.0
+      },
+      "spaceclamp": {
+        "count": 1,
+        "ratio": 1.1,
+        "gm": 0.8
+      },
+      "slowdown": {
+        "count": 0,
+        "ratio": 0.0,
+        "gm": 0.1
+      }
+    },
+    "style_initiative": {
+      "attempt": {
+        "count": 0,
+        "ratio": 0.0,
+        "gm": 3.5
+      },
+      "deferred": {
+        "count": 7,
+        "ratio": 7.9,
+        "gm": 19.8
+      },
+      "premature": {
+        "count": 1,
+        "ratio": 1.1,
+        "gm": 1.1
+      },
+      "cfile": {
+        "count": 0,
+        "ratio": 0.0,
+        "gm": 0.0
+      }
+    },
+    "style_tension": {
+      "creation": {
+        "count": 7,
+        "ratio": 7.9,
+        "gm": 6.9
+      },
+      "neutral": {
+        "count": 2,
+        "ratio": 2.2,
+        "gm": 9.1
+      }
+    },
+    "style_structural": {
+      "integrity": {
+        "count": 10,
+        "ratio": 11.2,
+        "gm": 9.6
+      },
+      "dynamic": {
+        "count": 9,
+        "ratio": 10.1,
+        "gm": 5.5
+      },
+      "static": {
+        "count": 1,
+        "ratio": 1.1,
+        "gm": 1.5
+      }
+    },
+    "style_sacrifice": {
+      "tactical": {
+        "count": 1,
+        "ratio": 1.1,
+        "gm": 0.9
+      },
+      "positional": {
+        "count": 8,
+        "ratio": 9.0,
+        "gm": 3.9
+      },
+      "inaccurate": {
+        "count": 0,
+        "ratio": 0.0,
+        "gm": 0.1
+      },
+      "speculative": {
+        "count": 0,
+        "ratio": 0.0,
+        "gm": 0.3
+      },
+      "desperate": {
+        "count": 0,
+        "ratio": 0.0,
+        "gm": 0.0
+      },
+      "combination": {
+        "count": 0,
+        "ratio": 0.0,
+        "gm": 0.3
+      },
+      "init": {
+        "count": 1,
+        "ratio": 1.1,
+        "gm": 0.6
+      },
+      "structure": {
+        "count": 1,
+        "ratio": 1.1,
+        "gm": 0.9
+      },
+      "space": {
+        "count": 7,
+        "ratio": 7.9,
+        "gm": 3.7
+      },
+      "total": {
+        "count": 18,
+        "ratio": 20.2,
+        "gm": 10.7
+      }
+    }
+  },
+  "llm_slots": {
+    "section-1-1-winrate-llm": "<p>Your results so far show a perfect record with White: 100% wins, with no draws or losses. This produces an overall 100% win rate, entirely driven by your White games at an average opponent rating of 1618.5. There are no recorded games with Black yet, so your performance with that color remains unknown. The absence of draws suggests your games have all been decided decisively rather than heading toward balanced outcomes.</p>",
+    "section-1-2-accuracy-llm": "<p>Your overall accuracy score of 0.855 is consistent across phases, with no direct peer or GM benchmarks available in this dataset. Within your own games, the endgame stands out slightly as your strongest phase at 0.862, with better average loss than the middlegame. The middlegame score of 0.849 is only marginally lower, indicating no major weakness there. Queenless positions show the highest accuracy at 0.894, but the sample is very small, so that result is less reliable. There is no data yet to evaluate your openings.</p>",
+    "section-1-3-advantage-llm": "<p>Your advantage conversion with White is exceptionally clean at every depth of advantage measured. From a modest +1 all the way to a crushing +7, you convert 100% of these positions into wins, with no draws or collapses back to equality or worse. This is well above typical peer behavior, where even strong players often allow some draws or occasional reversals from small edges. The fact that your win ratio stays perfectly flat across +1, +3, +5, and +7 suggests that, once you secure any meaningful plus with White, your technique is reliable and you rarely let opponents back into the game.</p>\n<p>By contrast, the data shows no recorded instances of converting advantages with Black at any of these thresholds. That does not mean you fail to convert better positions as Black, but simply that your sample here is either empty or too small to register. Relative to your White performance, though, this highlights a likely imbalance: your ability to nurse an initiative and convert it is clearly demonstrated with White, while your conversion profile with Black remains an open area for further games and analysis.</p>",
+    "section-1-4-defensive-llm": "<p>Your defensive-resilience tables at -1, -3, -5, and -7 all show identical ratios: 0.0 for wins, draws, and losses with both colors. Statistically, this means the sample contains no games where you were down by a pawn or more, so we cannot observe any actual behavior in objectively worse positions. As a result, the profile does not display typical \u201ccollapse points\u201d such as a sharp rise in losses at -3 or -5, nor any evidence of heroic saves from bad positions.</p>\n\n<p>In comparative terms, this leaves your defensive picture essentially undefined rather than unusually strong or unusually weak. Any contrast with peers or grandmasters must be deferred until there are positions in the database where you are clearly behind on material. Practically, this suggests that most of your recorded games were decided before large, stable material deficits occurred, either by keeping positions balanced or by losing material and ending the game quickly. To build a meaningful defensive profile, future analysis should include more games where you defend worse positions for several moves, allowing us to measure how often you hold, stabilize, or counterattack when materially down.</p>",
+    "section-1-5-volatility-llm": "<p>Your volatility profile is extremely polarized, especially with White. Every single White game in this sample falls into the \u201cbig swings\u201d category, with a 100% ratio and 2/2 games classified that way, while all other volatility types are at 0%. There are no smooth crushes, no smooth collapses, and no games with only small or medium evaluation swings. This indicates that your White games tend to feature large, decisive evaluation shifts rather than gradual outplaying or controlled pressure.</p>\n\n<p>With Black, the picture is even more extreme: every volatility category currently registers 0 games and a 0.0% ratio. In this dataset, that means we simply do not see evidence of either major meltdowns or controlled, technical games from the Black side. Compared with a balanced peer profile that would typically show a mix of small, medium, and big swings plus some smooth results, your distribution is heavily skewed toward chaotic, high-risk battles with White and statistically undefined behavior with Black.</p>\n\n<p>This suggests a risk profile where, at least with White, you are comfortable entering double-edged positions that swing sharply, potentially sacrificing long-term stability for immediate chances. Game control, in the classical sense of steadily increasing an advantage or calmly neutralizing pressure, is not yet reflected in these numbers. Instead, your results are driven by sharp turning points. As your style evolves, adding more games that fall into the small- and medium-swing bands\u2014along with some smooth wins and high-precision draws\u2014would indicate improved control and a more versatile risk management approach with both colors.</p>",
+    "section-1-6-engine-llm": "<p>Your engine decision profile is defined by an unusually high level of alignment with strong moves. You find the engine\u2019s top choice 47.2% of the time and land within its top three options 94.4% of the time. Since there is no peer or GM benchmark data provided for these same metrics, the clearest statement we can make is that your play is strongly clustered around engine-approved continuations, with only a small fraction of your moves falling outside this top tier of choices.</p>\n\n<p>Blunders are relatively rare in your games, at 2.2%. Again, without peer or GM blunder rates in the dataset, we cannot quantify whether this is higher or lower than others, but we can say that such a low proportion suggests your games are rarely decided by outright collapses. The overall pattern is that your decision-making is heavily anchored to engine priorities: the vast majority of your moves are either best or very close to best, and only a small slice of your decisions register as serious engine-identified errors.</p>",
+    "section-1-7-tactical-llm": "<p>Your tactical performance in this sample shows a perfectly balanced result: you converted 1 opportunity and missed 1, giving a 50.0% tactical conversion rate. This suggests that, when tactical chances arise, you are spotting about half of them. In practical terms, this points to calculation that is serviceable but not yet consistently sharp, and alertness that can fluctuate from move to move. A 50% rate usually means you see clear, forcing ideas but may overlook less obvious motifs or deeper continuations.</p>\n\n<p>This pattern often reflects a player who can calculate accurately once a tactic is on their radar, but does not always recognize the tactical triggers in time: loose pieces, overloaded defenders, or vulnerable king positions. Improving your early-warning system for tactics\u2014asking \u201cwhat changed?\u201d after every move and scanning systematically for checks, captures, and threats\u2014should raise this conversion rate. With more deliberate tactical training and disciplined candidate-move checking, your calculation sharpness and in-game alertness are likely to climb above this midpoint level and become a more reliable strength rather than a 50\u201350 proposition.</p>",
+    "section-1-8-exchanges-llm": "<p>Your total knight and bishop exchange ratio of 6.7, compared to the GM baseline of 4.3, shows that you trade minor pieces more often than typical high-level practice. Stylistically, this suggests you are relatively eager to clarify piece imbalances rather than maintaining long-term tension. Players with lower exchange frequencies tend to preserve complexity and keep more latent possibilities in the position; your higher rate points to a preference for concrete resolution of piece relations and earlier commitment to structural or bishop-vs-knight imbalances.</p>\n\n<p>The quality breakdown of your decisions is quite revealing. Your accurate exchange ratio is 5.6 versus a GM baseline of 3.2, so you not only trade more but also find correct moments to do so at a higher rate than the average GM sample. At the same time, your inaccurate exchanges are at 0.0 against a GM 0.6, indicating that you almost never make only slightly suboptimal trades in this sample. The main cost of your energetic approach appears in the bad exchange category: 1.1 compared to a GM 0.4. In other words, you avoid \u201csmall\u201d inaccuracies but are more prone than GMs to the occasional clearly harmful knight or bishop trade, suggesting that when your evaluation is off, it can be off by a lot.</p>\n\n<p>Comparing you to individual GMs, your accurate exchange ratio of 5.6 is higher than Petrosian\u2019s 4.5 and well above Kasparov and Ding at 2.9, Karpov and Tal at 3.1, and Fischer at 2.7. You are thus more exchange-happy than any of the reference GMs while still often choosing strong moments to trade. Your inaccurate exchange ratio of 0.0 is below Petrosian\u2019s 1.2 and Fischer\u2019s 0.8, and also below Karpov\u2019s 0.5, Ding\u2019s 0.6, Kasparov\u2019s 0.4, and Tal\u2019s 0.3, which aligns with your tendency to \u201cgo big\u201d rather than drift into mild inaccuracy. However, your bad exchange ratio of 1.1 is higher than all listed GMs: Petrosian at 0.6, Karpov, Tal, Ding, and Fischer at 0.4, and Kasparov at 0.2. This combination marks a sharp, high-variance style of exchanging: you frequently create principled, well-judged trades, but you also assume more risk of a serious misjudgment than the top GMs in the snapshot.</p>",
+    "section-1-9-forced-llm": "<p>A high forced-move frequency usually reflects how often a player steers games into positions where only one or a very small number of moves are acceptable. These situations often arise from sharp tactics, concrete calculation battles, or defensive crises where any deviation loses material or position. Players with higher forced-move ratios tend to feel comfortable when the game becomes concrete and calculation-heavy, willingly entering positions where precision is paramount and long-term plans give way to exact sequences.</p>\n\n<p>Your forced-move ratio of 9.0 is clearly above the overall GM snapshot of 6.8, which indicates that your games feature forcing decisions more often than typical grandmaster practice. This suggests a stylistic preference for clarity through calculation: you are more likely to navigate or even create positions that demand specific replies, rather than maneuvering in slow, many-choice structures. It may also highlight a strength in tactical vision and concrete evaluation, as you consistently arrive at positions where \u201conly moves\u201d must be found and you are evidently ready to engage with them.</p>\n\n<p>Comparing you to the GM reference set, the closest quantitative peer is Garry Kasparov, with a forced-move ratio of 9.9. Your number is only slightly lower, placing you stylistically near the most forcing, dynamic profile in the sample. This parallel points to a shared tendency toward sharp, initiative-driven play where each move carries a high degree of obligation and tactical justification. Your ratio is also somewhat higher than Bobby Fischer\u2019s 8.7, indicating you reach forcing positions even more frequently than that already very concrete style benchmark.</p>\n\n<p>Relative to more controlled, maneuvering-oriented profiles, your style diverges. Tigran Petrosian\u2019s 3.7, Mihail Tal\u2019s 5.4, Anatoly Karpov\u2019s 5.9, and Ding Liren\u2019s 7.0 all sit below both your figure and the GM average. Even Tal, despite his attacking reputation, has a significantly lower forced-move ratio than you, suggesting that in your games, critical moments with limited choice arise more regularly. Overall, your numbers portray a player who thrives in concrete, forcing positions and embraces the demands of high-calculation chess more than the typical grandmaster and most of the reference champions.</p>",
+    "section-1-10-positions-llm": "<p>Data too noisy; no reliable reference value.</p>",
+    "section-2-1-maneuver-llm": "<p>Your overall maneuver ratio is 41.5%, noticeably below the GM snapshot at 50.8%. That means a smaller share of your moves are devoted to slow regrouping and piece improvement; you tend to resolve positions more directly than the reference GMs, for better or worse. Within that smaller maneuver share, the balance between constructive, preparatory, neutral, and misplaced maneuvers shows how efficiently your pieces are being rerouted.</p>\n\n<p>Your constructive maneuver ratio is 10.1%, lower than the GM average of 14.3% and also below every individual reference GM: Kasparov at 13.6%, Fischer at 12.2%, and the most maneuver-heavy players like Petrosian and Karpov at 16.1% and 15.7%. This suggests you spend fewer moves than they do on clearly improving piece activity. Preparatory maneuvers are also underrepresented at 2.2% versus 3.9% for the GM set; even the least \u201cpreparatory\u201d GM here, Petrosian and Ding at 3.5%, still exceed your current ratio.</p>\n\n<p>Neutral maneuvers stand out even more: 9.0% for you against 19.1% for the GMs, with everyone in the reference group between 13.5% (Fischer) and 23.5% (Tal). Combined with your misplaced maneuver ratio of 9.0% versus a GM 4.2% baseline, this points to a relatively high rate of re-routing that does not fully pay off, compared with their more accurate piece handling. In the opening, however, your maneuver ratio of 11.2% is slightly above the GM 9.4% and close to Kasparov\u2019s 10.5% and Fischer\u2019s 10.8%, indicating a willingness to adjust your pieces early, even if later phases do not yet reach their level of maneuvering precision.</p>",
+    "section-2-2-prophylaxis-llm": "<p>Your overall prophylactic volume is clearly above GM baseline: 38.2% of your moves are prophylactic versus the GM snapshot of 33.1%. Within that, you rely heavily on direct prevention. Your direct prophylaxis ratio of 16.9 is roughly double the GM reference of 8.5 and also higher than any individual in the snapshot, including Kasparov\u2019s 10.1 and Ding Liren\u2019s 9.2. This points to a philosophy of explicitly stopping ideas before they arise, often in a concrete, move-by-move way.</p>\n\n<p>In contrast, your latent prophylaxis sits at 19.1, below the GM reference of 21.7 and well under Petrosian\u2019s 29.3, Karpov\u2019s 22.0, Ding\u2019s 21.9, and even Tal\u2019s 21.0. Compared to Fischer\u2019s 18.3 and Kasparov\u2019s 17.9, you are somewhat closer, but still lean more direct than all of them. You generally prefer clear, unambiguous defensive measures to multi-purpose, quietly preventive maneuvers.</p>\n\n<p>The quality signal is encouraging. Your meaningless prophylaxis ratio of 2.2 is only slightly above the GM 1.6 and sits between Petrosian\u2019s 2.0 and Tal\u2019s 3.5, suggesting that most of your preventive moves really address opponent ideas. Most impressively, your failed prophylaxis is 0.0 against a GM reference of 1.2; every recorded prophylactic attempt in this sample held up. Overall, you play more prophylaxis than the average GM sample, with a Kasparov-like concreteness in direct prevention, but without yet matching the latent, long-term suffocation typical of players such as Petrosian, Karpov, or Ding.</p>",
+    "section-2-3-semantic-control-llm": "<p>Your overall semantic control ratio is clearly below the GM reference, signaling a style that leans less on long\u2011term positional grips and more on direct, concrete play. Compared with the GM composite, you \u201ctouch\u201d fewer control motifs overall, preferring to resolve issues through activity rather than prolonged strategic steering.</p>\n\n<p>Your strongest semantic signature is plan_kill. You invoke direct, decisive plans noticeably more often than the GM baseline, and even exceed consummate attackers like Fischer and Ding in this metric. You sit closer to Kasparov\u2019s and Tal\u2019s profile here than to the more restrained Petrosian or Karpov, indicating a bias toward converting advantages through purposeful, forcing operations rather than incremental tightening.</p>\n\n<p>In contrast, you underuse freeze_bind and regroup. Both ratios are well below the GM norm and noticeably below all reference GMs, including the highly dynamic Kasparov and Tal. This shows a reluctance to invest moves in pure consolidation or in restricting the opponent\u2019s mobility; once you gain something, you tend to push forward rather than pause to paralyze or re\u2011organize.</p>\n\n<p>Your file_seal and king_safety_shell numbers are also lower than every GM in the snapshot. Compared with Petrosian, Karpov, or Ding, you rely less on prophylactic file control and structured king safety. Even the sharper players in the set show a higher tendency than you to lock key files and build defensive shells before striking.</p>\n\n<p>By contrast, your blockade and space_clamp ratios are slightly above the GM reference and in line with players like Kasparov and Fischer. When the position naturally offers you a blockade or a spatial squeeze, you are willing to take it, but you rarely follow up with the slower freezes or regroups that would fully convert those assets.</p>",
+    "section-2-4-cod-llm": "<p>Control over dynamics measures how often you steer the game away from wild, unclear positions into structures where you limit the opponent\u2019s options: sealing files, restricting pieces, neutralizing plans, and deciding when to simplify or slow the game. Your overall control_over_dynamics ratio of 13.5 is clearly below the GM snapshot around 23\u201327, so you influence the course of the game in this way less frequently than the referenced grandmasters.</p>\n\n<p>Within that, your fileseal ratio of 7.9 is lower than every GM in the sample, suggesting you more often allow open files and dynamic tension instead of routinely shutting lines. Your freeze ratio (1.1 vs GM 1.4\u20132.5) and kingsafety shell work (2.2 vs roughly 2.6\u20135.0) also run lower, implying fewer games where you completely bind the opponent or build a long-term safety shell before acting.</p>\n\n<p>The biggest gap is in regroup: 1.1 compared with GM figures around 6.0\u20139.2. Strong GMs repeatedly pause to consolidate and harmonize pieces; you seem far more willing to keep original piece setups and play on without that stabilizing phase. By contrast, your plankill ratio of 7.9 is higher than all listed GMs, pointing to an active tendency to neutralize the opponent\u2019s strategic ideas directly rather than by quiet restriction.</p>\n\n<p>Your blockade (1.1 vs GM 0.2\u20130.6) and spaceclamp (1.1 vs GM 0.6\u20131.0) ratios are slightly higher, showing a selective but real feel for restraining passed pawns and claiming space. With simplify and slowdown essentially unused, you seldom choose the classic \u201cdrying up\u201d tools; your control is more about targeted plan-killing and occasional structural clamps than about systematic, Petrosian-style domination of dynamics.</p>",
+    "section-2-5-initiative-llm": "<p>Your initiative profile is unusually restrained compared with both the GM snapshot and typical peers. With an initiative_attempt ratio of 0.0 against a GM reference of 3.5, you almost never seize the initiative directly when the position invites it. Even highly prophylactic players like Petrosian show a significantly higher attempt ratio at 2.5, so your reluctance to push for the initiative is marked. This suggests you often prefer to consolidate rather than transform advantages into active operations.</p>\n\n<p>Your deferred_initiative ratio of 7.9, well below the GM reference of 19.8, confirms this picture. Strong GMs, from Kasparov at 16.1 to Ding Liren at 22.9, more frequently convert long-term advantages into initiative later in the game. You defer occasionally, but not with the consistency of classical, patient players such as Karpov at 18.7. Overall, you neither grab the initiative early nor squeeze and convert it reliably later.</p>\n\n<p>Your premature_attack ratio of 1.1 exactly matches the GM baseline of 1.1 and is in line with Kasparov and Tal, indicating that when you do attack, you are no more reckless than the elite. Finally, with a cfile pressure ratio of 0.0 versus a GM 0.0 baseline, you neither lag nor excel in that specific structural theme; it simply has not featured in this sample.</p>",
+    "section-2-6-tension-llm": "<p>Your games show a clear preference for creating and maintaining tension rather than neutral, quiet buildup. Your tension_creation ratio of 7.9 is higher than the overall GM snapshot of 6.9, indicating that you are more inclined than the average top player to introduce sharp imbalances and keep pieces in contact. At the same time, your neutral_tension_creation ratio of 2.2 is dramatically below the GM reference of 9.1, which signals that you rarely choose the most flexible, non-committal tension-maintaining moves when such options exist.</p>\n\n<p>Compared with individual GMs, your tension_creation is slightly above Garry Kasparov\u2019s 7.7 and clearly higher than Anatoly Karpov\u2019s 7.3, Ding Liren\u2019s 7.1, Mihail Tal\u2019s 5.7, and Bobby Fischer\u2019s 5.1. This suggests an even stronger tendency than these players to push the position toward concrete clashes rather than delay the resolution. However, all of these GMs show far greater use of neutral tension: every reference GM, from Petrosian at 9.8 to Fischer at 8.0, scores much higher than your 2.2. In practical terms, you often resolve central or structural questions earlier instead of preserving multiple options. This style can be effective when your calculation is precise, but against strong resistance you may benefit from more Petrosian-like or Karpov-like restraint in positions where holding the tension keeps your opponent guessing.</p>",
+    "section-2-7-structural-llm": "<p>Your structural profile shows a clear preference for maintaining a healthy pawn and piece framework, but with a pronounced willingness to bend that structure for activity. Your structural integrity ratio of 11.2 is higher than both the GM snapshot average of 9.6 and the integrity levels of Petrosian (10.2), Karpov (10.2), Fischer (9.5), and Ding (9.3). This suggests you usually start from a position of solidity, rarely drifting into casually weakened structures without justification.</p>\n\n<p>What stands out even more is the dynamic side of your compromises. A dynamic compromise ratio of 10.1 is far above the GM snapshot figure of 5.5 and exceeds Kasparov\u2019s 4.8, Tal\u2019s 5.4, Fischer\u2019s 5.6, and even Petrosian\u2019s 6.9. Compared with these benchmarks, you accept structural damage for piece activity and initiative at a much higher rate, indicating a sharp, risk\u2011embracing mentality once the position heats up. At the same time, your static compromise ratio of 1.1 is slightly below the GM snapshot 1.5 and close to Kasparov\u2019s 1.0, and lower than Petrosian\u2019s 1.5 or Tal\u2019s 2.2. This means you are relatively reluctant to accept long\u2011term, non\u2011dynamic weaknesses. Overall, your style blends above\u2011average structural care with unusually high dynamic risk tolerance, preferring temporary chaos over lasting damage.</p>",
+    "section-2-8-sacrifice-llm": "<p>Your overall sacrifice ratio of 20.2 versus the GM baseline of 10.7 shows that you sacrifice material noticeably more often than the reference grandmaster set. This does not mean you are simply reckless; it shows that \u201cgiving material for something\u201d is a core part of your decision-making compared with typical high-level practice.</p>\n\n<p>The main driver is positional sacrifice: 9.0 compared with a GM 3.9. Here you are far above all the individual GM references, even Fischer at 4.4. You resemble a \u201cdouble-dose\u201d positional sacrificer: like Fischer or Petrosian in spirit, but with nearly twice their frequency. Within this, you lean especially toward space and long-term piece activity: your space-related sacrifices are at 7.9 versus a GM 3.7, higher than Fischer\u2019s 4.2 and Petrosian\u2019s 4.1. Structurally motivated sacrifices (1.1 vs GM 0.9) are closer to Fischer and Kasparov, but still on the active end.</p>\n\n<p>Your tactical sacrifice ratio is 1.1, very much in line with top attackers such as Kasparov and Petrosian at 1.1 and also close to Ding Liren and Tal at 1.0. The difference is that they channel more of this into combinations and initiative than you currently do: you are at 0.0 in the combination category against a GM 0.3, while your initiative-driven sacrifice level (1.1 vs GM 0.6) is closer to Petrosian\u2019s 0.8 or Tal\u2019s 0.9 in relative terms. In other words, when you sacrifice tactically, it tends to be to seize the initiative rather than to calculate a concrete forcing mate.</p>\n\n<p>Finally, your zero ratios in inaccurate, speculative, and desperate sacrifices (against small but non-zero GM baselines) indicate that your high sacrifice volume is not fueled by gambling. Compared with this GM snapshot, you are closest to Fischer and Petrosian in spirit: principled, strategic sacrificial play with an especially strong emphasis on space and initiative over wild speculative attacks.</p>",
+    "section-2-9-synthesis-llm": "<p>Your style is strategically ambitious and prophylaxis-driven, with a clear preference for controlling the opponent\u2019s ideas rather than constantly steering the game with direct initiative. Your overall maneuvering volume is lower than the GM reference (41.5 vs 50.8), and you rely noticeably less on neutral maneuvers, but you lean more on opening maneuvers and accept a higher rate of misplaced moves than GMs. This indicates a readiness to steer the game into structures and plans you like from the opening, even at the cost of occasionally suboptimal piece placement.</p>\n\n<p>Prophylaxis is a central pillar of your style. Your total prophylactic activity exceeds the GM baseline (38.2 vs 33.1), with direct prophylaxis in particular being roughly double the reference share. You actively interfere with your opponent\u2019s plans and almost never fail at it, with no recorded \u201cfailed\u201d prophylactic attempts. This forward-looking, opponent-focused thinking is one of your clearest stylistic signatures.</p>\n\n<p>In terms of control and structure, you invest less in semantic control tools overall than GMs (22.4 vs 33.9), but where you do commit, you are more willing than peers to use concrete devices like pawn kills, blockades, and space clamps. Structurally, you play with above-GM emphasis on both integrity and dynamic imbalances, suggesting you value sound pawn structures but are also very ready to create dynamic features in them. Your tension profile supports this: you create tension slightly more than GMs while resolving it quickly, avoiding long neutral standoffs.</p>\n\n<p>Your handling of dynamics and initiative is distinctive. Overall control over dynamics is lower than the GM reference, and you almost never attempt to seize the initiative directly: initiative attempts are at 0.0 compared with the GM 3.5, while deferred initiative is far below the model as well. Yet, you compensate through a very high sacrifice rate, particularly positional and space sacrifices, both of which appear more than twice as frequently as in the GM baseline. You are willing to give material for long-term structural and spatial benefits rather than for short-term attacks.</p>\n\n<p>Finally, your exchanges and forced moves show a pragmatic, calculating core. You exchange slightly more often and more accurately than the GM benchmark, with very few bad exchanges, and you enter forced sequences somewhat more frequently. This combination of prophylactic focus, structural ambition, and principled sacrificing gives your style a strategically daring yet calculation-grounded character.</p>",
+    "section-3-1-ability-llm": "<p>Your current sample is small but already shows a sharp, ambitious style with White. A 100% win rate at 1618.5 performance and 0% losing positions (ratio 0.0 versus a GM baseline of 4.4) indicates that you are not drifting into strategically lost territory; your games are decided more by swings than by slow strategic deterioration. The volatility profile confirms this: 100% of your games fall into the big-swings category, with no smooth crushes or high-precision draws. Combined with an overall accuracy score of 0.855 and engine top\u20113 match of 94.4%, this suggests you can usually find strong candidate moves but allow unnecessary oscillations in evaluation.</p>\n\n<p>Structurally and strategically, your profile is more active and risk-tolerant than the GM reference cluster. Your structural integrity ratio of 11.2 is higher than every GM anchor (Petrosian 10.2, Kasparov 10.7, Karpov 10.2, Tal 7.6, Ding 9.3, Fischer 9.5), while your dynamic structural compromise ratio of 10.1 dramatically exceeds the GM dynamic range (Tal 5.4, Petrosian 6.9, Kasparov 4.8). This combination points to a readiness to change the pawn structure and open lines, rather than maintaining a static grip. Your total sacrifice ratio of 20.2 is nearly double the GM reference of 10.7, with positional sacrifices at 9.0 versus Petrosian 0.8, Kasparov 3.7, Karpov 3.6, Tal 3.7, Ding 3.7, and Fischer 4.4, and space sacrifices at 7.9 versus their typical 3.3\u20134.2 range. You are therefore far more willing than elite players to give material for long-term trumps and space; at your current level this often works, but relative to GM baselines it is objectively over-ambitious.</p>\n\n<p>Your handling of advantages is clinical in conversion but not in buildup: with White you convert +1, +3, +5, and +7 positions 100% of the time, yet your middlegame accuracy (0.849) is slightly lower than your endgame accuracy (0.862). This pattern resembles a player who fights chaotically through the middlegame, then becomes more precise once the position clarifies. The high winning-position ratio of 23.6 versus a GM baseline of 6.8 shows you are frequently reaching large advantages, but the 2.2% blunder rate and big-swing nature of the games imply that some of those winning positions arise from mutual mistakes rather than pure domination.</p>\n\n<p>In terms of style tags, your prophylaxis is unusually prominent and concrete. Your direct prophylaxis ratio of 16.9 is roughly twice Petrosian\u2019s 8.1 and clearly above Kasparov (10.1), Karpov (8.4), Ding (9.2), and Fischer (7.9). Latent prophylaxis at 19.1 is lower than the GM range around 21\u201329, so compared to them you favor immediate neutralization over quiet, long-term restriction. Overall prophylactic activity at 38.2 versus a GM total of 33.1 marks you as more prevention-oriented than the reference set, but your \u201cmeaningless\u201d prophylaxis ratio of 2.2 exceeds their 0.9\u20133.5 range, indicating that some safety moves are not fully justified by the position.</p>\n\n<p>Your control over dynamics is more selective and concrete than the GM norm. Overall control-over-dynamics ratio is 13.5 against a GM benchmark near the low 20s (Petrosian 21.5, Kasparov 24.0, Karpov 21.8, Tal 27.0, Ding 25.0, Fischer 22.3), so you regulate the position less steadily. Within that, certain motifs are overrepresented: plan-kill actions (plankill 7.9) are higher than Petrosian 4.0 and Kasparov 6.8, and blockades at 1.1 exceed Petrosian 0.2 and Kasparov 0.5. File-sealing, at 7.9 versus their 10.3\u201315.2, is relatively underused, suggesting you prefer direct piece and pawn clamps to more subtle file control. Your kingsafety and spaceclamp ratios are below GM norms, so some of your dynamic operations are launched with less king cover and less long-term space control than elite practice.</p>\n\n<p>Maneuvering and move-order finesse are the main technical gap to GM patterns. Your total maneuver ratio of 41.5 is lower than the GM 50.8, and within that your constructive maneuvering at 10.1 trails Petrosian (16.1), Kasparov (13.6), Karpov (15.7), Tal (13.0), and Ding (15.1). At the same time, your misplaced maneuver ratio of 9.0 is more than double Petrosian\u2019s 2.3 and well above Kasparov 1.6, Karpov 2.1, Ding 1.3, and Fischer 2.0. This indicates that, compared to these anchors, you relocate pieces with less long-term foresight; you see ideas, but the re-routing is less harmonized with the pawn structure and future plans. Neutral maneuvers are also fewer (9.0 versus their 13.5\u201323.5 range), meaning you spend less time on quiet consolidation and more on concrete operations, for better and worse.</p>\n\n<p>Tactically and in exchanges, your sensitivity is sharper than the raw 50% tactic hit rate suggests. Accurate exchanges at 5.6 versus the GM 3.2, and total exchange volume 6.7 versus their 4.3, show that you trade more often and more precisely than the GM baseline suggests for your activity level. However, your bad exchange ratio of 1.1 is higher than their 0.2\u20130.6; so while you find more good trades, your misses are also more costly. Forced-move handling at 9.0 is above every GM reference (Petrosian 3.7 up to Fischer 8.7), implying good alertness when the position demands concrete calculation, consistent with your high top\u20113 engine alignment. The main tactical weakness is not absolute blindness but overshooting: speculative or overly ambitious decisions, especially in sacrifice and structural change, outpace classical GM risk thresholds.</p>\n\n<p>From an opening perspective, the only clear pattern available is your comfort with 1.e4 against the Sicilian, scoring 100% with 0.85 accuracy. This aligns well with your structural and sacrificial profile: you appear to welcome open Sicilian-type structures where dynamic pawn breaks and long-term piece activity justify material imbalance. Compared with GM anchors who maintain high structural integrity while timing dynamic breaks more selectively, your current style is a \u201cturned up\u201d version: more sacrifices, more dynamic compromises, more direct prophylaxis, but less stable maneuvering and less systematic control over dynamics. As your level rises, narrowing that gap\u2014especially by improving maneuver quality and moderating positional sacrifices toward the GM ratios\u2014will be the key to converting your already high winning\u2011position ratio into smoother, more controlled victories.</p>",
+    "section-3-2-rating-llm": "<p>Your current profile suggests practical playing strength around 1750 FIDE, with a wide error margin of roughly \u00b1150 Elo because the sample is very small (only two white games and no black games). More games, especially with Black, would quickly reduce this uncertainty and could shift the estimate significantly.</p>\n\n<p>Your single-number indicators cluster in the strong-club range: an overall accuracy score of 0.855 and engine top-3 match rate of 94.4% are consistent with competent calculation and conversion when you get good positions. At the same time, the volatility data show 100% of games as \u201cbig swings,\u201d which is more typical of ambitious, tactical players in the 1600\u20131800 band than of steadier 2000+ players.</p>\n\n<p>Compared with the next lower band (say 1500\u20131600), you look stronger in handling winning positions and in forcing play. You reach winning positions in 23.6% of moves versus the GM reference 6.8%, and your forced-move ratio of 9.0 is higher than the GM benchmark 6.8, showing you are good at steering games into decisive channels rather than drifting.</p>\n\n<p>Compared with the next higher band (around 1900\u20132000), your profile is more unbalanced. Your total sacrifice ratio of 20.2 clearly exceeds the GM reference 10.7, and your positional sacrifices (9.0 vs GM 3.9) plus space sacrifices (7.9 vs GM 3.7) indicate an over-reliance on speculative, space-grabbing concepts. Stronger players in the next band usually combine these ideas with more stable maneuvering and fewer big evaluation swings than your games currently display.</p>",
+    "section-4-1-white-openings-llm": "<p>With White, your sample is very small, but the results in the \u201cUnknown\u201d line are striking: a 100% score with no draws or losses across two games. Your accuracy of 0.85 in this structure is also very high, suggesting that when you reach these positions after 1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6, you handle them confidently and with strong technique. Because all your recorded White games fall into this single category, we cannot yet distinguish between better and worse-performing variations. However, within this limited scope, your performance and accuracy as White are clearly exceeding typical expectations, indicating you are particularly comfortable and successful in these Sicilian-type positions.</p>",
+    "section-4-2-black-openings-llm": "<p>With no recorded black games in the dataset, it is not yet possible to assess which defenses or variations are performing best or worst for you. The empty data means we cannot compare your opening choices, outcomes, or stylistic tendencies against peers or the referenced GMs for any specific systems. As a result, we cannot state whether you score better in, for example, 1.e4 or 1.d4 defenses, or whether you handle sharp or solid structures more effectively than your comparison group. To build a meaningful profile of your black repertoire, you will need a sample of games large enough to reveal patterns in both choice and performance across different opening families.</p>",
+    "section-4-3-main-repertoires-llm": "<p>With White, your only identified repertoire segment is currently grouped under \u201cUnknown,\u201d but its characteristics are still revealing. It is built from the starting sequence 1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6, placing you in a well-trodden Sicilian structure where thematic central control and piece activity matter more than sharp theoretical memorization. Across these games you have scored 100% and maintained an accuracy of 0.85, which is high enough to suggest reliable understanding rather than one-off success. The combination of perfect results and solid move quality means that, in your practical sample, this structure is functioning as a core White weapon.</p>\n<p>Because there are no other White lines with comparable volume or consistency, this Sicilian setup effectively defines your current main repertoire with the first move 1. e4. On the Black side, there is no data yet, so we cannot identify any core defensive repertoire. As more games appear, future reports can contrast your developing Black choices against the same standards of volume, stability, and accuracy seen in your White Sicilian games.</p>",
+    "section-4-4-secondary-llm": "<p>Your main surprise weapon with White is the Sicilian position arising after 1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6. Although you have only reached this line twice, the results are striking: a 100% score with no draws or losses. That win rate is higher than what we typically expect from a secondary system, especially given that these positions can be quite theoretical and tactically sharp.</p>\n<p>Your average accuracy of 0.85 in this line is also impressive for a lower\u2011volume weapon. It suggests that you are not just catching opponents off guard; you are consistently converting the resulting middlegames with good precision. However, with only two games, the sample size is too small to draw firm statistical conclusions or to compare reliably against grandmaster benchmarks. For now, this line should be viewed as a promising secondary option that has performed above expectation, but it needs more practical tests before it can be considered a stable part of your long\u2011term repertoire profile.</p>",
+    "section-4-5-depth-llm": "<p>Your limited White sample suggests focused but effective preparation in this specific Sicilian structure. With two games in the \u201cUnknown\u201d line scoring 100% and an average accuracy of 0.85, your execution in this position is strong relative to typical practical play, indicating you understand the core plans and tactics once the game leaves theory. However, the lack of variation diversity is striking: all your White games in this sample stem from a single line, which implies your repertoire depth is concentrated rather than broad. This can be an advantage if opponents enter your pet setups, but it also makes you more predictable and potentially vulnerable to targeted preparation.</p>\n\n<p>The complete absence of Black data means we cannot infer your theoretical depth or preparation quality with that color. From a training perspective, expanding both your White Sicilian coverage beyond this one structure and developing a documented Black repertoire should be priorities to balance your overall opening profile.</p>",
+    "section-4-6-style-llm": "<p>Your main white sample comes from Open Sicilian structures after 1.e4, where early piece activity and central tension are critical. Within that framework, your maneuver profile shows fewer total maneuvers than GM norms (41.5 vs 50.8) and especially fewer neutral maneuvers (9.0 vs 19.1), but more opening maneuvers (11.2 vs 9.4) and misplaced ones (9.0 vs 4.2). This suggests you develop actively in these sharp positions, yet sometimes rush decisions before the structure has fully clarified.</p>\n\n<p>Your prophylaxis is unusually prominent (38.2 vs 33.1), with direct prophylaxis more than twice the GM baseline (16.9 vs 8.5) and no failed prophylaxis at all. That combines well with your high structural integrity (11.2 vs 9.6) and strong dynamic handling of pawn structure (10.1 vs 5.5), fitting the demands of Open Sicilian middlegames.</p>\n\n<p>At the same time, your initiative is more deferred than GM norms (7.9 vs 19.8) and you rely heavily on positional and space-related sacrifices (positional 9.0 vs 3.9, space 7.9 vs 3.7). With accurate exchanges (6.7 vs 4.3) and slightly above-average forced moves (9.0 vs 6.8), your openings lead to positions where you protect your structure carefully, then leverage space and prophylaxis rather than immediate attacks.</p>",
+    "section-4-7-performance-llm": "<p>Your performance with White in the \u201cUnknown\u201d Sicilian structure is exceptionally strong in this sample. A 100% win rate over two games, combined with an accuracy of 0.85, indicates that when you reach these positions you not only convert your chances but also maintain a high level of move quality. This suggests you are comfortable in open Sicilian middlegame structures arising after 1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6, handling both the early tension in the center and the ensuing tactical and positional nuances.</p>\n\n<p>However, the sample size is very small: with only two games, it is risky to draw strong statistical conclusions or label this as a consistent long-term strength. There are no recorded games with Black in this dataset, so we cannot yet contrast your White performances with any Black repertoire or identify underperforming setups from the Black side. For now, the data simply highlights that, in the limited positions we can measure, your execution with White in this Sicilian line has clearly outperformed your average, while the absence of Black games leaves a gap in the picture of your overall opening performance.</p>",
+    "section-4-8-takeaways-llm": "<p>Your white repertoire data is extremely narrow but very successful. All recorded games fall into a single \u201cUnknown\u201d line beginning with 1.e4 against the Sicilian (\u2026c5 followed by \u2026d6 and \u2026Nf6), where you have a 100% score and a high 0.85 accuracy. Compared to a typical peer distribution that would spread games across multiple lines, your concentration in this one structure is unusually focused, suggesting strong familiarity and comfort in these positions. The absence of any black games in the dataset means your overall repertoire picture is incomplete and your practical experience is heavily skewed toward this specific white setup. For now, the numbers clearly support continuing to rely on this 1.e4 Sicilian approach as a core weapon, while recognizing that your broader repertoire, especially with Black, cannot be evaluated from the current data.</p>",
+    "section-5-1-priorities-llm": "<p>Your priorities should focus on stabilizing quality rather than results, since a 100% win rate with White comes together with very swingy games (100% of them with big evaluation swings). Overall accuracy at 0.855 is reasonable, but the middlegame score of 0.849 and average loss of 15.06 suggest more calculation depth and blunder-checking are needed, especially as your engine blunder rate is 2.2%. Tactically, a 50% conversion (found vs. missed) shows that concrete calculation is a clear training target.</p>\n\n<p>Structurally and strategically, you already create winning positions at a higher ratio than GMs (23.6 vs 6.8) and your exchange play is more frequent and sharper, with both accurate and bad exchanges occurring at higher ratios than GM benchmarks (accurate 5.6 vs 3.2; bad 1.1 vs 0.4). The goal is to keep the constructive decisions while cutting the bad ones. Your positional sacrifices are also far more frequent than GM norms (total 20.2 vs 10.7), so you should train evaluation of compensation and defensive resources. Finally, your maneuvering is more often misplaced (9.0 vs 4.2) and your control-over-dynamics ratio is lower than GMs (13.5 vs 23.6), making piece coordination and prophylactic move-order training an important priority.</p>",
+    "section-5-2-study-llm": "<p>Your structural instincts are already more active than typical GM benchmarks: your structural integrity ratio is higher (11.2 vs 9.6), and you lean clearly toward dynamic handling of structures (10.1 vs 5.5). Build on this by studying model games where a small structural concession leads to dynamic play, mirroring your above-GM rate of structural sacrifices (structure 1.1 vs 0.9 and space 7.9 vs 3.7). After each game, annotate critical pawn breaks and ask whether they improved your piece activity or merely created weaknesses.</p>\n\n<p>Your prophylactic thinking is also relatively emphasized (total 38.2 vs 33.1, with direct prophylaxis 16.9 vs 8.5). To sharpen this, train with \u201cwhat does my opponent want?\u201d exercises: pause in your own games, list their top two threats, and compare with engine lines afterward. This will convert your already high prophylaxis volume into higher-quality defense and counterplay.</p>\n\n<p>In contrast, your maneuvering volume is lower than GM norms (41.5 vs 50.8) and includes a higher ratio of misplaced maneuvers (9.0 vs 4.2). Do focused drills on piece rerouting: take quiet middlegame positions and spend time finding ideal squares for each piece, then check against engine top choices. This will reduce misplaced moves and make your strong structural ideas more efficiently executed.</p>",
+    "section-5-3-habits-llm": "<p>Your results suggest cultivating habits that stabilize games while preserving your strengths. With 100% conversion of +1, +3, +5, and +7 advantages and a winning-position ratio (23.6%) far above the GM baseline (6.8%), you should prioritize practical play that steers positions toward stable edges rather than maximal complexity. In time management, that means spending a bit more time in critical middlegame moments (where your score, 0.849, slightly trails your endgame 0.862) to secure those promising positions you convert so well.</p>\n<p>Big-swing games currently make up 100% of your sample, so aim to reduce unnecessary volatility. Your forced-move ratio (9.0% vs GM 6.8%) and high positional sacrifice ratio (20.2% vs GM 10.7%) indicate you often choose sharp or committing continuations. As a habit, before sacrificing or entering forcing lines, explicitly check whether a quieter move keeps a similar advantage. After each game, review exchanges and sacrifices in depth: your accurate exchange ratio (5.6% vs GM 3.2%) is strong, but bad exchanges (1.1% vs GM 0.4%) are costlier at higher levels. Build a routine of annotating where a more modest, prophylactic decision (you already exceed GMs in direct prophylaxis, 16.9% vs 8.5%) would have maintained control with less risk.</p>",
+    "section-6-1-vs-white-llm": "<p>As White you should aim for sharp, theoretical main lines that create early imbalances and force this player to prove their accuracy in big-swing positions. Their Sicilian games with Black have had 100% big swings, so choose aggressive 1.e4 systems that keep the initiative and make them calculate under pressure. Although their overall accuracy is solid (0.855) and they convert advantages ruthlessly once they reach +1 or more, their style shows exploitable structural and maneuvering tendencies.</p>\n\n<p>Their maneuvering profile has a higher-than-GM share of misplaced moves (9.0 vs 4.2) and lower neutral/constructive ratios, so you should favor positions where slow piece regrouping matters: flexible Maroczy binds, tank-like English/Rossolimo setups, or Anti-Sicilians where you can probe their coordination. Their dynamic structural ratio is almost double the GM reference (10.1 vs 5.5), suggesting they accept structural risks; target these with early queenside expansion and timely exchanges, leveraging your better piece placement.</p>\n\n<p>They show very high direct prophylaxis (16.9 vs 8.5) and a strong sacrificial inclination, especially positional and space sacrifices (total 20.2 vs 10.7). Neutralize this by choosing lines with clear defensive resources and forcing move orders\u2014calmer endgames where their dynamic sacrifices offer fewer practical chances.</p>",
+    "section-6-2-vs-black-llm": "<p>From Black\u2019s perspective, you should steer the game toward structures that punish this player\u2019s relative weaknesses in maneuvering and dynamic control. Their constructive and preparatory maneuvers both sit clearly below GM ratios, while misplaced maneuvers are more than double the GM baseline. Aim for flexible positions where they must repeatedly re-coordinate pieces: Hedgehog or Scheveningen-type setups after 1.e4 are promising, especially since their Sicilian games already produced big evaluation swings.</p>\n\n<p>Their overall semantic control ratio is noticeably below GM levels, with especially low use of regrouping and king safety measures. Choose openings that allow you to generate long-term pressure rather than immediate forcing lines; they perform better in queenless positions, so favor keeping queens on with rich middlegame tension. Their initiative attempts are far below GM ratios and heavily deferred, suggesting you can safely seize the initiative early in open Sicilians or dynamic 1\u2026e5 systems, as long as you maintain structural integrity.</p>\n\n<p>Finally, this player\u2019s positional and space sacrifices occur at roughly double the GM rate. Encourage them to overextend by conceding space and then challenging it later with timely pawn breaks; counter-sacrifices are likely to be less precise once the position becomes tactically sharp.</p>",
+    "section-6-3-middlegame-llm": "<p>Against this player you should steer middlegames toward dynamic, messy positions where precise planning matters. Their overall maneuvering ratio is lower than GM norms (41.5 vs 50.8), with fewer neutral maneuvers (9.0 vs 19.1) and more misplaced ones (9.0 vs 4.2). Encourage them to make decisions; premature or poorly placed regrouping will appear, especially if you provoke multiple candidate plans. Their initiative profile is passive compared with GMs: no direct attempts (0.0 vs 3.5) and much less deferred initiative (7.9 vs 19.8), so you can seize the tempo without facing consistent counterplay.</p>\n<p>Prophylaxis is a mixed picture: total prophylactic play is higher than GM levels (38.2 vs 33.1), with a lot of direct moves (16.9 vs 8.5), but their semantic control is lower (22.4 vs 33.9), particularly fileseals (7.9 vs 14.2) and regrouping (1.1 vs 6.9). You can open files and change the structure confidently; their structural play is actually more dynamic than GMs (10.1 vs 5.5), but this feeds volatility, as all their White games feature big swings. Their sacrifice ratio is almost double GM rates (20.2 vs 10.7), especially positional and space sacrifices, so accept or return material only when your engine-like accuracy (top-1 moves 47.2) will be easier for you to match than for them.",
+    "section-6-4-endgame-llm": "<p>Your endgame profile is slightly more reliable than your middlegame: endgame accuracy (0.862 with 13.84 average loss) is higher and more stable than in the middlegame (0.849, 15.06). In queenless positions your accuracy jumps further to 0.894 with the lowest average loss (10.62), indicating that simplified endings suit you particularly well compared with your own earlier phases.</p>\n\n<p>Your maneuver quality, however, is below GM norms. Overall maneuver events occur less often than for GMs (41.5 vs 50.8), suggesting fewer purposeful piece re-routings. Constructive maneuvers (10.1 vs 14.3) and preparatory moves (2.2 vs 3.9) are both used less frequently, while misplaced maneuvers happen more often (9.0 vs 4.2). This means that in endgames an opponent should pressure your pieces, expecting you to misplace them under tension rather than steadily improve them.</p>\n\n<p>Structurally, your play is more ambitious than GM benchmarks: you keep pawn integrity slightly more often (11.2 vs 9.6) and, above all, you choose dynamic structures nearly twice as much as GMs (10.1 vs 5.5). Combined with the very high share of winning positions (23.6 vs 6.8) and total absence of losing ones (0.0 vs 4.4), opponents should avoid letting you reach dynamic, queenless endings where your accuracy and structural handling are hardest to crack.</p>",
+    "section-6-5-psychology-llm": "<p>Your profile shows a sharp, risk\u2011tolerant mentality, especially with White. All your White games landed in the \u201cbig swings\u201d category (100.0%), suggesting you are comfortable entering volatile positions where the evaluation can shift dramatically. Yet this volatility is not chaotic: when you reach advantages of +1 or more with White, you convert them 100% of the time, which indicates strong confidence and focus once you sense blood in the water.</p>\n<p>Psychologically, you avoid slow, grinding initiative play: your initiative attempts (0.0% vs a 3.5% GM baseline) and deferred initiatives (7.9% vs 19.8% GMs) are significantly lower. Instead, you prefer to create tension (7.9% vs 6.9% GMs) and then resolve it through materially sound sacrifices. Your overall sacrifice ratio (20.2% vs 10.7% GMs), especially in positional and space\u2011oriented sacrifices (9.0% vs 3.9%, and 7.9% vs 3.7%), shows a readiness to invest material for long\u2011term pressure rather than speculative swindles.</p>\n<p>Opponents should avoid giving you stable, durable advantages; once you get ahead, you finish. Aim instead for calmer, lower\u2011tension positions and prolonged neutral maneuvering, where your lower\u2011than\u2011GM initiative frequency and lack of defensive data suggest less tested psychological comfort.</p>",
+    "section-6-6-gameplan-llm": "<p>As White, your opponent should steer for solid Sicilian structures after 1.e4, inviting you into the familiar setup where your overall accuracy of 0.855 is good but not GM-level in middlegames (0.849 versus stronger 0.862 in your endgames). The goal is to survive the opening and drag you into complex, queenful middlegames, where your big-swing volatility is at 100% of games and your tactical hit rate sits at 50%. By creating messy positions with long forcing lines, they exploit your reliance on engine top-3 moves (94.4%) but also your 2.2% blunder rate.</p>\n<p>They should encourage you to overuse your above-GM direct prophylaxis (16.9 vs 8.5) and positional sacrifices (9.0 vs 3.9), provoking space and structural concessions, then target your relatively high misplaced maneuver ratio (9.0 vs 4.2). Trading into endgames only when they can avoid your strong queenless accuracy (0.894), they instead aim for dynamic structures where your total exchange activity (6.7 vs 4.3) can be induced into bad trades (1.1 vs 0.4). The ideal script is: survive your early initiative, complicate tactically, and convert the inevitable big evaluation swings once you overextend.</p>"
+  },
+  "visualizations": {
+    "viz-forced-moves-axis": {
+      "player": {
+        "name": "You",
+        "value": 9.0
+      },
+      "gms": [
+        {
+          "name": "Tigran Petrosian",
+          "value": 3.7
+        },
+        {
+          "name": "Garry Kasparov",
+          "value": 9.9
+        },
+        {
+          "name": "Anatoly Karpov",
+          "value": 5.9
+        },
+        {
+          "name": "Mihail Tal",
+          "value": 5.4
+        },
+        {
+          "name": "Ding Liren",
+          "value": 7.0
+        },
+        {
+          "name": "Bobby Fischer",
+          "value": 8.7
+        }
+      ]
+    },
+    "viz-positions-axis": {
+      "player": {
+        "name": "You",
+        "value": 23.6
+      },
+      "gms": [
+        {
+          "name": "Tigran Petrosian",
+          "value": 1.8
+        },
+        {
+          "name": "Garry Kasparov",
+          "value": 9.6
+        },
+        {
+          "name": "Anatoly Karpov",
+          "value": 8.2
+        },
+        {
+          "name": "Mihail Tal",
+          "value": 1.8
+        },
+        {
+          "name": "Ding Liren",
+          "value": 6.8
+        },
+        {
+          "name": "Bobby Fischer",
+          "value": 12.7
+        }
+      ]
+    },
+    "viz-maneuver-axis": {
+      "player": {
+        "name": "You",
+        "value": 41.5
+      },
+      "gms": [
+        {
+          "name": "Tigran Petrosian",
+          "value": 55.7
+        },
+        {
+          "name": "Garry Kasparov",
+          "value": 47.4
+        },
+        {
+          "name": "Anatoly Karpov",
+          "value": 52.1
+        },
+        {
+          "name": "Mihail Tal",
+          "value": 54.2
+        },
+        {
+          "name": "Ding Liren",
+          "value": 50.4
+        },
+        {
+          "name": "Bobby Fischer",
+          "value": 44.7
+        }
+      ]
+    },
+    "viz-prophylaxis-axis": {
+      "player": {
+        "name": "You",
+        "value": 38.2
+      },
+      "gms": [
+        {
+          "name": "Tigran Petrosian",
+          "value": 41.1
+        },
+        {
+          "name": "Garry Kasparov",
+          "value": 29.3
+        },
+        {
+          "name": "Anatoly Karpov",
+          "value": 32.5
+        },
+        {
+          "name": "Mihail Tal",
+          "value": 35.3
+        },
+        {
+          "name": "Ding Liren",
+          "value": 32.5
+        },
+        {
+          "name": "Bobby Fischer",
+          "value": 27.8
+        }
+      ]
+    },
+    "viz-semantic-control-axis": {
+      "player": {
+        "name": "You",
+        "value": 22.4
+      },
+      "gms": [
+        {
+          "name": "Tigran Petrosian",
+          "value": 29.1
+        },
+        {
+          "name": "Garry Kasparov",
+          "value": 34.0
+        },
+        {
+          "name": "Anatoly Karpov",
+          "value": 30.3
+        },
+        {
+          "name": "Mihail Tal",
+          "value": 40.9
+        },
+        {
+          "name": "Ding Liren",
+          "value": 36.6
+        },
+        {
+          "name": "Bobby Fischer",
+          "value": 32.7
+        }
+      ]
+    },
+    "viz-cod-axis": {
+      "player": {
+        "name": "You",
+        "value": 13.5
+      },
+      "gms": [
+        {
+          "name": "Tigran Petrosian",
+          "value": 21.5
+        },
+        {
+          "name": "Garry Kasparov",
+          "value": 24.0
+        },
+        {
+          "name": "Anatoly Karpov",
+          "value": 21.8
+        },
+        {
+          "name": "Mihail Tal",
+          "value": 27.0
+        },
+        {
+          "name": "Ding Liren",
+          "value": 25.0
+        },
+        {
+          "name": "Bobby Fischer",
+          "value": 22.3
+        }
+      ]
+    },
+    "viz-initiative-axis": {
+      "player": {
+        "name": "You",
+        "value": 0.0
+      },
+      "gms": [
+        {
+          "name": "Tigran Petrosian",
+          "value": 2.5
+        },
+        {
+          "name": "Garry Kasparov",
+          "value": 4.5
+        },
+        {
+          "name": "Anatoly Karpov",
+          "value": 3.3
+        },
+        {
+          "name": "Mihail Tal",
+          "value": 3.3
+        },
+        {
+          "name": "Ding Liren",
+          "value": 4.9
+        },
+        {
+          "name": "Bobby Fischer",
+          "value": 2.6
+        }
+      ]
+    },
+    "viz-tension-axis": {
+      "player": {
+        "name": "You",
+        "value": 7.9
+      },
+      "gms": [
+        {
+          "name": "Tigran Petrosian",
+          "value": 8.6
+        },
+        {
+          "name": "Garry Kasparov",
+          "value": 7.7
+        },
+        {
+          "name": "Anatoly Karpov",
+          "value": 7.3
+        },
+        {
+          "name": "Mihail Tal",
+          "value": 5.7
+        },
+        {
+          "name": "Ding Liren",
+          "value": 7.1
+        },
+        {
+          "name": "Bobby Fischer",
+          "value": 5.1
+        }
+      ]
+    },
+    "viz-structural-axis": {
+      "player": {
+        "name": "You",
+        "value": 11.2
+      },
+      "gms": [
+        {
+          "name": "Tigran Petrosian",
+          "value": 10.2
+        },
+        {
+          "name": "Garry Kasparov",
+          "value": 10.7
+        },
+        {
+          "name": "Anatoly Karpov",
+          "value": 10.2
+        },
+        {
+          "name": "Mihail Tal",
+          "value": 7.6
+        },
+        {
+          "name": "Ding Liren",
+          "value": 9.3
+        },
+        {
+          "name": "Bobby Fischer",
+          "value": 9.5
+        }
+      ]
+    },
+    "viz-sacrifice-axis": {
+      "player": {
+        "name": "You",
+        "value": 20.2
+      },
+      "gms": [
+        {
+          "name": "Tigran Petrosian",
+          "value": 11.9
+        },
+        {
+          "name": "Garry Kasparov",
+          "value": 10.1
+        },
+        {
+          "name": "Anatoly Karpov",
+          "value": 9.0
+        },
+        {
+          "name": "Mihail Tal",
+          "value": 11.4
+        },
+        {
+          "name": "Ding Liren",
+          "value": 10.4
+        },
+        {
+          "name": "Bobby Fischer",
+          "value": 11.3
+        }
+      ]
+    }
+  },
+  "tag_explanations": {
+    "Constructive maneuver": "Reroute that improves piece harmony and future activity.",
+    "Constructive maneuver (prepare)": "Quiet reroute that sets up a later plan or breakthrough.",
+    "Neutral maneuver": "Repositioning with limited impact\u2014neither improves nor harms much.",
+    "Misplaced maneuver": "Reroute that wastes time or worsens coordination.",
+    "Opening maneuver": "Early-game reroute to better squares after initial development.",
+    "Overall maneuver ratio": "Share of moves classified as maneuvers.",
+    "Direct prophylactic": "Move that directly stops the opponent\u2019s immediate threat or plan.",
+    "Latent prophylactic": "Restricts future ideas before they become concrete threats.",
+    "Meaningless prophylactic": "Prophylaxis that addresses no real threat.",
+    "Failed prophylactic": "Attempted prevention that still allows the threat.",
+    "Overall prophylaxis ratio": "Share of moves aimed at prevention.",
+    "Control: simplify": "Trades or simplifications to reduce complexity.",
+    "Control: plan kill": "Stops the opponent\u2019s main strategic plan.",
+    "Control: freeze/bind": "Limits opponent mobility and counterplay.",
+    "Control: blockade passed pawn": "Holds back or fixes a passed pawn.",
+    "Control: file seal": "Secures or contests an open/semi-open file.",
+    "Control: king safety shell": "Strengthens the king\u2019s pawn and square cover.",
+    "Control: space clamp": "Claims key squares to restrict counterplay.",
+    "Control: regroup/consolidate": "Re-coordinates pieces after operations.",
+    "Control: slowdown": "Tempers the position to avoid sharp forcing lines.",
+    "Overall semantic control ratio": "Share of moves aimed at positional control.",
+    "Control over dynamics (overall)": "Moves chosen to shape the game\u2019s tactical temperature.",
+    "CoD: file seal": "Dynamic control by contesting files before tactics explode.",
+    "CoD: freeze/bind": "Dynamic restriction to keep the opponent cramped.",
+    "CoD: king safety": "Dynamic tweaks that keep the king safe during tactics.",
+    "CoD: regroup/consolidate": "Dynamic re-coordination to stabilize.",
+    "CoD: plan kill": "Dynamic strike that halts opponent initiative.",
+    "CoD: blockade passed pawn": "Dynamic blockading of a passed pawn in sharp play.",
+    "CoD: simplify": "Trades to cool down complications.",
+    "CoD: space clamp": "Dynamic space grab to limit enemy breaks.",
+    "CoD: slowdown": "Tempo moves to cool the position.",
+    "Initiative attempt": "Actively driving threats to keep the move-by-move pressure.",
+    "Deferred initiative": "Postpones attack to finish prep or development.",
+    "Premature attack": "Attack launched before position is ready.",
+    "C-file pressure": "Initiative built around control of the c-file.",
+    "Tension creation": "Creates or sustains pawn/piece tension.",
+    "Neutral tension creation": "Tension that neither helps nor harms notably.",
+    "Structural integrity": "Keeps pawn structure healthy and flexible.",
+    "Structural compromise (dynamic)": "Accepts structural weakness for activity.",
+    "Structural compromise (static)": "Weak structure without clear compensation.",
+    "Tactical sacrifice": "Material given for concrete tactical gain.",
+    "Positional sacrifice": "Material invested for long-term positional edge.",
+    "Inaccurate tactical sacrifice": "Dubious sac without enough payoff.",
+    "Speculative sacrifice": "High-risk sac with unclear compensation.",
+    "Desperate sacrifice": "Last-ditch sac from a bad position.",
+    "Tactical combination sacrifice": "Sac as part of a forcing combination.",
+    "Tactical initiative sacrifice": "Sac to keep initiative flowing.",
+    "Positional structure sacrifice": "Material for structural damage to opponent.",
+    "Positional space sacrifice": "Material for space or central control.",
+    "Overall sacrifice ratio": "Share of moves involving sacrifices.",
+    "Accurate knight/bishop exchange": "Trade that improves your minor-piece balance.",
+    "Inaccurate knight/bishop exchange": "Trade that hands the opponent better minors.",
+    "Bad knight/bishop exchange": "Clearly harmful minor-piece trade.",
+    "Total exchange frequency": "All tagged minor-piece exchanges.",
+    "Forced moves": "Moves compelled by tactics to avoid big loss.",
+    "Winning position handling": "Technique in converting clearly winning spots.",
+    "Losing position handling": "Resilience when position is bad.",
+    "Tactical opportunities found": "Tactics spotted and exploited.",
+    "Tactical opportunities missed": "Tactics available but not taken.",
+    "Tactical conversion rate": "Share of tactics you convert."
+  }
+}

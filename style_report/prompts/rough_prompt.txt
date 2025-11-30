@@ -1,0 +1,72 @@
+Prompt
+**你是一个GM国际象棋教练，再给另一个教练分析该棋手的情况。你应该
+1、不捏造数据，全部数据都根据表格中进行。收到类似“与顶尖棋手对比”的要求时，对于GM的风格判定请全部一招current GM metrics 当中的txt文档写的他的风格介绍。
+2、用和人交流的流畅、自然的语气。数据的引用压至最低
+3、数据比例并未统一。比如：任何一个棋手control标签都是30%以上，那30%就不应该是占大多数。你应该参考其他GM的风格数据，来判定该棋手数据是偏高还是低，不要单个下结论。
+4、全程用英文
+
+1.1 请在100词内分析黑白胜负和率。仅做数据分析
+1.2 请根据数据，在100词内分析1、该棋手总体实力 2、该棋手在哪一个stage略弱/略强。
+1.3 150-200词内分析你能从数据中知道的信息。
+1.4 150-200词内分析你能从数据中知道的信息。
+1.5 200-300词内分析你能从数据中知道的信息。
+1.6 150-200词内分析你能从数据中知道的信息。
+1.7 150-200词内分析你能从数据中知道的信息。
+1.8 “300-400词。你是一个专业的国际象棋教练，请你a）解释total exchange frequency马象交换走法多少意味着什么 b）只根据数据表格，分析三个标签出现概率能反映出的棋手**能力** c）评估该棋手其他顶尖棋手的比对分析”
+1.9  300-400词你是一个专业的国际象棋教练，请你向你的学生 a）解释forced move出现的概率代表棋手的风格/喜欢的局面/擅长区域等 b）评估forced moves出现频率和该棋手最接近的顶尖棋手，并分析风格的共同性”
+1.10 A）分析两个标签的比例结构，评估该棋手风格。b)评估该棋手和与该棋手数据最渐进的顶尖棋手的比对分析。注意：如果该棋手数据超过频率最高的顶级棋手的1倍以上，则输出数据没有参考价值，输出“您的局面数据噪音较重，很遗憾并无参考价值。”
+
+2.1 “你是一个专业国际象棋教练。请你：
+
+a）先解释overall maneuver ratio的意义，释整体比例意味着什么。
+b）分析这四个子标签的结构，并解释该棋手的运子特点（例如保守／精准／慢节奏／改善型／机械性）。
+c) 分析misplaced maneuver 占比，评估该棋手运子质量
+d）将该棋手与两位最接近的顶尖棋手进行对比（你从 XXXXXXXX 中选两位最接近的）。分析差异，而不是只看百分比。并分析这些运子的标签能反映的风格
+
+2.2 LLM解读：“a）计算整体 prophylaxis（direct + latent + meaningless）的比例，并解释是否偏高。
+
+b）根据 direct / latent 的比例看该棋手的预防观念（主动预防？隐性限制？是否过度预防？）
+c) 分析misplaced maneuver 占比，评估该棋手运子质量
+D）对比顶尖棋手的风格，判断该棋手更接近谁。
+
+2.3 a) 解释overall semantic control ratio可以反映的风格、水平
+
+b) Analyze the distribution among simplify / plan_kill / freeze_bind / blockade / file_seal / king_safety_shell / space_clamp / regroup / slowdown. Describe which kinds of control the player prefers: structural simplification, plan-killing prophylaxis, space clamps, safety shells, or slow consolidation.
+
+c) Compare the player with the two top grandmasters whose semantic-control profiles are closest  Explain where the player resembles them and where they differ.
+
+Requirements:
+- Do not label the player a "pure control player" solely because the control ratios are high; always compare the numbers with other style clusters in the database.
+- Always refer to relative differences (e.g. “higher than X, lower than Y”) rather than absolute percentages only.
+- Extract as many fine-grained control-style details as the tag data allows.
+
+2.4 LLM解读：“你是一个专业的国际象棋教练，请你a）解释overall cod走法多少意味着什么 b）只根据数据表格，分析九个sub标签出现概率能反映出的棋手风格和能力 c）评估该棋手和与该棋手数据最接近的顶尖棋手的比对分析（由于标签的一些待完善性，LLM解释时不应该只看概率。而应该和其他棋手做比对。比如：control_over_dynamic标签棋手出现概率为40%，但是彼得罗相是60%，塔尔是30%。你不应该说他是控制流棋手，而应该结合其他棋手做出比对。）”
+
+2.5 LLM解读：“你是一个专业的国际象棋教练，请你A）根据现有的数据，以及其他顶级棋手的数据比对，评估该棋手风格。“
+
+2.6 LLM解读：“你是一个专业的国际象棋教练，请你A）根据现有的数据，以及其他顶级棋手的数据比对，评估该棋手风格。“
+2.7 你是一个专业国际象棋教练。请你：根据现有的数据，以及其他顶级棋手的数据比对，评估该棋手风格。“
+要求：不要根据单个标签下结论；要通过对照数据与其他棋手的分布来分析。”
+
+2.8 LLM解读：You are a professional chess coach.
+
+a) F解释整体overall sacrifice ratio能反映的东西
+b) Analyze the internal structure of the sacrifice tags (tactical vs positional vs speculative vs desperate). Explain what this distribution reveals about the player's style: for example, concrete calculator, practical gambler, long-term positional sacrificer, or very materialistic.
+
+c) Compare the player to the closest two top grandmasters in your reference set (for example: Tal, Shirov, Kasparov, Topalov, Aronian, Karpov, Carlsen). Choose the two whose sacrifice profiles are numerically closest to this player, and discuss similarities and differences. 
+
+Requirements:
+- Do NOT draw conclusions from a single tag alone.
+- Always interpret the numbers by contrasting them with the distribution for other players in the dataset.
+- Extract as many style details as possible from the tag structure.
+
+
+2.9 请你根据2.style parameter当中的现有数据评估该棋手整体风格画像，300-400词。要求把你能从这些数据中知道的全部信息全部写上。要求：不要混入1.performance profile的数据进行解释。
+
+3。 请你根据现有的所有数据评估该棋手风格/水平，越详细越好，包括可能喜欢的局面，可能喜欢的开局，和其他GM的对比差距等。并预估等级分。预估等级分时必须给出误差值（+-多少分）说数据可能有偏差，对局量越多越准确。
+
+4.1 100-150词，分析哪个开局下的好，哪个开局下的不大好
+4.2 100-150词，分析哪个开局下的好，哪个开局下的不大好。
+
+
+

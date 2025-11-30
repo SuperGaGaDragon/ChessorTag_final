@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chess Style Report - {{PLAYER_ID}}</title>
+  <link rel="stylesheet" href="../../assets/report.css" />
+</head>
+<body>
+  <div class="report-root">
+    <aside class="report-sidebar">
+      <div class="sidebar-title">Chess Style Report</div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <a href="#section1-performance" class="sidebar-link parent-link">1. Performance Profile</a>
+          <div class="nav-subsections">
+            <a href="#perf-winrate" class="sidebar-sublink">1.1 Win rate</a>
+            <a href="#perf-accuracy" class="sidebar-sublink">1.2 Accuracy</a>
+            <a href="#perf-advantage" class="sidebar-sublink">1.3 Advantage conversion</a>
+            <a href="#perf-defensive" class="sidebar-sublink">1.4 Defensive conversion</a>
+            <a href="#perf-volatility" class="sidebar-sublink">1.5 Volatility/trajectory</a>
+            <a href="#perf-engine" class="sidebar-sublink">1.6 Engine decision quality</a>
+            <a href="#perf-tactical" class="sidebar-sublink">1.7 Tactical conversion</a>
+            <a href="#perf-exchanges" class="sidebar-sublink">1.8 Knight/bishop exchanges</a>
+            <a href="#perf-forced" class="sidebar-sublink">1.9 Forced moves</a>
+            <a href="#perf-positions" class="sidebar-sublink">1.10 Winning/losing position handling</a>
+          </div>
+        </div>
+        <div class="nav-section">
+          <a href="#section2-style" class="sidebar-link parent-link">2. Style Parameters</a>
+          <div class="nav-subsections">
+            <a href="#style-maneuver" class="sidebar-sublink">2.1 Maneuver</a>
+            <a href="#style-prophylaxis" class="sidebar-sublink">2.2 Prophylaxis</a>
+            <a href="#style-semantic_control" class="sidebar-sublink">2.3 Semantic control</a>
+            <a href="#style-control_over_dynamics" class="sidebar-sublink">2.4 Control over dynamics</a>
+            <a href="#style-initiative" class="sidebar-sublink">2.5 Initiative</a>
+            <a href="#style-tension" class="sidebar-sublink">2.6 Tension management</a>
+            <a href="#style-structural" class="sidebar-sublink">2.7 Structural play</a>
+            <a href="#style-sacrifice" class="sidebar-sublink">2.8 Sacrificial play</a>
+            <a href="#style-exchanges_forced" class="sidebar-sublink">2.9 Style synthesis</a>
+          </div>
+        </div>
+        <a href="#section3-overall" class="sidebar-link">3. Overall Synthesis</a>
+        <div class="nav-section">
+          <a href="#section4-openings" class="sidebar-link parent-link">4. Opening Repertoire</a>
+          <div class="nav-subsections">
+            <a href="#opening-white-table" class="sidebar-sublink">4.1 White openings table</a>
+            <a href="#opening-black-table" class="sidebar-sublink">4.2 Black openings</a>
+            <a href="#opening-main-repertoires" class="sidebar-sublink">4.3 Main repertoires</a>
+            <a href="#opening-secondary" class="sidebar-sublink">4.4 Secondary weapons</a>
+            <a href="#opening-depth" class="sidebar-sublink">4.5 Theoretical depth</a>
+            <a href="#opening-style" class="sidebar-sublink">4.6 Connection to style</a>
+            <a href="#opening-performance" class="sidebar-sublink">4.7 Underperforming vs shining</a>
+            <a href="#opening-takeaways" class="sidebar-sublink">4.8 Practical takeaways</a>
+          </div>
+        </div>
+        <div class="nav-section">
+          <a href="#section5-training" class="sidebar-link parent-link">5. Training Recommendations</a>
+          <div class="nav-subsections">
+            <a href="#training-priorities" class="sidebar-sublink">5.1 Key priorities</a>
+            <a href="#training-study" class="sidebar-sublink">5.2 Study methods</a>
+            <a href="#training-habits" class="sidebar-sublink">5.3 Practical habits</a>
+          </div>
+        </div>
+        <div class="nav-section">
+          <a href="#section6-opponent" class="sidebar-link parent-link">6. Opponent Preparation</a>
+          <div class="nav-subsections">
+            <a href="#opponent-white" class="sidebar-sublink">6.1 Opening choices vs white</a>
+            <a href="#opponent-black" class="sidebar-sublink">6.2 Opening choices vs black</a>
+            <a href="#opponent-middlegame" class="sidebar-sublink">6.3 Middlegame strategies</a>
+            <a href="#opponent-endgame" class="sidebar-sublink">6.4 Endgame strategies</a>
+            <a href="#opponent-psychology" class="sidebar-sublink">6.5 Psychology / risk</a>
+            <a href="#opponent-gameplan" class="sidebar-sublink">6.6 Summary game plan</a>
+          </div>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="report-main">
+      <div class="main-inner">
+        <section class="section-card report-header" id="top">
+          <p class="eyebrow">Player Overview</p>
+          <h1 class="report-title">Chess Style Report: {{PLAYER_ID}}</h1>
+          <p class="report-subtitle">Comprehensive breakdown across performance, style tags, openings, and preparation.</p>
+
+          <div class="gm-strip">
+            {{GM_CARDS}}
+          </div>
+        </section>
+
+        <section id="section1-performance" class="report-section">
+          <div class="section-card">
+            <h2 class="section-heading">1. Performance Profile</h2>
+            <div class="section-body markdown-body">{{PERFORMANCE_PROFILE_HTML}}</div>
+          </div>
+        </section>
+
+        <section id="section2-style" class="report-section">
+          <div class="section-card">
+            <h2 class="section-heading">2. Style Parameters</h2>
+            <div class="section-body markdown-body">{{STYLE_PARAMETERS_HTML}}</div>
+          </div>
+        </section>
+
+        <section id="section3-overall" class="report-section">
+          <div class="section-card">
+            <h2 class="section-heading">3. Overall Synthesis</h2>
+            <div class="section-body markdown-body">{{OVERALL_SYNTHESIS_HTML}}</div>
+          </div>
+        </section>
+
+        <section id="section4-openings" class="report-section">
+          <div class="section-card">
+            <h2 class="section-heading">4. Opening Repertoire</h2>
+            <div class="section-body markdown-body">{{OPENING_REPERTOIRE_HTML}}</div>
+          </div>
+        </section>
+
+        <section id="section5-training" class="report-section">
+          <div class="section-card">
+            <h2 class="section-heading">5. Training Recommendations</h2>
+            <div class="section-body markdown-body">{{TRAINING_RECOMMENDATIONS_HTML}}</div>
+          </div>
+        </section>
+
+        <section id="section6-opponent" class="report-section">
+          <div class="section-card">
+            <h2 class="section-heading">6. Opponent Preparation</h2>
+            <div class="section-body markdown-body">{{OPPONENT_PREPARATION_HTML}}</div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Collapsible navigation
+      const parentLinks = document.querySelectorAll(".parent-link");
+      parentLinks.forEach((link) => {
+        link.addEventListener("click", (e) => {
+          const navSection = link.parentElement;
+          const subsections = navSection.querySelector(".nav-subsections");
+          if (subsections) {
+            e.preventDefault();
+            navSection.classList.toggle("expanded");
+          }
+        });
+      });
+
+      // Expand first section by default
+      const firstNavSection = document.querySelector(".nav-section");
+      if (firstNavSection) {
+        firstNavSection.classList.add("expanded");
+      }
+
+      const sections = Array.from(document.querySelectorAll(".report-section"));
+      const links = Array.from(document.querySelectorAll(".sidebar-link, .sidebar-sublink"));
+      const linkMap = new Map(
+        links.map((link) => [link.getAttribute("href").replace("#", ""), link])
+      );
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const id = entry.target.id;
+              links.forEach((l) => l.classList.remove("active"));
+              const active = linkMap.get(id);
+              if (active) active.classList.add("active");
+            }
+          });
+        },
+        { rootMargin: "-40% 0px -45% 0px", threshold: 0.2 }
+      );
+
+      sections.forEach((sec) => observer.observe(sec));
+      if (links.length > 0) {
+        links[0].classList.add("active");
+      }
+
+      document.querySelectorAll(".markdown-body table").forEach((table) => {
+        table.classList.add("report-table");
+        if (!table.parentElement.classList.contains("table-wrapper")) {
+          const wrapper = document.createElement("div");
+          wrapper.className = "table-wrapper";
+          table.replaceWith(wrapper);
+          wrapper.appendChild(table);
+        }
+      });
+
+      const requiredSections = [
+        "section1-performance",
+        "section2-style",
+        "section3-overall",
+        "section4-openings",
+        "section5-training",
+        "section6-opponent",
+      ];
+      requiredSections.forEach((id) => {
+        const block = document.getElementById(id);
+        const body = block ? block.querySelector(".section-body") : null;
+        if (!block || !body || !body.innerHTML.trim()) {
+          console.error(`Missing or empty content for ${id}`);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

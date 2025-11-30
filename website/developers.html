@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ChessorTag – About Developers</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --green: #22c55e;
+      --bg: #f8f9fa;
+      --text-main: #1f2937;
+      --text-sub: #4b5563;
+      --card-bg: #ffffff;
+      --border-soft: #e5e7eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+    a { color: var(--green); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px 56px;
+    }
+    header { margin-bottom: 32px; }
+    header h1 {
+      margin: 0;
+      font-size: 38px;
+      font-weight: 700;
+    }
+    header p {
+      margin: 6px 0 0;
+      color: var(--text-sub);
+      font-size: 14px;
+    }
+    /* Hero */
+    .hero {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      padding: 24px;
+      background: var(--card-bg);
+      border-radius: 18px;
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      align-items: center;
+    }
+    .hero-cat {
+      flex: 1 1 260px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .hero-cat img {
+      width: 100%;
+      max-width: 360px;
+      border-radius: 20px;
+      display: block;
+      border: 1px solid var(--border-soft);
+      background: #fff;
+    }
+    .hero-cat button {
+      border: none;
+      cursor: pointer;
+      padding: 12px 18px;
+      border-radius: 12px;
+      background: var(--green);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+    }
+    .hero-cat button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(34, 197, 94, 0.24);
+      background: #16a34a;
+    }
+    .hero-text {
+      flex: 1 1 260px;
+      min-width: 0;
+    }
+    .hero-text h2 {
+      margin: 0 0 12px;
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+    .hero-text p {
+      margin: 0;
+      color: var(--text-sub);
+      font-size: 15px;
+      max-width: 420px;
+      line-height: 1.6;
+    }
+    .section { margin-top: 48px; }
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .section-sub {
+      color: var(--text-sub);
+      font-size: 14px;
+      margin-bottom: 22px;
+    }
+    .dev-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+    }
+    .dev-card {
+      background: var(--card-bg);
+      border-radius: 18px;
+      border: 1px solid var(--border-soft);
+      padding: 18px 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .dev-card img {
+      width: 100%;
+      max-width: 280px;
+      border-radius: 16px;
+      object-fit: cover;
+      display: block;
+      border: 1px solid var(--border-soft);
+    }
+    .dev-name {
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .dev-text {
+      font-size: 14px;
+      color: var(--text-sub);
+      line-height: 1.5;
+    }
+    .footer {
+      margin-top: 36px;
+      font-size: 13px;
+      color: var(--text-sub);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    @media (max-width: 720px) {
+      header h1 { font-size: 26px; }
+      .hero { padding: 18px; }
+      .hero-text h2 { font-size: 24px; }
+      .dev-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header>
+      <h1>About the Developers</h1>
+      <p>Behind every serious chess tool… is a not-so-serious cat.</p>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-cat">
+        <img src="assets/logo2.png" alt="Lead developer cat" />
+        <a href="cat-gallary.html">
+          <button type="button">
+            📸 <span>Click to see more developer's photo</span>
+          </button>
+        </a>
+      </div>
+
+      <div class="hero-text">
+        <h2>This website is fully developed by this cat......</h2>
+        <p>
+          She personally reviewed every line of code, batted at every bug,
+          and demanded snacks for every new feature.
+        </p>
+      </div>
+    </section>
+
+    <!-- Actual Devs -->
+    <section class="section">
+      <div class="section-title">Just kidding!</div>
+      <div class="section-sub">
+        This website is actually developed by <strong>ChessNut</strong> and <strong>CataDragon</strong>.
+      </div>
+
+      <div class="dev-grid">
+        <!-- ChessNut -->
+        <div class="dev-card">
+          <img src="assets/developers/ChessNut.jpg" alt="ChessNut" />
+          <div class="dev-name">ChessNut</div>
+          <div class="dev-text">
+            “This is ChessNut. Get it? <strong>Chest-nut</strong>; <strong>Chess-nut</strong>.”
+            Full-stack human, part-time queen blunderer.
+          </div>
+        </div>
+
+        <!-- CataDragon -->
+        <div class="dev-card">
+          <img src="assets/developers/CataDragon.png" alt="CataDragon" />
+          <div class="dev-name">CataDragon</div>
+          <div class="dev-text">
+            “CataDragon, supersuper Catadragon, nuclear powered catadragon.
+            Also known as GaGa Dragon. Cata Cata Ga Ga Cata Cata Ga Ga.”
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      <div>ChessorTag — built with engines, cats, and questionable sanity.</div>
+      <a href="index.html">← Back to home</a>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo User – Studies</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0f172a;
+      --muted: #6b7280;
+      --card: #ffffff;
+      --accent: #0ea5e9;
+      --accent-2: #22c55e;
+      --bg: radial-gradient(circle at 20% 20%, rgba(34,197,94,0.16), transparent 28%), radial-gradient(circle at 80% 0%, rgba(14,165,233,0.2), transparent 30%), #f6f8fb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 22px;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+      backdrop-filter: blur(8px);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      font-size: 18px;
+    }
+    .pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(14, 165, 233, 0.12);
+      color: #0369a1;
+      font-weight: 600;
+      font-size: 12px;
+    }
+    main {
+      width: min(1100px, 96vw);
+      margin: 30px auto 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .hero {
+      padding: 18px 20px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(14,165,233,0.12), rgba(34,197,94,0.12));
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(20px, 4vw, 26px);
+    }
+    .hero p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      max-width: 640px;
+      line-height: 1.5;
+    }
+    .action-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    input[type="text"] {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(15, 23, 42, 0.15);
+      min-width: 240px;
+      font-size: 14px;
+      background: #ffffff;
+    }
+    button {
+      border: none;
+      cursor: pointer;
+      padding: 11px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      color: #ffffff;
+      background: linear-gradient(135deg, #0ea5e9, #22c55e);
+      box-shadow: 0 12px 24px rgba(14, 165, 233, 0.35);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+    }
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 28px rgba(34, 197, 94, 0.35);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      border: 1px solid rgba(15, 23, 42, 0.06);
+      padding: 14px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+    }
+    .card h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+    .card .meta {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .status {
+      font-size: 13px;
+      color: #0f172a;
+      padding: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span style="width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #0ea5e9, #22c55e); display: grid; place-items: center; color: #ffffff;">♟︎</span>
+      Demo User Study Desk
+    </div>
+    <span class="pill">demo_user sandbox</span>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <h1>New study, stored for the demo user</h1>
+        <p>Click “New study” to create a record in the FastAPI + SQLite backend (port 8001). Frontend is served via <code>python3 -m http.server</code> from this <code>demo_user</code> folder, so nothing touches the main website.</p>
+      </div>
+      <div class="action-bar">
+        <input id="studyName" type="text" placeholder="Name your study..." />
+        <button id="createBtn" onclick="createStudy()">New study</button>
+      </div>
+    </section>
+
+    <div class="status" id="status">Loading studies…</div>
+    <div class="grid" id="studyGrid"></div>
+    <div class="hint">Studies shown here are fetched from the demo_user backend. Click any card to open the board page.</div>
+  </main>
+
+  <script>
+    const API_BASE = "http://localhost:8001";
+    const grid = document.getElementById("studyGrid");
+    const statusEl = document.getElementById("status");
+    const createBtn = document.getElementById("createBtn");
+    const nameInput = document.getElementById("studyName");
+
+    async function loadStudies() {
+      statusEl.textContent = "Loading studies…";
+      try {
+        const resp = await fetch(`${API_BASE}/api/studies`);
+        if (!resp.ok) throw new Error("Failed to fetch studies");
+        const data = await resp.json();
+        renderStudies(data);
+        statusEl.textContent = data.length
+          ? `Loaded ${data.length} study card(s) from backend.`
+          : "No studies yet. Create one to get started.";
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Unable to reach backend at http://localhost:8001";
+      }
+    }
+
+    function renderStudies(studies) {
+      grid.innerHTML = "";
+      if (!studies.length) return;
+      studies.forEach((study) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.onclick = () => {
+          window.location.href = `study.html?id=${encodeURIComponent(study.id)}`;
+        };
+        card.innerHTML = `
+          <h3>${study.name}</h3>
+          <div class="meta">Moves: ${study.move_count} · Updated: ${study.updated_at ? new Date(study.updated_at).toLocaleString() : "—"}</div>
+          <div class="meta">${study.id}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    async function createStudy() {
+      createBtn.disabled = true;
+      const name = nameInput.value.trim() || "Untitled study";
+      try {
+        const resp = await fetch(`${API_BASE}/api/studies`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name }),
+        });
+        if (!resp.ok) throw new Error("Backend did not accept the request");
+        const data = await resp.json();
+        window.location.href = `study.html?id=${encodeURIComponent(data.id)}`;
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Create failed. Is FastAPI running on :8001?";
+      } finally {
+        createBtn.disabled = false;
+      }
+    }
+
+    loadStudies();
+  </script>
+</body>
+</html>

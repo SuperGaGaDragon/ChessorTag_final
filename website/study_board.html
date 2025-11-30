@@ -1,0 +1,2492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chessortag – Study board</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: #f8f9fa;
+      color: #1f2937;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .board-square {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      user-select: none;
+      color: #000000;
+      aspect-ratio: 1;
+      position: relative;
+    }
+    .topbar {
+      height: 56px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e5e7eb;
+      background: #ffffff;
+    }
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-mark {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      border: 2px solid #22c55e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: #22c55e;
+    }
+    .logo-text {
+      font-weight: 600;
+      font-size: 16px;
+    }
+    .top-links {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+    .top-links a {
+      color: #6b7280;
+      text-decoration: none;
+    }
+    .top-links a:hover {
+      color: #1f2937;
+    }
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #22c55e, #0ea5e9);
+      display: inline-block;
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      row-gap: 14px;
+      padding: 16px 18px 20px;
+    }
+    .hero {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .hero h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+    .hero p {
+      margin: 2px 0 0;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    /* 三列：左预测，中棋盘，右 PGN 列表 */
+    .embed-shell {
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      min-height: 440px;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr) 260px;
+      gap: 0;
+      overflow: hidden;
+    }
+    @media (max-width: 1100px) {
+      .embed-shell {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .side-panel {
+      border-right: 1px solid #e5e7eb;
+      padding: 10px;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    @media (max-width: 1100px) {
+      .side-panel {
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+      }
+    }
+    .side-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .side-sub {
+      font-size: 11px;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+
+    .gm-panel {
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      padding: 16px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .gm-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .gm-panel-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .gm-panel-sub {
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .gm-add-btn {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #1f2937;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .gm-add-btn:hover {
+      background: #f3f4f6;
+    }
+    .gm-engine-row {
+      margin-top: 4px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+    }
+    .gm-engine-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .gm-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1f2937;
+      overflow: hidden;
+    }
+    .gm-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .gm-avatar-engine {
+      border: 1px solid #38bdf8;
+      background: radial-gradient(circle at top left, #0ea5e9, #0369a1);
+      color: #f9fafb;
+      font-size: 12px;
+    }
+    .gm-name {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .gm-desc {
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .gm-divider {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 4px 0;
+    }
+    .gm-selected-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .gm-empty-hint {
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .gm-profile-row {
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+    .gm-pred-box {
+      margin-top: 6px;
+      padding: 10px 12px;
+      border: 1px dashed #d1d5db;
+      border-radius: 10px;
+      background: #f9fafb;
+      font-size: 12px;
+      color: #4b5563;
+    }
+    .gm-pred-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .gm-pred-move {
+      font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 12px;
+      color: #111827;
+    }
+    .cat-piece-img {
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      width: 100%;
+      height: 100%;
+    }
+    .gm-loading-bar {
+      position: relative;
+      height: 8px;
+      background: linear-gradient(90deg, #f97316, #ef4444);
+      border-radius: 999px;
+      overflow: visible; /* allow cat/gear to float above */
+      margin-top: 6px;
+    }
+    .gm-loading-cat {
+      position: absolute;
+      top: -46px;
+      width: 90px;
+      height: 90px;
+      background: url("assets/Loading2.png") no-repeat center/contain;
+      animation: crawl-left 1.6s linear infinite;
+      pointer-events: none;
+      z-index: 2;
+    }
+    @keyframes spin360 {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .engine-loading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .engine-loading-gear {
+      width: 28px;
+      height: 28px;
+      background: url("assets/loading3.png") no-repeat center/contain;
+      animation: spin360 1s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes crawl-left {
+      0% { right: -40px; }
+      100% { right: 100%; }
+    }
+    .gm-profile-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .gm-profile-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .gm-move-list {
+      font-size: 11px;
+      color: #1f2937;
+      white-space: nowrap;
+    }
+    .gm-style-tagline {
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .gm-remove-btn {
+      border: none;
+      background: none;
+      color: #6b7280;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .gm-remove-btn:hover {
+      color: #f97373;
+    }
+    .gm-footer-note {
+      margin-top: 6px;
+      font-size: 10px;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+    .engine-moves {
+      font-size: 12px;
+      color: #1f2937;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      padding: 8px 10px;
+      background: #ffffff;
+      line-height: 1.5;
+      min-height: 42px;
+    }
+    .engine-moves ul {
+      margin: 4px 0 0;
+      padding-left: 16px;
+    }
+
+    /* 小开关样式 */
+    .gm-switch {
+      position: relative;
+      display: inline-block;
+      width: 32px;
+      height: 16px;
+    }
+    .gm-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .gm-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #d1d5db;
+      transition: 0.2s;
+      border-radius: 999px;
+    }
+    .gm-slider:before {
+      position: absolute;
+      content: "";
+      height: 12px;
+      width: 12px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      transition: 0.2s;
+      border-radius: 999px;
+    }
+    .gm-switch input:checked + .gm-slider {
+      background-color: #22c55e;
+    }
+    .gm-switch input:checked + .gm-slider:before {
+      transform: translateX(14px);
+    }
+
+    /* 选择 GM 的弹窗 */
+    .gm-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.3);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+    }
+    .gm-modal {
+      width: 320px;
+      max-width: 90vw;
+      border-radius: 16px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      padding: 14px 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .gm-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .gm-modal-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .gm-modal-close {
+      border: none;
+      background: none;
+      color: #6b7280;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .gm-modal-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 12px;
+    }
+    .gm-modal-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 6px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+    }
+    .gm-modal-item:hover {
+      border-color: #d1d5db;
+    }
+    .gm-modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .gm-modal-btn {
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #1f2937;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .gm-modal-btn.primary {
+      border-color: #22c55e;
+      background: #22c55e;
+      color: #ffffff;
+    }
+    .gm-modal-btn.primary:hover {
+      background: #16a34a;
+    }
+
+    /* 中间棋盘区域 */
+    .board-panel {
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .board-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .btn {
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #1f2937;
+      font-size: 11px;
+      padding: 4px 10px;
+      cursor: pointer;
+    }
+    .btn:hover { background: #f3f4f6; }
+
+    .board-box-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      min-height: 0;
+    }
+    .board-box {
+      width: min(100%, 520px);
+      aspect-ratio: 1 / 1;
+      border-radius: 14px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      padding: 10px;
+    }
+    .board-grid {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .sq-light {
+      background-color: #f0d9b5;
+    }
+    .sq-dark {
+      background-color: #b58863;
+    }
+    .board-overlay-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 12px;
+      color: #1f2937;
+      pointer-events: none;
+      padding: 10px;
+      background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.7),
+        rgba(255, 255, 255, 0.9)
+      );
+    }
+    .board-box-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    .sq-selected {
+      outline: 2px solid #22c55e;
+      outline-offset: -2px;
+    }
+    .pgn-box {
+      flex: 1;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      padding: 6px 0;
+      overflow-y: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+    }
+    .pgn-row {
+      display: grid;
+      grid-template-columns: 36px 1fr 1fr;
+      padding: 4px 8px;
+      align-items: center;
+      column-gap: 8px;
+    }
+    .pgn-row:nth-child(even) {
+      background: rgba(0,0,0,0.02);
+    }
+    .pgn-num {
+      color: #6b7280;
+      text-align: right;
+      padding-right: 6px;
+    }
+    .pgn-cell {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      min-height: 20px;
+      position: relative;
+    }
+    .pgn-cell.is-current {
+      background: rgba(34, 197, 94, 0.15);
+      border-radius: 6px;
+      padding: 2px 4px;
+    }
+    .pgn-cell:hover {
+      background: rgba(148, 163, 184, 0.1);
+      border-radius: 6px;
+    }
+    .move-comment-bubble {
+      position: fixed;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 12px 14px 14px;
+      color: #1f2937;
+      font-size: 12px;
+      min-width: 200px;
+      max-width: 340px;
+      z-index: 200;
+      box-shadow: 0 16px 50px rgba(0,0,0,0.15);
+      display: none;
+      cursor: grab;
+    }
+    .move-comment-bubble-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-weight: 600;
+      cursor: grab;
+    }
+    .move-comment-bubble-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+    }
+    .move-comment-bubble .bubble-close,
+    .move-comment-bubble .bubble-delete {
+      border: 1px solid #e5e7eb;
+      background: #f8fafc;
+      color: #6b7280;
+      cursor: pointer;
+      font-size: 12px;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .move-comment-bubble .bubble-delete {
+      color: #ef4444;
+    }
+    .pgn-box {
+      flex: 1;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      padding: 6px 0;
+      overflow-y: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+    }
+    .pgn-row {
+      display: grid;
+      grid-template-columns: 32px 1fr 1fr;
+      padding: 3px 8px;
+      align-items: center;
+      column-gap: 6px;
+      line-height: 1.2;
+    }
+    .move-comment-indicator img {
+      width: 22px;
+      height: 22px;
+      animation: spin360 1.4s linear infinite;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    }
+    .branches-box {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: #ffffff;
+      min-height: 50px;
+      color: #0f172a;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .branches-box .branch-line {
+      padding: 4px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .branches-box .branch-line:last-child {
+      border-bottom: none;
+    }
+    .board-bottom-hint {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    /* 右侧 PGN 列表 */
+    .pgn-panel {
+      padding: 10px;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      border-left: 1px solid #e5e7eb;
+    }
+    @media (max-width: 1100px) {
+      .pgn-panel {
+        border-left: none;
+        border-top: 1px solid #e5e7eb;
+      }
+    }
+    .pgn-buttons {
+      margin-top: 6px;
+      display: flex;
+      gap: 6px;
+      font-size: 11px;
+    }
+
+    .embed-note {
+      grid-column: 1 / -1;
+      padding: 8px 12px;
+      font-size: 11px;
+      color: #6b7280;
+      border-top: 1px solid #e5e7eb;
+      background: #f9fafb;
+    }
+
+    /* 底部 comment 区保持原样 */
+    .notes-panel {
+      border-radius: 14px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+      max-width: 920px;
+    }
+    .notes-panel h2 {
+      margin: 0;
+      font-size: 15px;
+    }
+    .notes-panel p {
+      margin: 0;
+      color: #6b7280;
+      font-size: 12px;
+    }
+    .note-form {
+      display: grid;
+      gap: 8px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 70px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #1f2937;
+      padding: 10px;
+      font-size: 13px;
+      resize: vertical;
+    }
+    .note-btn {
+      align-self: start;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #1f2937;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .note-btn:hover { background: #f3f4f6; }
+    .note-list {
+      display: grid;
+      gap: 8px;
+    }
+    .note-item {
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      padding: 8px 10px;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .note-item time {
+      display: block;
+      color: #9ca3af;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+    .coach-note-status {
+      font-size: 12px;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+    .coach-note-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+    }
+    .coach-note-loading-icon {
+      width: 80px;
+      height: 80px;
+      animation: spin360 1.2s linear infinite;
+    }
+    .coach-note-loading-text {
+      font-size: 13px;
+      color: #6b7280;
+      text-align: center;
+    }
+    .coach-confirm-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(2px);
+    }
+    .coach-confirm-overlay.show {
+      display: flex;
+    }
+    .coach-confirm-modal {
+      position: relative;
+      background: #ffffff;
+      border-radius: 20px;
+      border: 1px solid #e5e7eb;
+      padding: 30px 24px 20px;
+      max-width: 400px;
+      width: 90vw;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+      animation: modalPop 0.3s ease-out;
+    }
+    @keyframes modalPop {
+      0% { transform: scale(0.9); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .coach-confirm-cat {
+      position: absolute;
+      bottom: -10px;
+      right: 10px;
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+      z-index: 2;
+    }
+    .coach-confirm-bubble {
+      position: relative;
+      background: #ffffff;
+      border: 2px solid #1f2937;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 30px;
+      font-size: 15px;
+      color: #1f2937;
+      text-align: center;
+      font-weight: 500;
+      line-height: 1.5;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    .coach-confirm-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -16px;
+      right: 50px;
+      width: 0;
+      height: 0;
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      border-top: 16px solid #1f2937;
+    }
+    .coach-confirm-bubble::before {
+      content: '';
+      position: absolute;
+      bottom: -11px;
+      right: 52px;
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 13px solid #ffffff;
+      z-index: 1;
+    }
+    .coach-confirm-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .coach-confirm-btn {
+      padding: 10px 24px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #1f2937;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .coach-confirm-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .coach-confirm-btn.yes {
+      background: #22c55e;
+      border-color: #22c55e;
+      color: #ffffff;
+    }
+    .coach-confirm-btn.yes:hover {
+      background: #16a34a;
+      border-color: #16a34a;
+    }
+    .coach-confirm-btn.no:hover {
+      background: #f3f4f6;
+    }
+  </style>
+  <!-- chess.js 用来管理棋局状态、合法走法和 SAN；直接用 CDN 版，全局 Chess -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo-row">
+      <div class="logo-mark">C</div>
+      <div class="logo-text">Chessortag</div>
+    </div>
+    <div class="top-links">
+      <a href="index.html">About</a>
+      <span>|</span>
+      <a href="home.html">Home</a>
+      <span>|</span>
+      <span>Study board</span>
+      <span class="avatar"></span>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero">
+      <h1>Study workspace</h1>
+      <p>Left: GM-style predictions. Center: board. Right: PGN move list from imported game.</p>
+    </div>
+    <div style="margin-bottom:8px; display:flex; justify-content:center;">
+      <button id="catToggleBtn" class="btn" type="button">Change to cat pieces</button>
+    </div>
+    <script src="cat_pieces.js"></script>
+
+    <!-- 三列主体：左预测 / 中棋盘 / 右 PGN -->
+    <section class="embed-shell">
+      <!-- 左：GM possible moves（动态可选） -->
+      <aside class="side-panel">
+        <div class="gm-panel">
+          <div class="gm-header-row">
+            <div>
+      <div class="gm-panel-title">Move suggestions</div>
+      <div class="gm-panel-sub">Engine + selected GM styles.</div>
+    </div>
+            <div style="display:flex; gap:8px;">
+              <button class="gm-add-btn" type="button" onclick="openProfilePicker()">＋ Add</button>
+              <button class="gm-add-btn" type="button" onclick="generateCoachNote()">Generate coach note</button>
+            </div>
+  </div>
+
+          <!-- Engine row (always present) -->
+          <div class="gm-engine-row">
+            <div class="gm-engine-label">
+              <div class="gm-avatar gm-avatar-engine">E</div>
+              <div>
+                <div class="gm-name">Engine</div>
+                <div class="gm-desc">Best line (eval baseline).</div>
+              </div>
+            </div>
+            <label class="gm-switch">
+              <input type="checkbox" checked id="engineToggle">
+              <span class="gm-slider"></span>
+            </label>
+          </div>
+
+          <div id="engineMovesList" class="engine-moves">
+            Engine on: waiting for a move...
+          </div>
+
+          <div class="gm-divider"></div>
+
+          <!-- 选中的 GM 会被 JS 填到这里 -->
+          <div id="gmSelectedList" class="gm-selected-list">
+            <div class="gm-empty-hint">
+              No GM profiles selected yet. Click <strong>＋ Add</strong> to choose.
+            </div>
+          </div>
+
+          <div class="gm-footer-note">
+            现在：每下一步棋，会调用后端引擎 + style tagger，给出引擎候选并标注最像所选棋手的走法。<br/>
+            需本地运行 superchess predictor FastAPI（/analyze）。
+          </div>
+        </div>
+      </aside>
+
+      <!-- 中：棋盘壳 + demo 按钮 -->
+      <section class="board-panel">
+        <div class="board-top">
+          <div>Game source: <strong id="gameSourceLabel">none (demo)</strong></div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn" type="button" onclick="importPgn()">Import PGN</button>
+            <button class="btn" type="button" onclick="importFen()">Import FEN</button>
+            <button class="btn" type="button" onclick="resetPgn()">Reset</button>
+          </div>
+        </div>
+
+        <div class="board-box-wrapper">
+          <div class="board-box">
+            <div class="board-box-inner">
+              <div class="board-grid" id="boardGrid"></div>
+              <div class="board-overlay-text" id="boardOverlayText">
+                Start position – you can type moves like "e4", "Nf3" below.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 10px; display: flex; gap: 8px; align-items: center;">
+          <span style="font-size: 12px; color: #6b7280;">Play move (SAN):</span>
+          <input id="moveInput" type="text" placeholder="e4, Nf3, Bb5+ ..."
+                 style="flex: 0 0 160px; padding: 6px 8px; font-size: 12px; border-radius: 8px; border: 1px solid #d1d5db; background:#ffffff; color:#1f2937;">
+          <button class="btn" type="button" onclick="playUserMove()">Play</button>
+        </div>
+
+        <div class="board-bottom-hint">
+          以后流程：前端通过 API 把 FEN/PGN 发到 FastAPI → FastAPI 调用引擎 + style-tag →
+          返回各棋手候选走法和评估，刷新左侧与右侧。
+        </div>
+      </section>
+
+      <!-- 右：PGN move list（会随着 demo 按钮自动更新） -->
+      <aside class="pgn-panel">
+        <div class="side-title">Move list (PGN view)</div>
+        <div class="side-sub">Shows SAN from imported PGN.</div>
+
+        <div class="pgn-box" id="pgnBox">
+          (no moves yet)
+        </div>
+
+      <div class="pgn-buttons">
+        <button class="btn" type="button" onclick="resetPgn()">Reset</button>
+        <button class="btn" type="button" onclick="copyPgn()">Copy PGN</button>
+        <button class="btn" type="button" id="deleteFromHereBtn">Delete from here</button>
+      </div>
+    </aside>
+
+    <div class="embed-note">
+      当前使用后端 PGN 解析返回的 SAN 列表，棋盘渲染和引擎预测将在后续接入。
+      </div>
+    </section>
+
+    <!-- 下方 comment / coach notes 保持 -->
+    <section class="notes-panel">
+      <div>
+        <h2>Comment / coach notes</h2>
+        <p>Drop quick annotations while you work in the board above. Stored locally for this session.</p>
+      </div>
+      <form class="note-form" onsubmit="return addNote(event);">
+        <textarea id="noteInput" placeholder="Type a comment, variation idea, or next steps..."></textarea>
+        <div class="coach-note-status" id="coachNoteStatus">
+          生成的 LLM 教练点评会自动填入上面的输入框，点击 “Generate coach note” 触发。
+        </div>
+        <button class="note-btn" type="submit">Add comment</button>
+      </form>
+      <div class="note-list" id="noteList" aria-live="polite"></div>
+    </section>
+
+    <section class="notes-panel" style="margin-top: 10px;">
+      <div>
+        <h2>Branches</h2>
+        <p>Alternate lines created by rewinding and playing different moves.</p>
+      </div>
+      <div id="variationsBox" class="branches-box"></div>
+    </section>
+  </main>
+
+  <!-- GM profile picker modal -->
+  <div id="gmModalBackdrop" class="gm-modal-backdrop">
+    <div class="gm-modal">
+      <div class="gm-modal-header">
+        <div class="gm-modal-title">Add GM profiles (one at a time)</div>
+        <button class="gm-modal-close" type="button" onclick="closeProfilePicker()">×</button>
+      </div>
+      <div class="gm-modal-list" id="gmModalList">
+        <!-- JS 填充 -->
+      </div>
+      <div class="gm-modal-footer">
+        <button class="gm-modal-btn" type="button" onclick="closeProfilePicker()">Cancel</button>
+        <button class="gm-modal-btn primary" type="button" onclick="applyProfileSelection()">Add selected</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating move comment bubble -->
+  <div id="commentBubble" class="move-comment-bubble">
+    <div class="move-comment-bubble-header" id="commentBubbleHeader">
+      <span id="commentBubbleTitle">Move comment</span>
+      <div class="move-comment-bubble-actions">
+        <button class="bubble-delete" type="button" id="commentBubbleDelete">🗑</button>
+        <button class="bubble-close" type="button" id="commentBubbleClose">×</button>
+      </div>
+    </div>
+    <div id="commentBubbleBody"></div>
+  </div>
+
+  <!-- Coach note confirmation modal -->
+  <div id="coachConfirmOverlay" class="coach-confirm-overlay">
+    <div class="coach-confirm-modal">
+      <div class="coach-confirm-bubble">
+        Are you sure you want to generate coach note?
+      </div>
+      <div class="coach-confirm-buttons">
+        <button class="coach-confirm-btn no" type="button" onclick="closeCoachConfirm()">No</button>
+        <button class="coach-confirm-btn yes" type="button" onclick="confirmGenerateCoachNote()">Yes</button>
+      </div>
+      <img src="assets/cat.png" alt="cat" class="coach-confirm-cat" />
+    </div>
+  </div>
+
+  <script>
+    function resolveApiBase() {
+      // Priority: window override → ?api_base → localStorage → smart default for dev ports → origin → 8001
+      const urlBase = new URLSearchParams(window.location.search).get("api_base");
+      const lsBase = window.localStorage.getItem("studyApiBase");
+      const devPortFallback = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+        ? ((window.location.port === "4000" || window.location.port === "3000") ? "http://localhost:7000" : null)
+        : null;
+      return (
+        (window.STUDY_API_BASE) ||
+        (urlBase && urlBase.trim()) ||
+        (lsBase && lsBase.trim()) ||
+        devPortFallback ||
+        (window.location.port ? window.location.origin : null) ||
+        "http://localhost:8001"
+      );
+    }
+
+    const API_BASE = resolveApiBase();
+
+  const pgnBox = document.getElementById("pgnBox");
+    const gameSourceLabel = document.getElementById("gameSourceLabel");
+    const boardGrid = document.getElementById("boardGrid");
+    const boardOverlayText = document.getElementById("boardOverlayText");
+    const moveInput = document.getElementById("moveInput");
+    const catToggleBtn = document.getElementById("catToggleBtn");
+
+    // 当前 PGN 的 SAN 序列
+    let moves = [];           // active line
+    let mainMoves = [];       // main line reference
+    const variations = {};    // index -> array of variation lines (each array of SAN from root to end)
+    const moveComments = {}; // keyed by move sequence signature -> { text, pinned: bool }
+    let currentMoveIndex = -1;
+    let bubblePinned = false;
+    let bubbleKey = null;
+
+    const moveKeyAtIndex = (idx, arr = moves) => {
+      if (idx === null || idx === undefined || idx < 0) return null;
+      return arr.slice(0, idx + 1).join("||");
+    };
+
+    const commentKeyMatchesLine = (key, lineMoves = moves) => {
+      if (!key) return false;
+      const parts = key.split("||");
+      if (parts.length > lineMoves.length) return false;
+      for (let i = 0; i < parts.length; i++) {
+        if (parts[i] !== lineMoves[i]) return false;
+      }
+      return true;
+    };
+
+    const pruneCommentsForLine = () => { /* keep branch comments; selection uses exact keys */ };
+
+    // If cat_pieces.js failed to load, provide a minimal inline mapping so toggle still works.
+    if (typeof getCatPieceImage !== "function") {
+      const CAT_PIECE_BASE = "assets/cat_pieces/";
+      window.getCatPieceImage = function(piece) {
+        if (!piece) return null;
+        const type = (piece.type || "").toLowerCase();
+        switch (type) {
+          case "k": return CAT_PIECE_BASE + "King.png";
+          case "q": return CAT_PIECE_BASE + "Queen.png";
+          case "r": return CAT_PIECE_BASE + "Rook.png";
+          case "n": return CAT_PIECE_BASE + "Knight.png";
+          case "b": return CAT_PIECE_BASE + (piece.color === "w" ? "white_bishop.png" : "black_bishop.png");
+          case "p": return CAT_PIECE_BASE + "pawn.png";
+          default: return null;
+        }
+      };
+    }
+
+    // 用 chess.js 管理棋局（延迟到库加载后）
+    let chessGame = null;
+    let selectedSquare = null;
+
+    function requireChessGame() {
+      if (chessGame) return true;
+      if (typeof Chess !== "function") {
+        boardOverlayText.textContent = "Loading board logic… (chess.js not ready)";
+        return false;
+      }
+      chessGame = new Chess();
+      return true;
+    }
+
+    // 初始化棋盘格子
+    function initBoardGrid() {
+      const files = ["a","b","c","d","e","f","g","h"];
+      boardGrid.innerHTML = "";
+      for (let rank = 8; rank >= 1; rank--) {
+        for (let fileIndex = 0; fileIndex < 8; fileIndex++) {
+          const file = files[fileIndex];
+          const square = file + rank;
+          const isDark = (fileIndex + rank) % 2 === 0;
+          const div = document.createElement("div");
+          div.className = (isDark ? "sq-dark" : "sq-light") + " board-square";
+          div.dataset.square = square;
+          boardGrid.appendChild(div);
+        }
+      }
+    }
+
+    const PIECE_UNICODE = {
+      "p": "♟", "r": "♜", "n": "♞", "b": "♝", "q": "♛", "k": "♚",
+      "P": "♙", "R": "♖", "N": "♘", "B": "♗", "Q": "♕", "K": "♔"
+    };
+
+    // 根据 chessGame 当前状态渲染棋盘
+    function renderBoardFromGame() {
+      console.log("renderBoardFromGame called");
+      if (!requireChessGame()) {
+        console.log("requireChessGame returned false");
+        return;
+      }
+      console.log("Chess game is ready, rendering...");
+      const squares = Array.from(boardGrid.querySelectorAll(".board-square"));
+      console.log("Found", squares.length, "squares");
+      squares.forEach(sq => {
+        sq.textContent = "";
+        sq.style.backgroundImage = "";
+        sq.classList.remove("cat-piece-img");
+      });
+
+      const board = chessGame.board(); // 8x8 数组，board[0][0] 是 a8
+      console.log("Board state:", board);
+      const files = "abcdefgh";
+      for (let rankIndex = 0; rankIndex < 8; rankIndex++) {
+        for (let fileIndex = 0; fileIndex < 8; fileIndex++) {
+          const piece = board[rankIndex][fileIndex];
+          if (!piece) continue;
+          const squareName = files[fileIndex] + (8 - rankIndex);
+          const el = boardGrid.querySelector(`[data-square="${squareName}"]`);
+          if (!el) continue;
+          const key = piece.color === "w" ? piece.type.toUpperCase() : piece.type;
+          const glyph = PIECE_UNICODE[key] || "";
+
+          if (useCatPieces) {
+            const img = getCatPieceImage({ type: piece.type, color: piece.color });
+            console.log(`Cat piece for ${piece.type}${piece.color}: ${img}`);
+            if (img) {
+              el.style.backgroundImage = `url("${img}")`;
+              el.classList.add("cat-piece-img");
+              // Clear text - cat images should show
+              el.textContent = "";
+              el.style.color = "";
+            } else {
+              // Fallback to glyph if image fails
+              el.textContent = glyph;
+              el.style.color = "#000000";
+            }
+          } else {
+            // Use Unicode glyphs for normal pieces
+            el.textContent = glyph;
+            el.style.color = "#000000";
+            el.style.backgroundImage = "";
+            el.classList.remove("cat-piece-img");
+            console.log(`Set piece at ${squareName}: ${glyph}`);
+          }
+        }
+      }
+
+      // 判断格子是否有棋子（文字或猫图片）
+      const hasPiece = (el) => {
+        if (!el) return false;
+        if (el.textContent && el.textContent.trim() !== "") return true;
+        const bg = el.style.backgroundImage || "";
+        return bg.includes("cat_pieces") || el.classList.contains("cat-piece-img");
+      };
+
+      // 如果有棋子，隐藏覆盖层；否则显示提示
+      const hasPieces = squares.some(hasPiece);
+      boardOverlayText.style.display = hasPieces ? "none" : "flex";
+
+      // 如果选中格子已无棋子，取消高亮
+      if (selectedSquare) {
+        const el = boardGrid.querySelector(`[data-square="${selectedSquare}"]`);
+        if (el && !hasPiece(el)) {
+          el.classList.remove("sq-selected");
+          selectedSquare = null;
+        }
+      }
+    }
+
+    // 渲染右侧 PGN 文本（表格样式，带注释指示器，可点击跳转）
+    function attachCommentIndicator(cell, index) {
+      const key = moveKeyAtIndex(index);
+      const comment = key ? moveComments[key] : null;
+      if (!comment) return;
+      const indicator = document.createElement("span");
+      indicator.className = "move-comment-indicator";
+      const img = document.createElement("img");
+      img.src = "assets/cat.png";
+      img.alt = "comment";
+      indicator.appendChild(img);
+
+      indicator.onmouseenter = (e) => { if (!bubblePinned || bubbleKey !== key) showCommentBubble(key, e); };
+      indicator.onmouseleave = () => { if (!bubblePinned || bubbleKey !== key) hideCommentBubble(); };
+      indicator.onclick = (e) => {
+        e.stopPropagation();
+        if (bubblePinned && bubbleKey === key) {
+          bubblePinned = false;
+          hideCommentBubble();
+        } else {
+          showCommentBubble(key, e, true);
+        }
+      };
+
+      cell.appendChild(indicator);
+    }
+
+    function renderPgn() {
+      pgnBox.innerHTML = "";
+      if (!moves || moves.length === 0) {
+        pgnBox.textContent = "(no moves yet)";
+        return;
+      }
+      for (let ply = 0; ply < moves.length; ply += 2) {
+        const row = document.createElement("div");
+        row.className = "pgn-row";
+
+        const moveNo = document.createElement("div");
+        moveNo.className = "pgn-num";
+        moveNo.textContent = Math.floor(ply / 2) + 1;
+        row.appendChild(moveNo);
+
+        // white cell
+        const whiteCell = document.createElement("div");
+        whiteCell.className = "pgn-cell";
+        whiteCell.dataset.index = ply;
+        if (currentMoveIndex === ply) whiteCell.classList.add("is-current");
+        const whiteSan = moves[ply] || "";
+        whiteCell.appendChild(document.createTextNode(whiteSan));
+        attachCommentIndicator(whiteCell, ply);
+        whiteCell.onclick = () => goToMove(ply);
+        row.appendChild(whiteCell);
+
+        // black cell
+        const blackCell = document.createElement("div");
+        blackCell.className = "pgn-cell";
+        blackCell.dataset.index = ply + 1;
+        if (currentMoveIndex === ply + 1) blackCell.classList.add("is-current");
+        const blackSan = moves[ply + 1] || "";
+        blackCell.appendChild(document.createTextNode(blackSan));
+        attachCommentIndicator(blackCell, ply + 1);
+        blackCell.onclick = () => {
+          if (moves[ply + 1]) goToMove(ply + 1);
+        };
+        row.appendChild(blackCell);
+
+        pgnBox.appendChild(row);
+      }
+    }
+
+    function resetPgn() {
+      moves = [];
+      mainMoves = [];
+      Object.keys(variations).forEach(k => delete variations[k]);
+      Object.keys(moveComments).forEach(k => delete moveComments[k]);
+      if (typeof Chess === "function") {
+        chessGame = new Chess(); // 回到起始局面
+      } else {
+        chessGame = null;
+      }
+      currentMoveIndex = -1;
+      renderPgn();
+      renderBoardFromGame();
+      gameSourceLabel.textContent = "none (demo)";
+      boardOverlayText.textContent = "Start position – you can type moves like \"e4\", \"Nf3\" below.";
+      if (window.studyState) {
+        window.studyState = null;
+      }
+    }
+
+    function copyPgn() {
+      if (!pgnBox.textContent || pgnBox.textContent === "(no moves yet)") return;
+      navigator.clipboard.writeText(pgnBox.textContent).catch(() => {});
+    }
+
+    function playUserMove() {
+      const san = moveInput.value.trim();
+      if (!san) return;
+      if (!requireChessGame()) {
+        alert("Board logic not ready (chess.js failed to load).");
+        return;
+      }
+
+      try {
+        const mv = chessGame.move(san, { sloppy: true });
+        if (!mv) {
+          alert("Illegal move or cannot parse SAN.");
+          return;
+        }
+        // 分支支持：如果在中间走不同棋，不覆盖主线，创建变体
+        if (currentMoveIndex < moves.length - 1) {
+          const branchStart = currentMoveIndex;
+          const prefix = moves.slice(0, branchStart + 1);
+          const newLine = prefix.concat([mv.san]);
+          variations[branchStart] = variations[branchStart] || [];
+          variations[branchStart].push(newLine);
+          moves = newLine;
+        } else {
+          moves.push(mv.san);
+        }
+        currentMoveIndex = moves.length - 1;
+        pruneCommentsForLine();
+        mainMoves = mainMoves.length === 0 ? moves.slice() : mainMoves;
+        renderPgn();
+        renderBoardFromGame();
+        fetchEngineMoves();
+        boardOverlayText.textContent = "";
+        moveInput.value = "";
+        moveInput.focus();
+      } catch (e) {
+        console.error(e);
+        alert("Could not play move: " + e.message);
+      }
+    }
+
+    function handleSquareClick(event) {
+      if (!requireChessGame()) return;
+      const square = event.target.dataset.square;
+      if (!square) return;
+
+      const piece = chessGame.get(square);
+      // First click: select a square that has a piece
+      if (!selectedSquare) {
+        if (!piece) return;
+        selectedSquare = square;
+        event.target.classList.add("sq-selected");
+        return;
+      }
+
+      // Second click: attempt move
+      const from = selectedSquare;
+      const to = square;
+      const move = chessGame.move({ from, to, promotion: "q" });
+      // clear selection either way
+      const selEl = boardGrid.querySelector(`[data-square="${selectedSquare}"]`);
+      if (selEl) selEl.classList.remove("sq-selected");
+      selectedSquare = null;
+
+      if (!move) {
+        // If clicked another piece, re-select it
+        if (piece) {
+          selectedSquare = square;
+          event.target.classList.add("sq-selected");
+        }
+        return;
+      }
+
+      if (currentMoveIndex < moves.length - 1) {
+        const branchStart = currentMoveIndex;
+        const prefix = moves.slice(0, branchStart + 1);
+        const newLine = prefix.concat([move.san]);
+        variations[branchStart] = variations[branchStart] || [];
+        variations[branchStart].push(newLine);
+        moves = newLine;
+      } else {
+        moves.push(move.san);
+      }
+      currentMoveIndex = moves.length - 1;
+      pruneCommentsForLine();
+      mainMoves = mainMoves.length === 0 ? moves.slice() : mainMoves;
+      renderPgn();
+      renderBoardFromGame();
+      fetchEngineMoves();
+      boardOverlayText.textContent = "";
+    }
+
+    async function importPgn() {
+      const pgn = prompt("Paste PGN here:");
+      if (!pgn || !pgn.trim()) {
+        return;
+      }
+      if (!requireChessGame()) {
+        alert("Board logic not ready (chess.js failed to load).");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/study/import_pgn`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            pgn: pgn,
+            title: "Imported from UI",
+            source: "user_upload",
+            owner_id: "demo-user-1",
+          }),
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`HTTP ${res.status}: ${text}`);
+        }
+
+      const data = await res.json();
+
+      // 保存 study 状态
+      window.studyState = {
+        studyId: data.study_id,
+        title: data.title,
+        rawPgn: data.raw_pgn,
+        ownerId: data.owner_id,
+      };
+
+      // 用后端返回的 san_moves 驱动棋局和 PGN
+      moves = [];
+      mainMoves = [];
+      chessGame = new Chess();
+      const sanMoves = data.san_moves || [];
+      sanMoves.forEach(san => {
+        const mv = chessGame.move(san, { sloppy: true });
+        if (mv) {
+          moves.push(mv.san);
+        }
+      });
+      mainMoves = moves.slice();
+      Object.keys(moveComments).forEach(k => delete moveComments[k]);
+      Object.keys(variations).forEach(k => delete variations[k]);
+      currentMoveIndex = moves.length - 1;
+      const key = moveKeyAtIndex(currentMoveIndex);
+      noteInput.value = (key && moveComments[key]) ? moveComments[key].text : "";
+
+      renderPgn();
+      renderBoardFromGame();
+      fetchEngineMoves();
+      boardOverlayText.textContent = ""; // 去掉提示
+
+      gameSourceLabel.textContent = `PGN imported (id=${data.study_id})`;
+      alert(`Study created: ${data.study_id}`);
+
+    } catch (err) {
+        console.error(err);
+      alert("Import failed: " + err.message);
+    }
+
+    async function importFen() {
+      const fen = prompt("Paste FEN here:");
+      if (!fen || !fen.trim()) return;
+      if (!requireChessGame()) {
+        alert("Board logic not ready (chess.js failed to load).");
+        return;
+      }
+      try {
+        const ok = chessGame.load(fen.trim());
+      if (!ok) {
+        alert("Invalid FEN.");
+        return;
+      }
+        moves = []; // PGN list cleared because we don't have SAN sequence
+        mainMoves = [];
+        Object.keys(moveComments).forEach(k => delete moveComments[k]);
+        Object.keys(variations).forEach(k => delete variations[k]);
+        currentMoveIndex = -1;
+        renderPgn();
+        renderBoardFromGame();
+        fetchEngineMoves();
+        boardOverlayText.textContent = "";
+        gameSourceLabel.textContent = "FEN imported (local only)";
+      } catch (e) {
+        console.error(e);
+        alert("Failed to load FEN: " + e.message);
+      }
+    }
+    }
+
+    /* ---- comment 区逻辑（你原来的） ---- */
+  const noteInput = document.getElementById('noteInput');
+  const noteList = document.getElementById('noteList');
+  const commentBubble = document.getElementById("commentBubble");
+  const commentBubbleHeader = document.getElementById("commentBubbleHeader");
+  const commentBubbleTitle = document.getElementById("commentBubbleTitle");
+  const commentBubbleBody = document.getElementById("commentBubbleBody");
+  const commentBubbleClose = document.getElementById("commentBubbleClose");
+  const commentBubbleDelete = document.getElementById("commentBubbleDelete");
+  const engineToggle = document.getElementById("engineToggle");
+  const coachNoteStatus = document.getElementById("coachNoteStatus");
+
+  const COACH_NOTE_PROMPT = "你是这个棋手，请根据这个棋手的参数（放在players文件夹中），对你在这个棋当中的选择做出解释。100-400词看情况。包含：你为什么选择这个，不选择别的；从这步棋当中，有什么takeaway";
+  const PLAYER_FILE_BY_ID = {
+    kasparov: "Kasparov.json",
+    petrosian: "Petrosian.json",
+    tal: "MihailTal.json",
+    anatolyKarpov: "AnatolyKarpov.json",
+    bobbyFischer: "BobbyFischer.json",
+    dingLiren: "DingLiren.json",
+    yuYaochen: "YuYaochen.json",
+  };
+
+  function addNote(event) {
+      event.preventDefault();
+      const text = noteInput.value.trim();
+      if (!text) return false;
+      const item = document.createElement('div');
+      item.className = 'note-item';
+      const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const timeEl = document.createElement('time');
+      timeEl.textContent = `Added at ${timestamp}`;
+      item.appendChild(timeEl);
+      const body = document.createElement('div');
+      body.textContent = text;
+      item.appendChild(body);
+      noteList.prepend(item);
+      noteInput.value = '';
+      noteInput.focus();
+
+      // 将评论附加到当前步（使用走子序列作为键，避免分支复用）
+      const targetIndex = currentMoveIndex >= 0 ? currentMoveIndex : (moves.length - 1);
+      const key = moveKeyAtIndex(targetIndex);
+      if (key) {
+        moveComments[key] = { text, pinned: true };
+        renderPgn();
+        renderVariations();
+        showCommentBubble(key);
+        // 不再填回输入框,保持清空状态,让用户可以点击其他走法
+      }
+      return false;
+    }
+
+    // 跳转到指定步数（ply）
+    function goToMove(targetIndex) {
+    if (!requireChessGame()) return;
+    chessGame = new Chess();
+    currentMoveIndex = Math.min(targetIndex, moves.length - 1);
+    for (let i = 0; i <= currentMoveIndex; i++) {
+      chessGame.move(moves[i], { sloppy: true });
+    }
+      renderBoardFromGame();
+      renderPgn();
+      renderVariations();
+      // 填充 comment 输入框为该步的已有评论
+      const key = moveKeyAtIndex(currentMoveIndex);
+      noteInput.value = (key && moveComments[key]) ? moveComments[key].text : "";
+      boardOverlayText.textContent = currentMoveIndex >= 0 ? "" : "Start position – you can type moves like \"e4\", \"Nf3\" below.";
+      fetchEngineMoves();
+    }
+
+    function showCommentBubble(key, event, pin = false) {
+      const comment = moveComments[key];
+      if (!comment) return;
+      bubbleKey = key;
+      bubblePinned = pin;
+      const moveNum = key ? key.split("||").length : 0;
+      commentBubbleTitle.textContent = `Move ${moveNum} comment`;
+      commentBubbleBody.textContent = comment.text;
+      commentBubble.style.display = "block";
+      if (!pin && event) {
+        commentBubble.style.left = `${event.clientX + 12}px`;
+        commentBubble.style.top = `${event.clientY + 12}px`;
+      } else if (commentBubble.style.left === "" || commentBubble.style.top === "") {
+        commentBubble.style.left = "50%";
+        commentBubble.style.top = "50%";
+      }
+    }
+
+    function hideCommentBubble() {
+      commentBubble.style.display = "none";
+      bubbleKey = null;
+    }
+
+    function renderPredictions(prediction) {
+      if (!engineMovesList) return;
+      if (!prediction || !prediction.moves || prediction.moves.length === 0) {
+        engineMovesList.textContent = "No engine moves.";
+        return;
+      }
+
+      const active = activeGmIds.length ? activeGmIds : (prediction.players || []);
+      const moves = prediction.moves.slice(0, 5);
+
+      const ul = document.createElement("ul");
+      moves.forEach((mv, idx) => {
+        const li = document.createElement("li");
+        let cpText = "";
+        if (mv.score_cp !== null && mv.score_cp !== undefined) {
+          const cpVal = Number(mv.score_cp);
+          if (!Number.isNaN(cpVal)) {
+            const pawns = (cpVal / 100).toFixed(2);
+            cpText = ` · ${cpVal >= 0 ? "+" : ""}${pawns}`;
+          }
+        }
+        li.textContent = `${idx + 1}. ${mv.san} (${mv.uci})${cpText}`;
+        ul.appendChild(li);
+      });
+      engineMovesList.innerHTML = "";
+      engineMovesList.appendChild(ul);
+    }
+
+    // --- Engine + GM predictor fetch ---
+    async function fetchEngineMoves() {
+      if (!engineMovesList) return;
+      if (!engineToggle.checked) {
+        engineMovesList.textContent = "Engine off.";
+        return;
+      }
+      if (!requireChessGame()) return;
+
+      const requestId = ++predictionRequestId;
+      const fen = chessGame.fen();
+      const applyIfFresh = (prediction, sourceLabel) => {
+        if (requestId !== predictionRequestId) return; // stale response
+        if (sourceLabel === "predictor" && latestEnginePrediction && prediction && Array.isArray(prediction.moves)) {
+          prediction.moves = prediction.moves.map((mv) => {
+            if (mv.score_cp !== undefined && mv.score_cp !== null) return mv;
+            const fallback = latestEnginePrediction.moves?.find(em => em.san === mv.san || em.uci === mv.uci);
+            if (fallback && (fallback.score_cp !== undefined && fallback.score_cp !== null)) {
+              return { ...mv, score_cp: fallback.score_cp };
+            }
+            return mv;
+          });
+        }
+        latestPrediction = prediction;
+        renderPredictions(latestPrediction);
+        renderSelectedGms();
+        engineMovesList.dataset.status = sourceLabel || "";
+      };
+
+      engineMovesList.innerHTML = `<div class="engine-loading"><div class="engine-loading-gear"></div><span>Engine running…</span></div>`;
+      isPredicting = true;
+      renderSelectedGms();
+
+      const gmIds = activeGmIds.slice();
+
+      // Kick off fast engine first so we have immediate output
+      (async () => {
+        try {
+          const res2 = await fetch(`${API_BASE}/api/study/engine_top`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fen, depth: 12, multipv: 5 }),
+          });
+          if (!res2.ok) {
+            const text = await res2.text();
+            throw new Error(text || `HTTP ${res2.status}`);
+          }
+          const data2 = await res2.json();
+          const moves = (data2 && data2.moves) || [];
+          const normalizeCp = (m) => {
+            const val = m.score_cp ?? m.cp ?? (typeof m.score === "object" ? (m.score?.cp ?? m.score?.value) : m.score);
+            if (val === null || val === undefined) return null;
+            const num = Number(val);
+            return Number.isNaN(num) ? null : num;
+          };
+          const enginePrediction = {
+            players: gmIds,
+            moves: moves.map((m) => ({
+              san: m.san,
+              uci: m.uci,
+              score_cp: normalizeCp(m),
+              probabilities: null,
+              tags: [],
+            }))
+          };
+          const enriched = applyUniformProbabilities(enginePrediction, gmIds);
+          latestEnginePrediction = enriched;
+          applyIfFresh(enriched, "engine_top");
+        } catch (err) {
+          console.warn("engine_top failed", err);
+          if (requestId === predictionRequestId && engineMovesList.textContent === "") {
+            engineMovesList.textContent = `Engine error (API_BASE=${API_BASE}): ${err.message}`;
+          }
+        }
+      })();
+
+      // In parallel, try full predictor (GM tags + probs). When it returns, overwrite.
+      (async () => {
+        try {
+          const res = await fetch(`${API_BASE}/api/study/analyze`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fen }),
+          });
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || `HTTP ${res.status}`);
+          }
+          const data = await res.json();
+          applyIfFresh(data, "predictor");
+        } catch (e) {
+          console.warn(`analyze failed at ${API_BASE}/api/study/analyze`, e);
+          // keep engine result if it already rendered
+        } finally {
+          if (requestId === predictionRequestId) {
+            isPredicting = false;
+            renderSelectedGms();
+          }
+        }
+      })();
+    }
+
+    function refreshPrediction() {
+      fetchEngineMoves();
+    }
+
+    // Fetch a one-off prediction for a specific FEN (used for coach note so it reflects the side that just moved).
+    async function fetchPredictionForFen(fen) {
+      if (!fen) return null;
+      try {
+        const res = await fetch(`${API_BASE}/api/study/analyze`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fen }),
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || `HTTP ${res.status}`);
+        }
+        return await res.json();
+      } catch (err) {
+        console.warn("fetchPredictionForFen failed", err);
+        return null;
+      }
+    }
+
+    if (catToggleBtn) {
+      catToggleBtn.onclick = () => {
+        useCatPieces = !useCatPieces;
+        catToggleBtn.textContent = useCatPieces ? "Change to normal pieces" : "Change to cat pieces";
+        renderBoardFromGame();
+      };
+    }
+
+    if (engineToggle) {
+      engineToggle.addEventListener("change", () => {
+        fetchEngineMoves();
+      });
+    }
+
+    // Delete from here handler
+    const deleteFromHereBtn = document.getElementById("deleteFromHereBtn");
+    if (deleteFromHereBtn) {
+      deleteFromHereBtn.onclick = () => {
+        if (currentMoveIndex < 0) return;
+        if (!confirm("Delete all moves from this point onward?")) return;
+        moves = moves.slice(0, currentMoveIndex + 1);
+        mainMoves = moves.slice();
+        pruneCommentsForLine();
+        Object.keys(variations).forEach(k => {
+          if (Number(k) >= currentMoveIndex) delete variations[k];
+        });
+        currentMoveIndex = moves.length - 1;
+        chessGame = new Chess();
+        for (let i = 0; i <= currentMoveIndex; i++) {
+          chessGame.move(moves[i], { sloppy: true });
+        }
+        renderPgn();
+        renderVariations();
+        renderBoardFromGame();
+        fetchEngineMoves();
+      };
+    }
+
+    // ---------------- GM profiles 选择逻辑 ----------------
+
+    const gmModalBackdrop = document.getElementById("gmModalBackdrop");
+    const gmModalList = document.getElementById("gmModalList");
+    const gmSelectedList = document.getElementById("gmSelectedList");
+    const engineMovesList = document.getElementById("engineMovesList");
+
+    // 可选 GM（头像路径你按自己 assets 放）
+    const AVAILABLE_GMS = [
+      {
+        id: "kasparov",
+        name: "Kasparov",
+        moves: "e4 · d4 · Nf3",
+        tagline: "Aggressive, initiative-based.",
+        avatar: "assets/garry-kasparov.jpg"
+      },
+      {
+        id: "petrosian",
+        name: "Petrosian",
+        moves: "Nf3 · g3 · c4",
+        tagline: "Prophylaxis, slow control.",
+        avatar: "assets/tigran-petrosian.jpg"
+      },
+      {
+        id: "tal",
+        name: "Tal",
+        moves: "f4 · Nc3 · Bc4",
+        tagline: "Tactical tension & sacrifices.",
+        avatar: "assets/mihail-tal.jpg"
+      },
+      {
+        id: "anatolyKarpov",
+        name: "Anatoly Karpov",
+        moves: "Nf3 · c4 · Bb5",
+        tagline: "Prophylaxis and central clamps.",
+        avatar: "assets/anatoly-karpov.jpeg"
+      },
+      {
+        id: "bobbyFischer",
+        name: "Bobby Fischer",
+        moves: "e4 · Nf3 · Bc4",
+        tagline: "Classical precision and activity.",
+        avatar: "assets/bobby-fischer.jpg"
+      },
+      {
+        id: "dingLiren",
+        name: "Ding Liren",
+        moves: "d4 · c4 · Nf3",
+        tagline: "Calm control under pressure.",
+        avatar: "assets/ding-liren.jpg"
+      },
+      {
+        id: "yuYaochen",
+        name: "Yu Yaochen",
+        moves: "e4 · Nf3 · d4",
+        tagline: "Balanced initiative and prophylaxis.",
+        avatar: ""
+      }
+    ];
+
+    // 当前已选 GM id 列表
+    let activeGmIds = [];
+    let latestPrediction = null;
+    let latestEnginePrediction = null;
+    let isPredicting = false;
+    let predictionRequestId = 0;
+    let useCatPieces = false;
+
+    function findProbKey(probabilities, gmId, gmName, playersList) {
+      if (!probabilities) return null;
+      const keys = Object.keys(probabilities);
+      const target = (gmName || gmId || "").toLowerCase();
+      const playerCandidates = playersList || [];
+      const lookup = (val) => val && val.toLowerCase() === target;
+      const exact = keys.find(k => lookup(k));
+      if (exact) return exact;
+      const fromPlayers = playerCandidates.find(p => lookup(p));
+      if (fromPlayers) return fromPlayers;
+      const loose = keys.find(k => k.toLowerCase().includes(target));
+      return loose || null;
+    }
+
+    function bestMoveForPlayer(gm) {
+      if (!latestPrediction || !latestPrediction.moves) return null;
+      if (!latestPrediction.moves.length) return null;
+      // 如果没有概率（fallback 引擎），直接取第一步作为“最可能”
+      const hasProbs = latestPrediction.moves.some(m => m.probabilities);
+      if (!hasProbs) {
+        const first = latestPrediction.moves[0];
+        return { san: first.san, prob: null };
+      }
+      let best = null;
+      const playersList = latestPrediction.players || [];
+      latestPrediction.moves.forEach(mv => {
+        const probs = mv.probabilities || {};
+        const key = findProbKey(probs, gm.id, gm.name, playersList);
+        const p = key ? (probs[key] || 0) : Math.max(...Object.values(probs || {none:0}));
+        if (!best || p > best.prob) best = { san: mv.san, prob: p };
+      });
+      return best;
+    }
+
+    function topMovesForPlayer(gm, limit = 7) {
+      if (!latestPrediction || !latestPrediction.moves || latestPrediction.moves.length === 0) return [];
+      const hasProbs = latestPrediction.moves.some(m => m.probabilities);
+      if (!hasProbs) {
+        // if no probabilities, spread a uniform weight across available moves
+        const mv = latestPrediction.moves.slice(0, limit);
+        const share = mv.length ? (1 / mv.length) : null;
+        return mv.map(m => ({ san: m.san, prob: share }));
+      }
+      const playersList = latestPrediction.players || [];
+      return latestPrediction.moves
+        .map(mv => {
+          const probs = mv.probabilities || {};
+          const key = findProbKey(probs, gm.id, gm.name, playersList);
+          const p = key ? (probs[key] || 0) : Math.max(...Object.values(probs || { none: 0 }));
+          return { san: mv.san, prob: p };
+        })
+        .sort((a, b) => (b.prob || 0) - (a.prob || 0))
+        .slice(0, limit);
+    }
+
+    function applyUniformProbabilities(prediction, players) {
+      if (!prediction || !prediction.moves) return prediction;
+      const gmIds = players && players.length ? players.slice() : [];
+      if (!gmIds.length) return prediction;
+      const moveCount = prediction.moves.length || 1;
+      const perMove = 1 / moveCount;
+      prediction.players = gmIds;
+      prediction.moves = prediction.moves.map(m => {
+        const probs = {};
+        gmIds.forEach(id => { probs[id] = perMove; });
+        return { ...m, probabilities: probs };
+      });
+      return prediction;
+    }
+
+    function currentSanLabel() {
+      if (currentMoveIndex >= 0 && moves[currentMoveIndex]) return moves[currentMoveIndex];
+      if (moves.length > 0) return moves[moves.length - 1];
+      return "start position";
+    }
+
+    function pickActiveGm() {
+      if (!activeGmIds || activeGmIds.length === 0) return null;
+      const last = activeGmIds[activeGmIds.length - 1];
+      return AVAILABLE_GMS.find(g => g.id === last) || null;
+    }
+
+    function playerFileForGm(gm) {
+      if (!gm) return null;
+      return PLAYER_FILE_BY_ID[gm.id] || `${(gm.name || gm.id || "player").replace(/\s+/g, "")}.json`;
+    }
+
+    function updateCoachStatus(msg, showLoading = false) {
+      if (coachNoteStatus) {
+        if (showLoading) {
+          coachNoteStatus.innerHTML = `
+            <div class="coach-note-loading">
+              <img src="assets/loading4.png" alt="loading" class="coach-note-loading-icon" />
+              <div class="coach-note-loading-text">${msg}</div>
+            </div>
+          `;
+        } else {
+          coachNoteStatus.textContent = msg;
+        }
+      }
+    }
+
+    function buildLocalCoachDraft({ gm, fen, moveSan, bestMove, topMoves }) {
+      const gmName = gm?.name || "Selected player";
+      const tagline = gm?.tagline ? `我的风格关键词：${gm.tagline}。` : "";
+      const bestLine = bestMove?.san ? `我首选 ${bestMove.san}${bestMove.prob ? `（模型置信度 ${(bestMove.prob * 100).toFixed(1)}%）` : ""}，因为它符合局面的势能与节奏。` : "没有明确首选，我会保持灵活。";
+      const alternatives = (topMoves || []).filter(m => m.san !== bestMove?.san);
+      const altLine = alternatives.length
+        ? `备选是 ${alternatives.map((m, idx) => `${idx + 1}. ${m.san}${m.prob ? `（${(m.prob * 100).toFixed(1)}%）` : ""}`).join("，")}，但它们要么让出关键格，要么无法制造同样的压力。`
+        : "此处其他走法要么让出关键格，要么缺乏同样的压力。";
+      const fenLine = fen ? `当前 FEN：${fen}。` : "";
+      const takeaway = "Takeaway：确认自己的计划是否与子力分布、弱点位置一致；在执行主计划时要持续评估对手的反击资源，并为下一步的节奏留出余地。";
+
+      return [
+        `作为 ${gmName}，我在这一回合会从自身风格出发审视局面。`,
+        `${fenLine}当前或最近一步是 ${moveSan}，我倾向的候选路线是：${bestLine}`,
+        altLine,
+        `${tagline}我选择这一手，是为了巩固优势并把对手限制在不舒服的格子上，避免给他们简单的反击窗口。`,
+        takeaway,
+        "（正式接入 LLM 后，这里将由模型生成 100-400 词的完整教练点评草稿。）"
+      ].join("\n\n");
+    }
+
+    // 显示确认弹窗
+    function generateCoachNote() {
+      const gm = pickActiveGm();
+      if (!gm) {
+        alert("Please add/select a player first so we know whose voice to use.");
+        updateCoachStatus("请选择一个棋手后再生成教练点评。");
+        return;
+      }
+      if (!requireChessGame()) {
+        alert("Board logic not ready (chess.js failed to load).");
+        return;
+      }
+
+      // 显示确认弹窗
+      const overlay = document.getElementById('coachConfirmOverlay');
+      if (overlay) {
+        overlay.classList.add('show');
+      }
+    }
+
+    // 关闭确认弹窗
+    function closeCoachConfirm() {
+      const overlay = document.getElementById('coachConfirmOverlay');
+      if (overlay) {
+        overlay.classList.remove('show');
+      }
+    }
+
+    // 点击弹窗外部关闭
+    document.addEventListener('DOMContentLoaded', () => {
+      const overlay = document.getElementById('coachConfirmOverlay');
+      if (overlay) {
+        overlay.addEventListener('click', (e) => {
+          if (e.target === overlay) {
+            closeCoachConfirm();
+          }
+        });
+      }
+    });
+
+    // 确认后真正执行生成
+    async function confirmGenerateCoachNote() {
+      const gm = pickActiveGm();
+      if (!gm) return;
+      if (!requireChessGame()) return;
+
+      // ⚡ 立即关闭弹窗并显示旋转动画 - 不等待任何操作!
+      closeCoachConfirm();
+      updateCoachStatus(`正在为 ${gm.name} 生成教练点评…`, true);
+
+      // fen_after: position after the current move; fen_before: the position where this move was chosen
+      const fenAfter = chessGame.fen();
+      const fenBefore = (() => {
+        const tmp = new Chess();
+        for (let i = 0; i < currentMoveIndex; i++) {
+          tmp.move(moves[i], { sloppy: true });
+        }
+        return tmp.fen();
+      })();
+      const fen = fenAfter; // kept for downstream helpers that expect `fen`
+      const moveColor = (() => {
+        try {
+          const tmp = new Chess(fenBefore);
+          return tmp.turn();
+        } catch (_) {
+          return null;
+        }
+      })();
+      const moveSan = currentSanLabel();
+      const bestMove = bestMoveForPlayer(gm);
+      const topMoves = topMovesForPlayer(gm, 3);
+      const notePrediction = fenBefore ? await fetchPredictionForFen(fenBefore) : null;
+      const payload = {
+        player_id: gm.id,
+        player_file: playerFileForGm(gm),
+        prompt: COACH_NOTE_PROMPT,
+        fen: fenAfter,
+        fen_before: fenBefore,
+        fen_after: fenAfter,
+        move_color: moveColor,
+        move_san: moveSan,
+        move_index: currentMoveIndex,
+        // Provide predictions from the position before this move, so alternatives align with the side that just moved.
+        predictions: notePrediction,
+      };
+
+      // Loading animation is already showing from line 2137
+      let noteText = null;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/study/coach_note`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          noteText = data.text || data.coach_note || data.message || null;
+        } else {
+          console.warn("coach_note endpoint returned HTTP", res.status);
+        }
+      } catch (err) {
+        console.warn("coach_note endpoint unavailable, using local draft.", err);
+      }
+
+      if (!noteText) {
+        noteText = buildLocalCoachDraft({ gm, fen, moveSan, bestMove, topMoves });
+      }
+
+      if (gm && gm.name) {
+        const prefix = `${gm.name}:`;
+        if (!noteText.startsWith(prefix)) {
+          noteText = `${prefix} ${noteText}`;
+        }
+      }
+
+      noteInput.value = noteText;
+      noteInput.focus();
+      updateCoachStatus(`Coach note ready: 已为 ${gm.name} 写入输入框，点击下方 "Add comment" 保存。`, false);
+    }
+
+    // 变体区域（简单展示所有分支）
+    function renderVariations() {
+      const variationsBox = document.getElementById("variationsBox");
+      if (!variationsBox) return;
+      variationsBox.innerHTML = "";
+      const keys = Object.keys(variations).sort((a,b)=>Number(a)-Number(b));
+      if (keys.length === 0) {
+        variationsBox.textContent = "No branches yet. Rewind and play a different move to create one.";
+        return;
+      }
+      keys.forEach(k => {
+        const lines = variations[k];
+        lines.forEach((line, idx) => {
+          const div = document.createElement("div");
+          div.className = "branch-line";
+          div.textContent = `From move ${Number(k)+1}: ${line.join(" ")}`;
+          variationsBox.appendChild(div);
+        });
+      });
+    }
+
+    function openProfilePicker() {
+      gmModalList.innerHTML = "";
+      AVAILABLE_GMS.forEach(gm => {
+        const item = document.createElement("label");
+        item.className = "gm-modal-item";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "radio";
+        checkbox.name = "gmPickerSingle";
+        checkbox.value = gm.id;
+        checkbox.checked = false;
+        checkbox.style.marginRight = "4px";
+
+        const avatar = document.createElement("div");
+        avatar.className = "gm-avatar";
+        if (gm.avatar) {
+          const img = document.createElement("img");
+          img.src = gm.avatar;
+          img.alt = gm.name;
+          avatar.appendChild(img);
+        } else {
+          avatar.textContent = gm.name[0];
+        }
+
+        const textBox = document.createElement("div");
+        textBox.innerHTML = `<div class="gm-name">${gm.name}</div>
+                             <div class="gm-style-tagline">${gm.tagline}</div>`;
+
+        item.appendChild(checkbox);
+        item.appendChild(avatar);
+        item.appendChild(textBox);
+
+        gmModalList.appendChild(item);
+      });
+
+      gmModalBackdrop.style.display = "flex";
+    }
+
+    function closeProfilePicker() {
+      gmModalBackdrop.style.display = "none";
+    }
+
+    function applyProfileSelection() {
+      const chosen = gmModalList.querySelector("input[type=radio]:checked");
+      if (!chosen) return;
+      const selectedId = chosen.value;
+      if (!activeGmIds.includes(selectedId)) {
+        activeGmIds.push(selectedId);
+        renderSelectedGms();
+        renderPredictions(latestPrediction);
+      }
+      closeProfilePicker();
+    }
+
+    function renderSelectedGms() {
+      gmSelectedList.innerHTML = "";
+      if (activeGmIds.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "gm-empty-hint";
+        empty.innerHTML = 'No GM profiles selected yet. Click <strong>＋ Add</strong> to choose.';
+        gmSelectedList.appendChild(empty);
+        return;
+      }
+
+      activeGmIds.forEach(id => {
+        const gm = AVAILABLE_GMS.find(x => x.id === id);
+        if (!gm) return;
+
+        const row = document.createElement("div");
+        row.className = "gm-profile-row";
+
+        const main = document.createElement("div");
+        main.className = "gm-profile-main";
+
+        const avatar = document.createElement("div");
+        avatar.className = "gm-avatar";
+        if (gm.avatar) {
+          const img = document.createElement("img");
+          img.src = gm.avatar;
+          img.alt = gm.name;
+          avatar.appendChild(img);
+        } else {
+          avatar.textContent = gm.name[0];
+        }
+
+        const meta = document.createElement("div");
+        meta.className = "gm-profile-meta";
+        meta.innerHTML = `
+          <div class="gm-name">${gm.name}</div>
+          <div class="gm-style-tagline">${gm.tagline}</div>
+        `;
+
+        main.appendChild(avatar);
+        main.appendChild(meta);
+
+        const rightBox = document.createElement("div");
+        rightBox.style.display = "flex";
+        rightBox.style.flexDirection = "column";
+        rightBox.style.alignItems = "flex-end";
+        rightBox.style.gap = "4px";
+
+        const mv = document.createElement("div");
+        mv.className = "gm-move-list";
+        mv.textContent = gm.moves;
+
+        const removeBtn = document.createElement("button");
+        removeBtn.className = "gm-remove-btn";
+        removeBtn.type = "button";
+        removeBtn.textContent = "×";
+        removeBtn.title = "Remove";
+        removeBtn.onclick = () => {
+          activeGmIds = activeGmIds.filter(x => x !== gm.id);
+          renderSelectedGms();
+          renderPredictions(latestPrediction);
+        };
+
+        rightBox.appendChild(mv);
+        rightBox.appendChild(removeBtn);
+
+        row.appendChild(main);
+        row.appendChild(rightBox);
+
+        gmSelectedList.appendChild(row);
+
+        const predBox = document.createElement("div");
+        predBox.className = "gm-pred-box";
+        const titleRow = document.createElement("div");
+        titleRow.style.display = "flex";
+        titleRow.style.alignItems = "center";
+        titleRow.style.justifyContent = "space-between";
+        const title = document.createElement("div");
+        title.className = "gm-pred-title";
+        title.textContent = "This player is likely to play:";
+        const refreshBtn = document.createElement("button");
+        refreshBtn.className = "gm-remove-btn";
+        refreshBtn.style.fontSize = "12px";
+        refreshBtn.style.marginLeft = "8px";
+        refreshBtn.textContent = "⟳";
+        refreshBtn.title = "Refresh predictions";
+        refreshBtn.onclick = refreshPrediction;
+        titleRow.appendChild(title);
+        titleRow.appendChild(refreshBtn);
+        predBox.appendChild(titleRow);
+        if (isPredicting) {
+          const bar = document.createElement("div");
+          bar.className = "gm-loading-bar";
+          const cat = document.createElement("div");
+          cat.className = "gm-loading-cat";
+          bar.appendChild(cat);
+          predBox.appendChild(bar);
+        } else {
+          const topList = document.createElement("div");
+          topList.style.marginTop = "4px";
+          const topMoves = topMovesForPlayer(gm, 7);
+          if (!topMoves.length) {
+            const empty = document.createElement("div");
+            empty.className = "gm-pred-move";
+            empty.textContent = "—";
+            topList.appendChild(empty);
+          } else {
+            topMoves.forEach((m, idx) => {
+              const item = document.createElement("div");
+              item.className = "gm-pred-move";
+              if (m.prob === null || m.prob === undefined) {
+                item.textContent = `${idx + 1}. ${m.san} (engine only)`;
+              } else {
+                item.textContent = `${idx + 1}. ${m.san} (${(m.prob * 100).toFixed(1)}%)`;
+              }
+              topList.appendChild(item);
+            });
+          }
+          predBox.appendChild(topList);
+        }
+        gmSelectedList.appendChild(predBox);
+      });
+
+    }
+
+    // 初始渲染一次（没有 GM）
+    renderSelectedGms();
+
+    // 页面加载时初始化一次棋盘和 PGN
+    console.log("Initializing board grid...");
+    console.log("boardGrid element:", boardGrid);
+    console.log("boardGrid exists:", !!boardGrid);
+    initBoardGrid();
+    console.log("Board grid initialized, children:", boardGrid.children.length);
+    boardGrid.addEventListener("click", handleSquareClick);
+
+    // 评论泡泡拖拽
+    (() => {
+      let dragging = false;
+      let offsetX = 0;
+      let offsetY = 0;
+      commentBubbleHeader.addEventListener("mousedown", (e) => {
+        dragging = true;
+        commentBubble.style.cursor = "grabbing";
+        offsetX = e.clientX - commentBubble.offsetLeft;
+        offsetY = e.clientY - commentBubble.offsetTop;
+        e.preventDefault();
+      });
+      window.addEventListener("mousemove", (e) => {
+        if (!dragging || commentBubble.style.display === "none") return;
+        commentBubble.style.left = `${e.clientX - offsetX}px`;
+        commentBubble.style.top = `${e.clientY - offsetY}px`;
+      });
+      window.addEventListener("mouseup", () => {
+        dragging = false;
+        commentBubble.style.cursor = "grab";
+      });
+    })();
+
+    commentBubbleClose.onclick = () => {
+      bubblePinned = false;
+      hideCommentBubble();
+    };
+    commentBubbleDelete.onclick = () => {
+      if (!bubbleKey) return;
+      if (confirm("Delete this comment?")) {
+        delete moveComments[bubbleKey];
+        const currentKey = moveKeyAtIndex(currentMoveIndex);
+        if (bubbleKey === currentKey) {
+          noteInput.value = "";
+        }
+        bubblePinned = false;
+        bubbleKey = null;
+        hideCommentBubble();
+        renderPgn();
+      }
+    };
+
+    // 如果 Chess 仍不可用（CDN 被拦），再做一次回退
+    if (typeof Chess !== "function") {
+      console.log("Chess.js not loaded from CDN, trying fallback...");
+      const fallback = document.createElement("script");
+      fallback.src = "chess.umd.js";
+      fallback.onload = () => {
+        console.log("Fallback chess.js loaded successfully");
+        chessGame = new Chess();
+        renderBoardFromGame();
+        renderPgn();
+        renderVariations();
+        fetchEngineMoves();
+      };
+      fallback.onerror = () => {
+        console.error("Failed to load fallback chess.js");
+        boardOverlayText.textContent = "Failed to load chess.js; pieces unavailable.";
+      };
+      document.head.appendChild(fallback);
+    } else {
+      console.log("Chess.js loaded from CDN, initializing game...");
+      chessGame = new Chess();
+      console.log("Chess game created, rendering board...");
+      renderBoardFromGame();
+      console.log("Board rendered");
+      renderPgn();
+      renderVariations();
+      fetchEngineMoves();
+    }
+  </script>
+</body>
+</html>
