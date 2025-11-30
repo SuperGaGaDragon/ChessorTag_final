@@ -570,7 +570,7 @@
 
         <div class="report-list">
           <a class="report-card"
-             href="/reports/yuyaochen.html"
+             href="/style_report/Test_players/testYuYaochen/report_phase2.html"
              target="_blank" rel="noopener">
             <div class="report-top">
               <span class="report-name">ChessorTag Report: YuYaochen</span>
@@ -580,7 +580,7 @@
           </a>
 
           <a class="report-card"
-             href="/reports/xuehaowen.html"
+             href="/style_report/Test_players/XueHaowen/report_phase2.html"
              target="_blank" rel="noopener">
             <div class="report-top">
               <span class="report-name">ChessorTag Report: XueHaowen</span>
@@ -699,32 +699,7 @@
       '../assets/cat_pieces/folder4.png',
       '../assets/cat_pieces/folder5.png',
     ];
-
-    function addCatSticker(tile) {
-      if (!tile || tile.classList.contains('add-tile')) return;
-      const type = tile.getAttribute('data-type');
-      if (type !== 'folder') return;
-      const existing = tile.querySelector('.cat-sticker');
-      if (existing) existing.remove();
-      const img = document.createElement('img');
-      img.className = 'cat-sticker';
-      img.src = catImages[Math.floor(Math.random() * catImages.length)];
-      img.alt = 'cat sticker';
-      tile.appendChild(img);
-      const id = tile.getAttribute('data-id');
-      if (id) {
-        itemRegistry[id] = { ...(itemRegistry[id] || {}), catSrc: img.src };
-      }
-    }
-
-    let nextId = 4; // Starting ID for new items
-    const folderContents = {};
-    const itemRegistry = {}; // id -> meta
-    const itemParent = {};   // id -> folderId or null (desktop)
-    const folderHistory = [];
-    let currentModalFolderId = null;
-
-    const morandiPalette = [
+    const paletteOptions = [
       { base: '#f3e7d1', top: '#f9f0de' },
       { base: '#f1e4de', top: '#f7ede7' },
       { base: '#e6e0d8', top: '#f0e8df' },
@@ -747,6 +722,33 @@
       { base: '#e9e5d8', top: '#f3efe2' },
     ];
 
+    function addCatSticker(tile) {
+      if (!tile || tile.classList.contains('add-tile')) return;
+      const type = tile.getAttribute('data-type');
+      if (type !== 'folder') return;
+      const existing = tile.querySelector('.cat-sticker');
+      if (existing) existing.remove();
+      const img = document.createElement('img');
+      img.className = 'cat-sticker';
+      img.src = catImages[Math.floor(Math.random() * catImages.length)];
+      img.alt = 'cat sticker';
+      tile.appendChild(img);
+      const id = tile.getAttribute('data-id');
+      if (id) {
+        itemRegistry[id] = { ...(itemRegistry[id] || {}), catSrc: img.src };
+        persistFolderAppearance(id);
+      }
+    }
+
+    let nextId = 4; // Starting ID for new items
+    const folderContents = {};
+    const itemRegistry = {}; // id -> meta
+    const itemParent = {};   // id -> folderId or null (desktop)
+    const folderHistory = [];
+    let currentModalFolderId = null;
+
+    const morandiPalette = paletteOptions;
+
     function snapshotTileMeta(tile) {
       if (!tile) return null;
       const id = tile.getAttribute('data-id');
@@ -768,6 +770,7 @@
       if (id) {
         itemRegistry[id] = { ...(itemRegistry[id] || {}), color: palette };
         updateFolderCaption(id);
+        persistFolderAppearance(id);
       }
     }
 
@@ -783,7 +786,16 @@
       }
       if (meta.type === 'folder') {
         if (!tile.querySelector('.cat-sticker')) {
-          addCatSticker(tile);
+          // use stored image_key if available
+          if (itemRegistry[meta.id].catSrc) {
+            const img = document.createElement('img');
+            img.className = 'cat-sticker';
+            img.src = itemRegistry[meta.id].catSrc;
+            img.alt = 'cat sticker';
+            tile.appendChild(img);
+          } else {
+            addCatSticker(tile);
+          }
         } else if (!itemRegistry[meta.id].catSrc) {
           const cat = tile.querySelector('.cat-sticker');
           if (cat) itemRegistry[meta.id].catSrc = cat.getAttribute('src');
@@ -819,7 +831,7 @@
       const count = folderContents[meta.id]?.length || 0;
       tile.innerHTML = `
         <strong class="folder-name" onclick="renameItem(event, this)">${meta.name || 'Folder'}</strong>
-        <span class="icon-caption">Folder · ${count} item${count === 1 ? '' : 's'}</span>
+        <span class="icon-caption">Folder · ${count} item${count === 1 ? '' : 's'} · ID: ${meta.id || ''}</span>
       `;
       registerTile(tile);
       return tile;
@@ -846,7 +858,16 @@
 
       (snapshot.folders || []).forEach((folder) => {
         folderContents[folder.id] = folderContents[folder.id] || [];
-        itemRegistry[folder.id] = { ...(itemRegistry[folder.id] || {}), id: folder.id, type: 'folder', name: folder.name };
+        let parsedColor = null;
+        try { parsedColor = folder.color ? JSON.parse(folder.color) : null; } catch (_) { parsedColor = null; }
+        itemRegistry[folder.id] = {
+          ...(itemRegistry[folder.id] || {}),
+          id: folder.id,
+          type: 'folder',
+          name: folder.name,
+          color: parsedColor,
+          catSrc: folder.image_key || (itemRegistry[folder.id] && itemRegistry[folder.id].catSrc) || null,
+        };
         if (folder.parent_id) {
           folderContents[folder.parent_id] = folderContents[folder.parent_id] || [];
           if (!folderContents[folder.parent_id].includes(folder.id)) {
@@ -910,10 +931,17 @@
     async function createNewFolder(parentId = null) {
       const grid = document.getElementById('desktopGrid');
       try {
+        const palette = paletteOptions[Math.floor(Math.random() * paletteOptions.length)];
+        const catSrc = catImages[Math.floor(Math.random() * catImages.length)];
         const res = await fetch(`${API_BASE}/api/workspace/folders`, {
           method: 'POST',
           headers: authHeaders(),
-          body: JSON.stringify({ name: 'New Folder', parent_id: parentId, color: null, image_key: null }),
+          body: JSON.stringify({
+            name: 'New Folder',
+            parent_id: parentId,
+            color: JSON.stringify(palette),
+            image_key: catSrc,
+          }),
         });
         if (handleUnauthorized(res)) return null;
         if (!res.ok) {
@@ -923,7 +951,14 @@
           return null;
         }
         const folder = await res.json();
-        itemRegistry[folder.id] = { ...(itemRegistry[folder.id] || {}), id: folder.id, type: 'folder', name: folder.name };
+        itemRegistry[folder.id] = {
+          ...(itemRegistry[folder.id] || {}),
+          id: folder.id,
+          type: 'folder',
+          name: folder.name,
+          color: palette,
+          catSrc,
+        };
         folderContents[folder.id] = folderContents[folder.id] || [];
         itemParent[folder.id] = parentId;
         if (parentId) {
@@ -1331,12 +1366,21 @@
           if (!meta) return;
           const el = document.createElement('div');
           el.className = 'modal-item';
+          el.dataset.id = meta.id;
+          el.dataset.type = meta.type;
           if (meta.type === 'folder') {
             el.classList.add('modal-item-folder');
             el.title = 'Open this folder';
             el.addEventListener('click', (evt) => {
               evt.stopPropagation();
               openFolderModal(meta.name, meta.id);
+            });
+          } else if (meta.type === 'study') {
+            el.classList.add('modal-item-study');
+            el.title = 'Open this study';
+            el.addEventListener('click', (evt) => {
+              evt.stopPropagation();
+              window.location.href = `../study/?id=${encodeURIComponent(meta.id)}`;
             });
           }
           const catImg = meta.catSrc ? `<img class="mini-cat" src="${meta.catSrc}" alt="">` : "";
@@ -1411,10 +1455,10 @@
 
       const targetId = dropzone.dataset.folderId;
       if (!targetId || parsed.id === targetId) return;
-      const meta = itemRegistry[parsed.id] || parsed;
-      moveItemToFolder(targetId, meta);
-      openFolderModal(document.getElementById('modalFolderName').textContent, targetId);
-    });
+          const meta = itemRegistry[parsed.id] || parsed;
+          moveItemToFolder(targetId, meta);
+          openFolderModal(document.getElementById('modalFolderName').textContent, targetId);
+        });
 
     // Color picker build + events
     const colorPicker = document.getElementById('colorPicker');
