@@ -1,8 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .db import Base, engine
+from . import models
 from backend.study_api import router as study_router
 
+# 自动创建数据库表
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
