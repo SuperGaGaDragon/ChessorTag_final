@@ -150,6 +150,7 @@ class StudyCreate(BaseModel):
 class StudyUpdate(BaseModel):
     name: Optional[str] = None
     folder_id: Optional[str] = None
+    data: Optional[dict] = None
 
 
 @router.post("/studies", response_model=StudySummary, status_code=status.HTTP_201_CREATED)
@@ -217,6 +218,9 @@ def update_study(
         study.name = payload.name
     if payload.folder_id is not None:
         study.folder_id = payload.folder_id
+    if payload.data is not None:
+        # merge/replace stored data blob
+        study.data = payload.data
 
     db.commit()
     db.refresh(study)

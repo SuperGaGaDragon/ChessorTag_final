@@ -1024,6 +1024,7 @@
             <button class="btn" type="button" onclick="importPgn()">Import PGN</button>
             <button class="btn" type="button" onclick="importFen()">Import FEN</button>
             <button class="btn" type="button" onclick="resetPgn()">Reset</button>
+            <button class="btn" id="save-study-btn" type="button">Save</button>
           </div>
         </div>
 
@@ -1155,6 +1156,7 @@
       return params.get('id');
     }
 
+    let currentStudyId = null;
     function authHeaders() {
       const token = localStorage.getItem('authToken');
       return {
@@ -1187,6 +1189,7 @@
           throw new Error(text || `HTTP ${res.status}`);
         }
         const study = await res.json();
+        currentStudyId = study.study_id || study.id;
         const titleEl = document.getElementById('studyTitle');
         if (titleEl) {
           titleEl.textContent = study.name || 'Untitled study';
@@ -1195,6 +1198,36 @@
       } catch (err) {
         console.error('Failed to load study', err);
         alert('Failed to load study');
+      }
+    }
+
+    async function saveStudy() {
+      if (!currentStudyId) {
+        alert('Missing study id');
+        return;
+      }
+      const payload = {
+        data: {
+          moves,
+          comments: moveComments,
+          variations,
+        },
+      };
+      try {
+        const res = await fetch(`${API_BASE}/api/workspace/studies/${encodeURIComponent(currentStudyId)}`, {
+          method: 'PATCH',
+          headers: authHeaders(),
+          body: JSON.stringify(payload),
+        });
+        if (handleUnauthorized(res)) return;
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || `HTTP ${res.status}`);
+        }
+        alert('Saved to cloud ✅');
+      } catch (err) {
+        console.error('Failed to save study', err);
+        alert('Failed to save study');
       }
     }
 
@@ -1227,7 +1260,13 @@
         window.location.href = '/home/';
         return;
       }
+      currentStudyId = studyId;
       loadStudy(studyId);
+
+      const saveBtn = document.getElementById('save-study-btn');
+      if (saveBtn) {
+        saveBtn.addEventListener('click', saveStudy);
+      }
     });
 
   const pgnBox = document.getElementById("pgnBox");

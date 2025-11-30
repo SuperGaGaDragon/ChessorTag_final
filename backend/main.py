@@ -1,5 +1,8 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from .db import Base, engine
 from . import models
@@ -11,6 +14,8 @@ from .workspace_api import router as workspace_router
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+BASE_DIR = Path(__file__).resolve().parent
+STYLE_REPORT_DIR = BASE_DIR.parent / "style_report"
 
 # 允许前端访问后端
 origins = [
@@ -27,6 +32,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve static style reports for public access
+if STYLE_REPORT_DIR.exists():
+    app.mount(
+        "/style_report",
+        StaticFiles(directory=str(STYLE_REPORT_DIR)),
+        name="style_report",
+    )
 
 # 注册 study API
 app.include_router(auth_router)
