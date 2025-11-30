@@ -290,7 +290,7 @@
       top: -46px;
       width: 90px;
       height: 90px;
-      background: url("assets/Loading2.png") no-repeat center/contain;
+      background: url("../assets/Loading2.png") no-repeat center/contain;
       animation: crawl-left 1.6s linear infinite;
       pointer-events: none;
       z-index: 2;
@@ -307,7 +307,7 @@
     .engine-loading-gear {
       width: 28px;
       height: 28px;
-      background: url("assets/loading3.png") no-repeat center/contain;
+      background: url("../assets/loading3.png") no-repeat center/contain;
       animation: spin360 1s linear infinite;
       flex-shrink: 0;
     }
@@ -948,7 +948,7 @@
     <div class="top-links">
       <a href="index.html">About</a>
       <span>|</span>
-      <a href="home.html">Home</a>
+      <a href="../home/">Home</a>
       <span>|</span>
       <span>Study board</span>
       <span class="avatar"></span>
@@ -963,7 +963,7 @@
     <div style="margin-bottom:8px; display:flex; justify-content:center;">
       <button id="catToggleBtn" class="btn" type="button">Change to cat pieces</button>
     </div>
-    <script src="cat_pieces.js"></script>
+    <script src="../assets/cat_pieces.js"></script>
 
     <!-- 三列主体：左预测 / 中棋盘 / 右 PGN -->
     <section class="embed-shell">
@@ -1136,29 +1136,28 @@
         <button class="coach-confirm-btn no" type="button" onclick="closeCoachConfirm()">No</button>
         <button class="coach-confirm-btn yes" type="button" onclick="confirmGenerateCoachNote()">Yes</button>
       </div>
-      <img src="assets/cat.png" alt="cat" class="coach-confirm-cat" />
+      <img src="../assets/cat.png" alt="cat" class="coach-confirm-cat" />
     </div>
   </div>
 
   <script>
-    function resolveApiBase() {
-      // Priority: window override → ?api_base → localStorage → smart default for dev ports → origin → 8001
-      const urlBase = new URLSearchParams(window.location.search).get("api_base");
-      const lsBase = window.localStorage.getItem("studyApiBase");
-      const devPortFallback = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-        ? ((window.location.port === "4000" || window.location.port === "3000") ? "http://localhost:7000" : null)
-        : null;
-      return (
-        (window.STUDY_API_BASE) ||
-        (urlBase && urlBase.trim()) ||
-        (lsBase && lsBase.trim()) ||
-        devPortFallback ||
-        (window.location.port ? window.location.origin : null) ||
-        "http://localhost:8001"
-      );
+    const API_BASE = 'https://api.chessortag.org';
+
+    function authHeaders() {
+      const token = localStorage.getItem('authToken');
+      return {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      };
     }
 
-    const API_BASE = resolveApiBase();
+    function handleUnauthorized(res) {
+      if (res.status === 401) {
+        window.location.href = '/login/';
+        return true;
+      }
+      return false;
+    }
 
   const pgnBox = document.getElementById("pgnBox");
     const gameSourceLabel = document.getElementById("gameSourceLabel");
@@ -1195,7 +1194,7 @@
 
     // If cat_pieces.js failed to load, provide a minimal inline mapping so toggle still works.
     if (typeof getCatPieceImage !== "function") {
-      const CAT_PIECE_BASE = "assets/cat_pieces/";
+      const CAT_PIECE_BASE = "../assets/cat_pieces/";
       window.getCatPieceImage = function(piece) {
         if (!piece) return null;
         const type = (piece.type || "").toLowerCase();
@@ -1331,7 +1330,7 @@
       const indicator = document.createElement("span");
       indicator.className = "move-comment-indicator";
       const img = document.createElement("img");
-      img.src = "assets/cat.png";
+      img.src = "../assets/cat.png";
       img.alt = "comment";
       indicator.appendChild(img);
 
@@ -1522,9 +1521,7 @@
       try {
         const res = await fetch(`${API_BASE}/api/study/import_pgn`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: authHeaders(),
           body: JSON.stringify({
             pgn: pgn,
             title: "Imported from UI",
@@ -1532,6 +1529,8 @@
             owner_id: "demo-user-1",
           }),
         });
+
+        if (handleUnauthorized(res)) return;
 
         if (!res.ok) {
           const text = await res.text();
@@ -1771,9 +1770,10 @@
         try {
           const res2 = await fetch(`${API_BASE}/api/study/engine_top`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: authHeaders(),
             body: JSON.stringify({ fen, depth: 12, multipv: 5 }),
           });
+          if (handleUnauthorized(res2)) return;
           if (!res2.ok) {
             const text = await res2.text();
             throw new Error(text || `HTTP ${res2.status}`);
@@ -1812,9 +1812,10 @@
         try {
           const res = await fetch(`${API_BASE}/api/study/analyze`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: authHeaders(),
             body: JSON.stringify({ fen }),
           });
+          if (handleUnauthorized(res)) return;
           if (!res.ok) {
             const text = await res.text();
             throw new Error(text || `HTTP ${res.status}`);
@@ -1843,9 +1844,10 @@
       try {
         const res = await fetch(`${API_BASE}/api/study/analyze`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders(),
           body: JSON.stringify({ fen }),
         });
+        if (handleUnauthorized(res)) return null;
         if (!res.ok) {
           const text = await res.text();
           throw new Error(text || `HTTP ${res.status}`);
@@ -1909,42 +1911,42 @@
         name: "Kasparov",
         moves: "e4 · d4 · Nf3",
         tagline: "Aggressive, initiative-based.",
-        avatar: "assets/garry-kasparov.jpg"
+        avatar: "../assets/garry-kasparov.jpg"
       },
       {
         id: "petrosian",
         name: "Petrosian",
         moves: "Nf3 · g3 · c4",
         tagline: "Prophylaxis, slow control.",
-        avatar: "assets/tigran-petrosian.jpg"
+        avatar: "../assets/tigran-petrosian.jpg"
       },
       {
         id: "tal",
         name: "Tal",
         moves: "f4 · Nc3 · Bc4",
         tagline: "Tactical tension & sacrifices.",
-        avatar: "assets/mihail-tal.jpg"
+        avatar: "../assets/mihail-tal.jpg"
       },
       {
         id: "anatolyKarpov",
         name: "Anatoly Karpov",
         moves: "Nf3 · c4 · Bb5",
         tagline: "Prophylaxis and central clamps.",
-        avatar: "assets/anatoly-karpov.jpeg"
+        avatar: "../assets/anatoly-karpov.jpeg"
       },
       {
         id: "bobbyFischer",
         name: "Bobby Fischer",
         moves: "e4 · Nf3 · Bc4",
         tagline: "Classical precision and activity.",
-        avatar: "assets/bobby-fischer.jpg"
+        avatar: "../assets/bobby-fischer.jpg"
       },
       {
         id: "dingLiren",
         name: "Ding Liren",
         moves: "d4 · c4 · Nf3",
         tagline: "Calm control under pressure.",
-        avatar: "assets/ding-liren.jpg"
+        avatar: "../assets/ding-liren.jpg"
       },
       {
         id: "yuYaochen",
@@ -2055,7 +2057,7 @@
         if (showLoading) {
           coachNoteStatus.innerHTML = `
             <div class="coach-note-loading">
-              <img src="assets/loading4.png" alt="loading" class="coach-note-loading-icon" />
+              <img src="../assets/loading4.png" alt="loading" class="coach-note-loading-icon" />
               <div class="coach-note-loading-text">${msg}</div>
             </div>
           `;
@@ -2178,9 +2180,10 @@
       try {
         const res = await fetch(`${API_BASE}/api/study/coach_note`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders(),
           body: JSON.stringify(payload),
         });
+        if (handleUnauthorized(res)) return;
         if (res.ok) {
           const data = await res.json();
           noteText = data.text || data.coach_note || data.message || null;
@@ -2463,7 +2466,7 @@
     if (typeof Chess !== "function") {
       console.log("Chess.js not loaded from CDN, trying fallback...");
       const fallback = document.createElement("script");
-      fallback.src = "chess.umd.js";
+      fallback.src = "../assets/chess.umd.js";
       fallback.onload = () => {
         console.log("Fallback chess.js loaded successfully");
         chessGame = new Chess();

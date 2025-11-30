@@ -3,7 +3,7 @@
 
 function getCatPieceImage(piece) {
   if (!piece) return null;
-  const base = "assets/cat_pieces/";
+  const base = "../assets/cat_pieces/";
   switch (piece.type) {
     case "k":
       return base + "King.png";

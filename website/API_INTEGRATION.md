@@ -13,7 +13,7 @@
 - 读取用户上传的PGN文件或粘贴的PGN文本
 - 通过 HTTP POST 发送到后端API
 - 处理成功/失败响应
-- 成功后重定向到 home.html 页面
+- 成功后重定向到 home/ 页面
 
 ### 2. 新增 `readFileContent()` 辅助函数
 位于 `new_report.html:457-464`
@@ -155,7 +155,7 @@ uvicorn main:app --reload --port 7000
 2. 点击绿色的 "Generate report" 按钮
 3. 观察状态行的变化
 4. 检查浏览器控制台(F12)查看网络请求
-5. 成功后应该自动跳转到 home.html
+5. 成功后应该自动跳转到 home/ 页面
 
 ## 常见问题
 

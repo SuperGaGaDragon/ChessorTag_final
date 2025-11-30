@@ -1,8 +1,8 @@
-# Loading Animation Update - study_board.html
+# Loading Animation Update - study/index.html
 
 ## 修改概述
 
-在 `study_board.html` 中为 "Generate coach note" 功能添加了 loading4.png 的360度旋转动画。
+在 `study/index.html` 中为 "Generate coach note" 功能添加了 loading4.png 的360度旋转动画。
 
 ## 修改详情
 
@@ -43,7 +43,7 @@ function updateCoachStatus(msg, showLoading = false) {
     if (showLoading) {
       coachNoteStatus.innerHTML = `
         <div class="coach-note-loading">
-          <img src="assets/loading4.png" alt="loading" class="coach-note-loading-icon" />
+          <img src="../assets/loading4.png" alt="loading" class="coach-note-loading-icon" />
           <span>${msg}</span>
         </div>
       `;
@@ -99,7 +99,7 @@ Coach note ready: 已为 Kasparov 写入输入框，点击下方 "Add comment" �
 
 ## 测试步骤
 
-1. 打开 study_board.html
+1. 打开 study/index.html
 2. 选择一个 GM 棋手 (点击 "+ Add" 按钮)
 3. 点击 "Generate coach note" 按钮
 4. 观察 Comment 区域的状态栏:

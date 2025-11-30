@@ -523,11 +523,11 @@
   <!-- 顶部导航条 -->
   <header class="topbar">
     <div class="logo-row">
-      <img class="logo-mark" src="assets/logo2.png" alt="Chessortag logo">
+      <img class="logo-mark" src="../assets/logo2.png" alt="Chessortag logo">
       <div class="logo-text">Chessortag</div>
     </div>
     <div class="top-links">
-      <a href="index.html">About</a>
+      <a href="../index.html">About</a>
       <span>|</span>
       <span>Home</span>
       <span>|</span>
@@ -579,7 +579,7 @@
           </div>
 
           <div class="report-card"
-               onclick="window.location.href='new_report.html'">
+              onclick="window.location.href='../new_report/'">
             <div class="report-top">
               <span class="report-name">New report</span>
               <span class="report-meta">beta</span>
@@ -657,6 +657,57 @@
   </div>
 
   <script>
+    const API_BASE = 'https://api.chessortag.org';
+
+    function authHeaders() {
+      const token = localStorage.getItem('authToken');
+      return {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      };
+    }
+
+    function handleUnauthorized(res) {
+      if (res.status === 401) {
+        window.location.href = '/login/';
+        return true;
+      }
+      return false;
+    }
+
+    const catImages = [
+      '../assets/cat_pieces/King.png',
+      '../assets/cat_pieces/Knight.png',
+      '../assets/cat_pieces/Queen.png',
+      '../assets/cat_pieces/Rook.png',
+      '../assets/cat_pieces/black_bishop.png',
+      '../assets/cat_pieces/black_pawn.png',
+      '../assets/cat_pieces/pawn.png',
+      '../assets/cat_pieces/white_bishop.png',
+      '../assets/cat_pieces/folder1.png',
+      '../assets/cat_pieces/folder2.png',
+      '../assets/cat_pieces/folder3.png',
+      '../assets/cat_pieces/folder4.png',
+      '../assets/cat_pieces/folder5.png',
+    ];
+
+    function addCatSticker(tile) {
+      if (!tile || tile.classList.contains('add-tile')) return;
+      const type = tile.getAttribute('data-type');
+      if (type !== 'folder') return;
+      const existing = tile.querySelector('.cat-sticker');
+      if (existing) existing.remove();
+      const img = document.createElement('img');
+      img.className = 'cat-sticker';
+      img.src = catImages[Math.floor(Math.random() * catImages.length)];
+      img.alt = 'cat sticker';
+      tile.appendChild(img);
+      const id = tile.getAttribute('data-id');
+      if (id) {
+        itemRegistry[id] = { ...(itemRegistry[id] || {}), catSrc: img.src };
+      }
+    }
+
     let nextId = 4; // Starting ID for new items
     const folderContents = {};
     const itemRegistry = {}; // id -> meta
@@ -695,7 +746,8 @@
       const name = tile.querySelector('.folder-name')?.textContent?.trim() || type;
       const catImg = tile.querySelector('.cat-sticker');
       const catSrc = catImg ? catImg.getAttribute('src') : null;
-      return { id, type, name, catSrc, color: itemRegistry[id]?.color || null };
+      const isLocal = tile.getAttribute('data-local') === 'true';
+      return { id, type, name, catSrc, color: itemRegistry[id]?.color || null, local: isLocal };
     }
 
     function applyFolderColor(tile, color) {
@@ -721,16 +773,17 @@
         itemParent[meta.id] = null; // default on desktop
       }
       if (meta.type === 'folder') {
+        if (!tile.querySelector('.cat-sticker')) {
+          addCatSticker(tile);
+        } else if (!itemRegistry[meta.id].catSrc) {
+          const cat = tile.querySelector('.cat-sticker');
+          if (cat) itemRegistry[meta.id].catSrc = cat.getAttribute('src');
+        }
         if (!folderContents[meta.id]) {
           const caption = tile.querySelector('.icon-caption')?.textContent || "";
           const match = caption.match(/Folder\s*·\s*(\d+)/i);
           const initialCount = match ? Number(match[1]) : 0;
           folderContents[meta.id] = Array.from({ length: initialCount }, (_, i) => `seed-${meta.id}-${i}`);
-        }
-        // ensure cat sticker recorded
-        if (!meta.catSrc) {
-          const cat = tile.querySelector('.cat-sticker');
-          if (cat) itemRegistry[meta.id].catSrc = cat.getAttribute('src');
         }
         if (!itemRegistry[meta.id].color) {
           applyFolderColor(tile);
@@ -740,38 +793,158 @@
       }
     }
 
-    // Create a new folder
-    function createNewFolder() {
+    function resetWorkspaceState() {
       const grid = document.getElementById('desktopGrid');
-      const newFolder = document.createElement('div');
-      newFolder.className = 'icon-folder';
-      newFolder.setAttribute('data-type', 'folder');
-      newFolder.setAttribute('data-id', nextId);
+      grid.querySelectorAll('.icon-folder:not(.add-tile)').forEach((node) => node.remove());
+      Object.keys(folderContents).forEach((k) => delete folderContents[k]);
+      Object.keys(itemRegistry).forEach((k) => delete itemRegistry[k]);
+      Object.keys(itemParent).forEach((k) => delete itemParent[k]);
+      folderHistory.length = 0;
+    }
 
-      newFolder.innerHTML = `
-        <strong class="folder-name" onclick="renameItem(event, this)">New Folder</strong>
-        <span class="icon-caption">Folder · 0 studies</span>
+    function buildFolderTileFromMeta(meta) {
+      const tile = document.createElement('div');
+      tile.className = 'icon-folder';
+      tile.setAttribute('data-type', 'folder');
+      tile.setAttribute('data-id', meta.id);
+      const count = folderContents[meta.id]?.length || 0;
+      tile.innerHTML = `
+        <strong class="folder-name" onclick="renameItem(event, this)">${meta.name || 'Folder'}</strong>
+        <span class="icon-caption">Folder · ${count} item${count === 1 ? '' : 's'}</span>
       `;
+      registerTile(tile);
+      return tile;
+    }
 
-      // Keep the add tiles at the front, insert the new folder right after them
-      const firstRegularItem = grid.querySelector('.icon-folder:not(.add-tile)');
-      if (firstRegularItem) {
-        grid.insertBefore(newFolder, firstRegularItem);
-      } else {
-        grid.appendChild(newFolder);
+    function buildStudyTileFromMeta(meta) {
+      const tile = document.createElement('div');
+      tile.className = 'icon-folder';
+      tile.setAttribute('data-type', 'study');
+      tile.setAttribute('data-id', meta.id);
+      tile.innerHTML = `
+        <strong class="folder-name" onclick="renameItem(event, this)">${meta.name || 'Study'}</strong>
+        <span class="icon-caption">Open board workspace</span>
+      `;
+      registerTile(tile);
+      return tile;
+    }
+
+    function renderWorkspaceSnapshot(snapshot) {
+      resetWorkspaceState();
+      const grid = document.getElementById('desktopGrid');
+      const rootFolders = [];
+      const rootStudies = [];
+
+      (snapshot.folders || []).forEach((folder) => {
+        folderContents[folder.id] = folderContents[folder.id] || [];
+        itemRegistry[folder.id] = { ...(itemRegistry[folder.id] || {}), id: folder.id, type: 'folder', name: folder.name };
+        if (folder.parent_id) {
+          folderContents[folder.parent_id] = folderContents[folder.parent_id] || [];
+          if (!folderContents[folder.parent_id].includes(folder.id)) {
+            folderContents[folder.parent_id].push(folder.id);
+          }
+          itemParent[folder.id] = folder.parent_id;
+        } else {
+          itemParent[folder.id] = null;
+          rootFolders.push(folder.id);
+        }
+      });
+
+      (snapshot.studies || []).forEach((study) => {
+        const displayName = study.name || study.title || 'Study';
+        itemRegistry[study.id] = { ...(itemRegistry[study.id] || {}), id: study.id, type: 'study', name: displayName };
+        if (study.folder_id) {
+          folderContents[study.folder_id] = folderContents[study.folder_id] || [];
+          if (!folderContents[study.folder_id].includes(study.id)) {
+            folderContents[study.folder_id].push(study.id);
+          }
+          itemParent[study.id] = study.folder_id;
+        } else {
+          itemParent[study.id] = null;
+          rootStudies.push(study.id);
+        }
+      });
+
+      // Reattach existing plus tiles to keep them at the front
+      const addTiles = grid.querySelectorAll('.add-tile');
+      addTiles.forEach((tile) => grid.appendChild(tile));
+
+      rootFolders.forEach((id) => {
+        const tile = buildFolderTileFromMeta(itemRegistry[id]);
+        grid.appendChild(tile);
+        updateFolderCaption(id);
+      });
+      rootStudies.forEach((id) => {
+        const tile = buildStudyTileFromMeta(itemRegistry[id]);
+        grid.appendChild(tile);
+      });
+    }
+
+    async function loadWorkspace() {
+      try {
+        const res = await fetch(`${API_BASE}/api/workspace/snapshot`, {
+          headers: authHeaders(),
+        });
+        if (handleUnauthorized(res)) return;
+        if (!res.ok) {
+          console.error('Failed to load workspace snapshot', await res.text());
+          return;
+        }
+        const snapshot = await res.json();
+        renderWorkspaceSnapshot(snapshot);
+      } catch (err) {
+        console.error('Workspace snapshot error', err);
       }
-      nextId++;
+    }
 
-      // Auto-select the name for renaming
-      setTimeout(() => {
-        const nameEl = newFolder.querySelector('.folder-name');
-        startEditing(nameEl);
-      }, 50);
+    // Create a new folder
+    async function createNewFolder(parentId = null) {
+      const grid = document.getElementById('desktopGrid');
+      try {
+        const res = await fetch(`${API_BASE}/api/workspace/folders`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ name: 'New Folder', parent_id: parentId, color: null, image_key: null }),
+        });
+        if (handleUnauthorized(res)) return null;
+        if (!res.ok) {
+          alert('Failed to create folder');
+          return null;
+        }
+        const folder = await res.json();
+        itemRegistry[folder.id] = { ...(itemRegistry[folder.id] || {}), id: folder.id, type: 'folder', name: folder.name };
+        folderContents[folder.id] = folderContents[folder.id] || [];
+        itemParent[folder.id] = parentId;
+        if (parentId) {
+          folderContents[parentId] = folderContents[parentId] || [];
+          if (!folderContents[parentId].includes(folder.id)) {
+            folderContents[parentId].push(folder.id);
+          }
+          updateFolderCaption(parentId);
+        }
 
-      folderContents[newFolder.getAttribute('data-id')] = [];
-      registerTile(newFolder);
+        const newFolder = buildFolderTileFromMeta(itemRegistry[folder.id]);
 
-      return newFolder;
+        // Keep the add tiles at the front, insert the new folder right after them
+        const firstRegularItem = grid.querySelector('.icon-folder:not(.add-tile)');
+        if (firstRegularItem) {
+          grid.insertBefore(newFolder, firstRegularItem);
+        } else {
+          grid.appendChild(newFolder);
+        }
+
+        // Auto-select the name for renaming
+        setTimeout(() => {
+          const nameEl = newFolder.querySelector('.folder-name');
+          startEditing(nameEl);
+        }, 50);
+
+        return newFolder;
+      } catch (err) {
+        console.error('Create folder failed', err);
+        alert('Network error while creating folder');
+        return null;
+      }
     }
 
     // Create a new study tile (click to open later)
@@ -781,6 +954,7 @@
       newStudy.className = 'icon-folder';
       newStudy.setAttribute('data-type', 'study');
       newStudy.setAttribute('data-id', nextId);
+      newStudy.setAttribute('data-local', 'true');
 
       newStudy.innerHTML = `
         <strong class="folder-name" onclick="renameItem(event, this)">New study</strong>
@@ -817,6 +991,38 @@
       startEditing(element);
     }
 
+    async function saveItemName(tile, newName) {
+      if (!tile) return;
+      const id = tile.getAttribute('data-id');
+      const type = tile.getAttribute('data-type');
+      if (!id || !type || !newName) return;
+      if (tile.getAttribute('data-local') === 'true' || (itemRegistry[id] && itemRegistry[id].local)) return;
+
+      try {
+        let url = null;
+        if (type === 'folder') {
+          url = `${API_BASE}/api/workspace/folders/${id}`;
+        } else if (type === 'study') {
+          url = `${API_BASE}/api/workspace/studies/${id}`;
+        }
+        if (!url) return;
+
+        const res = await fetch(url, {
+          method: 'PATCH',
+          headers: authHeaders(),
+          body: JSON.stringify({ name: newName }),
+        });
+        if (handleUnauthorized(res)) return;
+        if (!res.ok) {
+          console.warn('Failed to save name change', await res.text());
+          return;
+        }
+        itemRegistry[id] = { ...(itemRegistry[id] || {}), name: newName };
+      } catch (err) {
+        console.error('Error saving item name', err);
+      }
+    }
+
     function startEditing(element) {
       const originalText = element.textContent;
       element.classList.add('editing');
@@ -839,6 +1045,9 @@
         const newText = element.textContent.trim();
         if (newText === '') {
           element.textContent = originalText;
+        } else if (newText !== originalText) {
+          const tile = element.closest('.icon-folder');
+          saveItemName(tile, newText);
         }
 
         element.removeEventListener('blur', finishEditing);
@@ -863,39 +1072,6 @@
     document.addEventListener('DOMContentLoaded', () => {
       const grid = document.getElementById('desktopGrid');
 
-      const catImages = [
-        'assets/cat_pieces/King.png',
-        'assets/cat_pieces/Knight.png',
-        'assets/cat_pieces/Queen.png',
-        'assets/cat_pieces/Rook.png',
-        'assets/cat_pieces/black_bishop.png',
-        'assets/cat_pieces/black_pawn.png',
-        'assets/cat_pieces/pawn.png',
-        'assets/cat_pieces/white_bishop.png',
-        'assets/cat_pieces/folder1.png',
-        'assets/cat_pieces/folder2.png',
-        'assets/cat_pieces/folder3.png',
-        'assets/cat_pieces/folder4.png',
-        'assets/cat_pieces/folder5.png',
-      ];
-
-      function addCatSticker(tile) {
-        if (!tile || tile.classList.contains('add-tile')) return;
-        const type = tile.getAttribute('data-type');
-        if (type !== 'folder') return;
-        const existing = tile.querySelector('.cat-sticker');
-        if (existing) existing.remove();
-        const img = document.createElement('img');
-        img.className = 'cat-sticker';
-        img.src = catImages[Math.floor(Math.random() * catImages.length)];
-        img.alt = 'cat sticker';
-        tile.appendChild(img);
-        const id = tile.getAttribute('data-id');
-        if (id) {
-          itemRegistry[id] = { ...(itemRegistry[id] || {}), catSrc: img.src };
-        }
-      }
-
       // Seed existing folders with cats and init draggables
       grid.querySelectorAll('.icon-folder[data-type="folder"]').forEach((tile) => {
         addCatSticker(tile);
@@ -904,14 +1080,13 @@
       grid.querySelectorAll('.icon-folder[data-type="study"]').forEach(registerTile);
 
       // Single-click handler to create items from the fixed add tiles
-      grid.addEventListener('click', (e) => {
+      grid.addEventListener('click', async (e) => {
         const tile = e.target.closest('.icon-folder');
         if (!tile) return;
 
         const type = tile.getAttribute('data-type');
         if (type === 'create-folder') {
-          const newTile = createNewFolder();
-          addCatSticker(newTile);
+          await createNewFolder();
         } else if (type === 'create-study') {
           createNewStudy();
         }
@@ -946,7 +1121,7 @@
           const newTile = createNewFolder();
           addCatSticker(newTile);
         } else if (type === 'study') {
-          window.location.href = 'study_board.html';
+          window.location.href = '../study/';
         } else if (type === 'folder') {
           openFolderModal(name, id);
         }
@@ -994,6 +1169,34 @@
       });
     });
 
+    async function persistMove(item, targetFolderId) {
+      if (!item || !item.id || !item.type) return;
+      if (itemRegistry[item.id]?.local) return;
+      try {
+        let url = null;
+        let body = {};
+        if (item.type === 'folder') {
+          url = `${API_BASE}/api/workspace/folders/${item.id}`;
+          body = { parent_id: targetFolderId };
+        } else if (item.type === 'study') {
+          url = `${API_BASE}/api/workspace/studies/${item.id}`;
+          body = { folder_id: targetFolderId };
+        }
+        if (!url) return;
+        const res = await fetch(url, {
+          method: 'PATCH',
+          headers: authHeaders(),
+          body: JSON.stringify(body),
+        });
+        if (handleUnauthorized(res)) return;
+        if (!res.ok) {
+          console.warn('Failed to persist move', await res.text());
+        }
+      } catch (err) {
+        console.error('Move persist error', err);
+      }
+    }
+
     function moveItemToFolder(targetFolderId, item) {
       if (!targetFolderId || !item || !item.id) return;
       const sourceParent = itemParent[item.id] ?? null;
@@ -1019,6 +1222,7 @@
 
       itemParent[item.id] = targetFolderId;
       updateFolderCaption(targetFolderId);
+      persistMove(item, targetFolderId);
     }
 
     function updateFolderCaption(folderId) {
@@ -1184,6 +1388,9 @@
         colorPicker.classList.remove('show');
       }
     });
+
+    loadWorkspace();
+  });
   </script>
 </body>
 </html>

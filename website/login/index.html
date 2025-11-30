@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ChessorTag – Log In</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: #f8f9fa;
+      color: #1f2937;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Logo in top-left corner */
+    .logo-container {
+      position: absolute;
+      top: 32px;
+      left: 32px;
+      z-index: 10;
+    }
+
+    .logo-img {
+      width: 200px;
+      height: auto;
+      display: block;
+    }
+
+    /* Knight character in bottom-right with speech bubble */
+    .knight-container {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 20px;
+      padding: 0 40px 40px 0;
+    }
+
+    .knight-img {
+      width: 200px;
+      height: auto;
+      filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
+    }
+
+    .knight-speech-bubble {
+      position: relative;
+      background: #fffef5;
+      border: 3px solid #1f2937;
+      border-radius: 20px;
+      padding: 20px 24px;
+      font-size: 16px;
+      color: #1f2937;
+      font-weight: 600;
+      max-width: 340px;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.15);
+      line-height: 1.5;
+    }
+
+    .knight-speech-bubble::before {
+      content: '';
+      position: absolute;
+      bottom: -18px;
+      right: 60px;
+      width: 0;
+      height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-top: 18px solid #1f2937;
+    }
+
+    .knight-speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      right: 63px;
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-top: 15px solid #fffef5;
+    }
+
+    /* Rook character in bottom-left - initially hidden */
+    .rook-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 0 0 40px 40px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      pointer-events: none;
+    }
+
+    .rook-container.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .rook-img {
+      width: 180px;
+      height: auto;
+      filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
+    }
+
+    .rook-speech-bubble {
+      position: relative;
+      background: #fffef5;
+      border: 3px solid #1f2937;
+      border-radius: 20px;
+      padding: 20px 24px;
+      font-size: 16px;
+      color: #1f2937;
+      font-weight: 600;
+      max-width: 360px;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.15);
+      line-height: 1.5;
+    }
+
+    .rook-speech-bubble::before {
+      content: '';
+      position: absolute;
+      bottom: -18px;
+      left: 60px;
+      width: 0;
+      height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-top: 18px solid #1f2937;
+    }
+
+    .rook-speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      left: 63px;
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-top: 15px solid #fffef5;
+    }
+
+    /* Login form in center */
+    .login-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+    }
+
+    .login-card {
+      background: #ffffff;
+      border-radius: 16px;
+      border: 2px solid #e5e7eb;
+      padding: 48px 40px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 420px;
+      z-index: 10;
+    }
+
+    .login-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 12px;
+      text-align: center;
+    }
+
+    .login-subtitle {
+      font-size: 15px;
+      color: #6b7280;
+      margin: 0 0 36px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 15px;
+      color: #1f2937;
+      background: #ffffff;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 14px 28px;
+      border-radius: 10px;
+      border: none;
+      background: #22c55e;
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+      margin-bottom: 20px;
+    }
+
+    .btn-login:hover {
+      background: #16a34a;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35);
+    }
+
+    .divider {
+      text-align: center;
+      margin: 24px 0;
+      position: relative;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
+    .divider::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 100%;
+      height: 1px;
+      background: #e5e7eb;
+      z-index: 0;
+    }
+
+    .divider span {
+      background: #ffffff;
+      padding: 0 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-signup {
+      width: 100%;
+      padding: 14px 28px;
+      border-radius: 10px;
+      border: 2px solid #d1d5db;
+      background: #ffffff;
+      color: #374151;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: block;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .btn-signup:hover {
+      background: #f9fafb;
+      border-color: #9ca3af;
+    }
+
+    .forgot-password {
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    .forgot-password a {
+      color: #6b7280;
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s ease;
+    }
+
+    .forgot-password a:hover {
+      color: #1f2937;
+    }
+
+    /* Blinking cats around the page */
+    .blinking-cat {
+      position: fixed;
+      width: 280px;
+      height: auto;
+      object-fit: contain;
+      border-radius: 16px;
+      opacity: 0;
+      transition: opacity 0.6s ease-in-out;
+      cursor: pointer;
+      z-index: 3;
+      filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+    }
+
+    .blinking-cat.visible {
+      opacity: 0.85;
+    }
+
+    .blinking-cat:hover {
+      opacity: 1;
+      transform: scale(1.05);
+      transition: all 0.2s ease;
+    }
+
+    /* Cat meow speech bubble */
+    .cat-meow-bubble {
+      position: fixed;
+      background: #fffef5;
+      border: 3px solid #1f2937;
+      border-radius: 20px;
+      padding: 16px 22px;
+      font-size: 17px;
+      color: #1f2937;
+      font-weight: 700;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.15);
+      z-index: 20;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: none;
+      max-width: 280px;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .cat-meow-bubble.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .logo-container {
+        top: 20px;
+        left: 20px;
+      }
+
+      .logo-img {
+        width: 140px;
+      }
+
+      .knight-container {
+        padding: 0 20px 20px 0;
+      }
+
+      .knight-img {
+        width: 140px;
+      }
+
+      .knight-speech-bubble {
+        font-size: 14px;
+        max-width: 260px;
+        padding: 16px 18px;
+      }
+
+      .rook-container {
+        padding: 0 0 20px 20px;
+      }
+
+      .rook-img {
+        width: 130px;
+      }
+
+      .rook-speech-bubble {
+        font-size: 14px;
+        max-width: 280px;
+        padding: 16px 18px;
+      }
+
+      .login-card {
+        padding: 36px 28px;
+      }
+
+      .login-title {
+        font-size: 28px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .knight-container,
+      .rook-container {
+        display: none;
+      }
+
+      .login-card {
+        box-shadow: none;
+        border: none;
+        background: transparent;
+      }
+
+      .blinking-cat {
+        width: 180px;
+        height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Blinking cats container -->
+  <div id="catsContainer"></div>
+
+  <!-- Meow speech bubble -->
+  <div class="cat-meow-bubble" id="meowBubble">Meow!</div>
+
+  <!-- Logo in top-left corner -->
+  <div class="logo-container">
+    <img src="../assets/logo2.png" alt="ChessorTag Logo" class="logo-img" />
+  </div>
+
+  <!-- Login form in center -->
+  <div class="login-wrapper">
+    <div class="login-card">
+      <h1 class="login-title">Welcome Back</h1>
+      <p class="login-subtitle">Log in to access your chess reports and studies</p>
+
+      <form>
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            class="form-input"
+            placeholder="your@email.com"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="form-input"
+            placeholder="Enter your password"
+            required
+          />
+        </div>
+
+        <button type="submit" class="btn-login">Log In</button>
+
+        <div class="forgot-password">
+          <a href="#">Forgot password?</a>
+        </div>
+
+        <div class="divider">
+          <span>or</span>
+        </div>
+
+        <a href="#" class="btn-signup" id="signupBtn">Sign Up</a>
+      </form>
+    </div>
+  </div>
+
+  <!-- Knight character in bottom-right -->
+  <div class="knight-container">
+    <div class="knight-speech-bubble">
+      Welcome back to my website! This website costs three large packages of cat food
+    </div>
+    <img src="../assets/cat_pieces/Knight.png" alt="Knight" class="knight-img" />
+  </div>
+
+  <!-- Rook character in bottom-left (shows on signup hover) -->
+  <div class="rook-container" id="rookContainer">
+    <div class="rook-speech-bubble">
+      Nice to see you! Seems that I'm gonna have a new friend! Trust me you'll enjoy your time here!!!
+    </div>
+    <img src="../assets/cat_pieces/Rook.png" alt="Rook" class="rook-img" />
+  </div>
+
+  <script>
+    const API_BASE = 'https://api.chessortag.org';
+
+    // Show rook when hovering over signup button
+    const signupBtn = document.getElementById('signupBtn');
+    const rookContainer = document.getElementById('rookContainer');
+
+    signupBtn.addEventListener('mouseenter', () => {
+      rookContainer.classList.add('show');
+    });
+
+    signupBtn.addEventListener('mouseleave', () => {
+      rookContainer.classList.remove('show');
+    });
+
+    document.querySelector('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.querySelector('input[type="email"]').value;
+      const password = document.querySelector('input[type="password"]').value;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        if (!res.ok) {
+          alert('Login failed');
+          return;
+        }
+
+        const data = await res.json();
+        localStorage.setItem('authToken', data.access_token);
+        window.location.href = '/home/';
+      } catch (err) {
+        console.error(err);
+        alert('Network error');
+      }
+    });
+
+    signupBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const email = document.querySelector('input[type="email"]').value;
+      const password = document.querySelector('input[type="password"]').value;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        if (!res.ok) {
+          const msg = await res.text();
+          alert('Register failed: ' + msg);
+          return;
+        }
+
+        const loginRes = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        if (!loginRes.ok) {
+          alert('Login failed after signup');
+          return;
+        }
+        const tokenData = await loginRes.json();
+        localStorage.setItem('authToken', tokenData.access_token);
+        window.location.href = '/home/';
+      } catch (err) {
+        console.error(err);
+        alert('Network error');
+      }
+    });
+
+    // Blinking cats system
+    const catImages = [
+      '../assets/Cats/Cat1.jpg',
+      '../assets/Cats/Cat2.jpg',
+      '../assets/Cats/Cat3.jpg',
+      '../assets/Cats/Cat4.jpg',
+      '../assets/Cats/Cat5.jpg',
+      '../assets/Cats/Cat6.jpg',
+      '../assets/Cats/Cat7.jpg'
+    ];
+
+    // Morandi color palette
+    const morandiPalette = [
+      { base: '#f3e7d1', top: '#f9f0de' },
+      { base: '#f1e4de', top: '#f7ede7' },
+      { base: '#e6e0d8', top: '#f0e8df' },
+      { base: '#e0ddd6', top: '#e9e5dd' },
+      { base: '#dcd9d2', top: '#e6e3dc' },
+      { base: '#d8d5cc', top: '#e2dfd6' },
+      { base: '#d6d8df', top: '#e1e3ea' },
+      { base: '#d5dde3', top: '#e0e7ec' },
+      { base: '#d6e3e1', top: '#e0ecea' },
+      { base: '#dbe6d9', top: '#e6efe4' },
+      { base: '#e7ead6', top: '#f2f5df' },
+      { base: '#e9e0d3', top: '#f3e9dc' },
+      { base: '#e2d8e0', top: '#ece1e9' },
+      { base: '#dcd7e6', top: '#e7e2ef' },
+      { base: '#d8dbe9', top: '#e3e6f3' },
+      { base: '#d9e0ed', top: '#e3e8f4' },
+      { base: '#d9e5f0', top: '#e3eef8' },
+      { base: '#dae8e6', top: '#e4f1ef' },
+      { base: '#e3e9de', top: '#edf3e8' },
+      { base: '#e9e5d8', top: '#f3efe2' },
+    ];
+
+    const catsContainer = document.getElementById('catsContainer');
+    const meowBubble = document.getElementById('meowBubble');
+    let currentCat = null;
+    let blinkInterval = null;
+
+    // Create cat element
+    function createCat() {
+      const cat = document.createElement('img');
+      cat.className = 'blinking-cat';
+      cat.src = catImages[Math.floor(Math.random() * catImages.length)];
+      cat.alt = 'Cat';
+
+      // Random position around the edges
+      const position = getRandomEdgePosition();
+      cat.style.left = position.x + 'px';
+      cat.style.top = position.y + 'px';
+
+      // Click handler for meow
+      cat.addEventListener('click', (e) => {
+        showMeow(e.clientX, e.clientY);
+      });
+
+      return cat;
+    }
+
+    // Get random position around the edges (not center)
+    function getRandomEdgePosition() {
+      const margin = 60;
+      const catSize = 280;
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      // Define center area to avoid (login form area)
+      const centerExcludeWidth = 500;
+      const centerExcludeHeight = 600;
+      const centerX = viewportWidth / 2;
+      const centerY = viewportHeight / 2;
+
+      let x, y;
+      let attempts = 0;
+      const maxAttempts = 20;
+
+      // Keep trying until we find a position that doesn't overlap with center
+      do {
+        // Determine which edge (0=top, 1=right, 2=bottom, 3=left)
+        const edge = Math.floor(Math.random() * 4);
+
+        switch(edge) {
+          case 0: // top
+            x = Math.random() * (viewportWidth - catSize);
+            y = margin + Math.random() * 100;
+            break;
+          case 1: // right
+            x = viewportWidth - catSize - margin - Math.random() * 100;
+            y = Math.random() * (viewportHeight - catSize);
+            break;
+          case 2: // bottom
+            x = Math.random() * (viewportWidth - catSize);
+            y = viewportHeight - catSize - margin - Math.random() * 100;
+            break;
+          case 3: // left
+            x = margin + Math.random() * 100;
+            y = Math.random() * (viewportHeight - catSize);
+            break;
+        }
+
+        attempts++;
+
+        // Check if position overlaps with center area
+        const catCenterX = x + catSize / 2;
+        const catCenterY = y + catSize / 2;
+        const overlapsCenter =
+          Math.abs(catCenterX - centerX) < (centerExcludeWidth / 2 + catSize / 2) &&
+          Math.abs(catCenterY - centerY) < (centerExcludeHeight / 2 + catSize / 2);
+
+        if (!overlapsCenter || attempts >= maxAttempts) {
+          break;
+        }
+      } while (true);
+
+      return { x, y };
+    }
+
+    // Cat messages
+    const catMessages = [
+      "Meow!",
+      "You got me!",
+      "Ga Ga Ga!",
+      "Don't forget to login",
+      "I made this website myself",
+      "I love cat cans",
+      "Could you plz give me some salmon",
+      "I love sunshine",
+      "I love flowers",
+      "To be or not to be....",
+      "You never know dear~ how much I love you~",
+      "I am a loyal fan of Khalil Fong.",
+      "Katrina, I can't stop looking in your eyes~",
+      "Oh It's a singalong song~ It's not so long~",
+      "天青色等烟雨，而我在等你～",
+      "Shall I compare thee to a summer day?",
+      "A thing of beauty is a joy forever"
+    ];
+
+    // Show meow bubble
+    function showMeow(x, y) {
+      const bubbleWidth = 250;
+      const bubbleHeight = 60;
+
+      // Random message
+      const randomMessage = catMessages[Math.floor(Math.random() * catMessages.length)];
+      meowBubble.textContent = randomMessage;
+
+      // Random Morandi color
+      const randomColor = morandiPalette[Math.floor(Math.random() * morandiPalette.length)];
+      meowBubble.style.background = randomColor.base;
+      meowBubble.style.borderColor = '#1f2937';
+
+      // Position bubble near click with some offset
+      const offsetX = Math.random() > 0.5 ? 60 : -280;
+      const offsetY = Math.random() > 0.5 ? 60 : -120;
+
+      let bubbleX = x + offsetX;
+      let bubbleY = y + offsetY;
+
+      // Keep bubble in viewport
+      bubbleX = Math.max(20, Math.min(bubbleX, window.innerWidth - bubbleWidth - 20));
+      bubbleY = Math.max(20, Math.min(bubbleY, window.innerHeight - bubbleHeight - 20));
+
+      meowBubble.style.left = bubbleX + 'px';
+      meowBubble.style.top = bubbleY + 'px';
+
+      meowBubble.classList.add('show');
+
+      // Hide after 2 seconds
+      setTimeout(() => {
+        meowBubble.classList.remove('show');
+      }, 2000);
+    }
+
+    // Show next cat
+    function showNextCat() {
+      // Hide current cat
+      if (currentCat) {
+        currentCat.classList.remove('visible');
+        setTimeout(() => {
+          if (currentCat && currentCat.parentNode) {
+            currentCat.parentNode.removeChild(currentCat);
+          }
+        }, 600);
+      }
+
+      // Create and show new cat
+      setTimeout(() => {
+        currentCat = createCat();
+        catsContainer.appendChild(currentCat);
+
+        // Trigger fade in
+        setTimeout(() => {
+          currentCat.classList.add('visible');
+        }, 50);
+      }, 600);
+    }
+
+    // Start blinking cats
+    function startBlinkingCats() {
+      showNextCat();
+      blinkInterval = setInterval(() => {
+        showNextCat();
+      }, 3000); // Change cat every 3 seconds
+    }
+
+    // Start after page load
+    setTimeout(startBlinkingCats, 1000);
+  </script>
+</body>
+</html>
