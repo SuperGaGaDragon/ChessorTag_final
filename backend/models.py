@@ -11,6 +11,12 @@ def generate_study_id():
     # 生成 Lichess 风格的短 ID，例如 a7F3kL90bC
     return generate(size=10)
 
+
+def generate_folder_id():
+    # Keep folder ids within varchar(32) (existing DB column)
+    return generate(size=20)
+
+
 class Study(Base):
     __tablename__ = "studies"
 
@@ -34,7 +40,7 @@ class Study(Base):
 class Folder(Base):
     __tablename__ = "folders"
 
-    id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, index=True, default=generate_folder_id)
     name = Column(String, nullable=False)
 
     parent_id = Column(String, ForeignKey("folders.id"), nullable=True)

@@ -1,0 +1,282 @@
+ChessOrTag Website Function Introduction
+==========================================
+
+ChessOrTag (chessortag.org) is a comprehensive chess analysis platform that combines report generation
+with chess materials organization capabilities. The platform enables users to analyze their chess games,
+receive AI-powered insights, and organize their chess studies in a structured workspace.
+
+
+1. WEBSITE PAGES
+================
+
+1.1 Login Page / Signup Page
+-----------------------------
+URL: https://chessortag.org/
+     https://chessortag.org/login/
+
+Description:
+Users must sign up or log in before accessing the platform's features. This authentication system
+enables the platform to save studies and materials into individual user accounts, ensuring personalized
+data management and privacy.
+
+Key Features:
+- Secure user authentication
+- User account creation and management
+- Session persistence for returning users
+- Account-based data storage
+
+
+1.2 Reports Generator
+---------------------
+Description:
+The core feature that analyzes chess games and generates comprehensive style reports. This module
+evaluates playing styles, identifies patterns, and provides detailed metrics about chess performance.
+
+Key Features:
+- Chess game analysis
+- Style pattern recognition
+- Performance metrics calculation
+- Visual report generation
+- Comparison with Grandmaster playing styles
+
+
+1.3 Chess Materials Organizer & Workspace
+------------------------------------------
+Description:
+A structured workspace for organizing chess studies, opening preparations, and game collections.
+Users can create folders, organize studies hierarchically, and manage their chess materials efficiently.
+
+Key Features:
+- Hierarchical folder structure
+- Study organization and categorization
+- Color-coded folder system
+- Custom folder images
+- Public/private study visibility controls
+
+
+1.4 Chess Studies
+-----------------
+
+1.4.1 Chess Imitator
+~~~~~~~~~~~~~~~~~~~~
+Description:
+An interactive chess engine that plays moves imitating specific grandmaster styles or playing patterns.
+This feature helps users understand and practice against different chess styles.
+
+Key Features:
+- Style-based move selection
+- UCI-compatible engine interface
+- Customizable playing styles
+- Real-time move analysis
+
+
+1.4.2 LLM Explanation
+~~~~~~~~~~~~~~~~~~~~~
+Description:
+AI-powered explanations for chess positions, moves, and strategies using Large Language Models.
+This feature provides human-readable insights into chess concepts and position evaluations.
+
+Key Features:
+- Natural language position explanations
+- Move justification and analysis
+- Strategic concept explanation
+- Educational insights for improvement
+
+
+
+2. PIPELINES
+============
+
+2.1 rule_tagger2
+----------------
+Description:
+The core tagging system that identifies chess patterns, tactical motifs, and strategic themes in games.
+This pipeline processes chess moves and annotates them with meaningful labels for analysis.
+
+Components:
+- Pattern recognition engine
+- Tactical motif detection
+- Strategic theme identification
+- Move classification system
+
+Technology Stack:
+- Python chess library
+- Custom rule-based detection algorithms
+- Position evaluation heuristics
+
+
+2.2 chess_imitator
+------------------
+Description:
+The chess engine pipeline that generates moves based on specific playing styles. This system analyzes
+positions and selects moves that match target style characteristics.
+
+Components:
+- UCI engine interface
+- Style scoring system
+- Move generation and filtering
+- Position evaluation with style weights
+
+Technology Stack:
+- Python chess engine
+- Style-based move scoring
+- Real-time position analysis
+
+
+2.3 style_report
+----------------
+Description:
+The report generation pipeline that creates comprehensive chess style analysis reports. This system
+processes game data, calculates metrics, and generates visual reports with AI-powered explanations.
+
+Components:
+- Metrics calculation engine
+- LLM integration for explanations
+- Report template system
+- Visualization generation
+- GM comparison system
+
+Technology Stack:
+- FastAPI backend
+- OpenAI API integration
+- Data visualization tools
+- HTML/CSS report templates
+
+
+
+3. DATA STORAGE
+===============
+
+3.1 Website Deployment
+----------------------
+Description:
+The production deployment infrastructure hosting the ChessOrTag platform.
+
+Components:
+- Web server hosting
+- Static file serving
+- Domain configuration (chessortag.org)
+- SSL/TLS certificates
+- CDN for asset delivery
+
+Technology Stack:
+- Frontend: HTML, CSS, JavaScript
+- Chess visualization: chess.js, chessboard.js
+- Interactive UI components
+
+
+3.2 Data Storage
+----------------
+Description:
+Backend database system for storing user data, studies, folders, and chess materials.
+
+Database Schema:
+- Users table: Authentication and user profiles
+- Studies table: Chess study data with JSON payload
+- Folders table: Hierarchical folder structure
+- Relationships: User ownership, folder hierarchy, study organization
+
+Technology Stack:
+- PostgreSQL database
+- SQLAlchemy ORM
+- FastAPI REST API
+- JWT authentication
+- Secure password hashing (bcrypt)
+
+Data Models:
+- User: Authentication credentials and profile
+- Study: Chess study with PGN data, metadata, and ownership
+- Folder: Hierarchical organization with colors and images
+
+Storage Features:
+- Unique study IDs (Lichess-style nanoid)
+- Folder hierarchy support
+- Public/private visibility controls
+- Timestamps for creation and updates
+- JSON payload for flexible study data
+
+
+
+4. TECHNICAL ARCHITECTURE
+==========================
+
+Frontend:
+- HTML5, CSS3, JavaScript
+- Chess.js for game logic
+- Chessboard.js for visualization
+- Responsive design for multiple devices
+
+Backend:
+- FastAPI (Python web framework)
+- PostgreSQL database
+- SQLAlchemy ORM
+- JWT authentication
+- OpenAI API integration
+
+Chess Analysis:
+- Python-chess library
+- Custom rule-based analysis
+- Style scoring algorithms
+- Pattern recognition systems
+
+Deployment:
+- Docker containerization
+- PostgreSQL database server
+- Python 3.x runtime
+- REST API endpoints
+
+
+
+5. KEY FEATURES SUMMARY
+=======================
+
+User Management:
+- Secure authentication system
+- Individual user workspaces
+- Account-based data isolation
+
+Chess Analysis:
+- Comprehensive style reports
+- AI-powered explanations
+- GM comparison metrics
+- Pattern and theme detection
+
+Study Organization:
+- Hierarchical folder structure
+- Color-coded organization
+- Public/private studies
+- Flexible JSON data storage
+
+Interactive Features:
+- Chess imitator engine
+- Real-time position analysis
+- Visual report generation
+- Educational explanations
+
+
+
+6. API ENDPOINTS
+================
+
+Authentication:
+- POST /auth/signup - User registration
+- POST /auth/login - User authentication
+- GET /auth/me - Current user info
+
+Studies:
+- POST /studies - Create new study
+- GET /studies/{study_id} - Retrieve study
+- PUT /studies/{study_id} - Update study
+- DELETE /studies/{study_id} - Delete study
+- GET /studies - List user's studies
+
+Workspace:
+- POST /folders - Create folder
+- GET /folders - List user's folders
+- PUT /folders/{folder_id} - Update folder
+- DELETE /folders/{folder_id} - Delete folder
+- GET /workspace - Full workspace hierarchy
+
+Reports:
+- POST /report/generate - Generate style report
+- GET /report/{report_id} - Retrieve generated report

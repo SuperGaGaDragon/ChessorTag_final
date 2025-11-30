@@ -86,7 +86,6 @@ def create_folder(
                 raise HTTPException(status_code=404, detail="Parent folder not found")
 
         folder = Folder(
-            id=str(uuid4()),
             name=payload.name,
             parent_id=payload.parent_id,
             color=payload.color,
