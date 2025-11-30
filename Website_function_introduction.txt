@@ -28,6 +28,8 @@ Key Features:
 
 1.2 Reports Generator
 ---------------------
+URL: https://chessortag.org/new_report/
+
 Description:
 The core feature that analyzes chess games and generates comprehensive style reports. This module
 evaluates playing styles, identifies patterns, and provides detailed metrics about chess performance.
@@ -42,6 +44,8 @@ Key Features:
 
 1.3 Chess Materials Organizer & Workspace
 ------------------------------------------
+URL: https://chessortag.org/home/
+
 Description:
 A structured workspace for organizing chess studies, opening preparations, and game collections.
 Users can create folders, organize studies hierarchically, and manage their chess materials efficiently.
@@ -56,9 +60,9 @@ Key Features:
 
 1.4 Chess Studies
 -----------------
-
 1.4.1 Chess Imitator
 ~~~~~~~~~~~~~~~~~~~~
+URL: https://chessortag.org/study/
 Description:
 An interactive chess engine that plays moves imitating specific grandmaster styles or playing patterns.
 This feature helps users understand and practice against different chess styles.

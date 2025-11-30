@@ -90,7 +90,7 @@ def create_folder(
             parent_id=payload.parent_id,
             color=payload.color,
             image_key=payload.image_key,
-            owner_id=current_user.id,
+            owner_id=(current_user.id[:32] if current_user and current_user.id else None),
         )
         db.add(folder)
         db.commit()
@@ -174,7 +174,7 @@ def create_study(
         study = Study(
             name=payload.name,
             folder_id=payload.folder_id,
-            owner_id=current_user.id,
+            owner_id=(current_user.id[:32] if current_user and current_user.id else None),
             data={},  # Initialize with empty data
             is_public=False,  # Default to private
         )
