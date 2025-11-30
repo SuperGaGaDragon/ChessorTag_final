@@ -1,25 +1,23 @@
+# 1. 选择基础镜像
 FROM python:3.11-slim
 
-# Install system tools
-RUN apt-get update && apt-get install -y \
-    stockfish \
-    && rm -rf /var/lib/apt/lists/*
+# 2. 安装 Stockfish 引擎
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends stockfish && \
+    rm -rf /var/lib/apt/lists/*
 
-# Set stockfish env
 ENV STOCKFISH_PATH="/usr/games/stockfish"
 
-# Create working dir
+# 3. 工作目录
 WORKDIR /app
 
-# Copy backend
-COPY backend/ /app/backend/
-
-# Install dependencies
-COPY backend/requirements.txt .
+# 4. 安装 Python 依赖（用根目录的 requirements.txt）
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port (Railway uses 8080)
-EXPOSE 8080
+# 5. 拷贝后端代码
+COPY backend/ ./backend/
 
-# Start FastAPI using uvicorn
+# 6. 启动 FastAPI（Railway 默认会把 PORT 传进来）
+ENV PORT=8080
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8080"]

@@ -7,5 +7,4 @@ SQLAlchemy
 psycopg2-binary
 openai>=1.0.0
 nanoid
-psycopg2-binary
 numpy
