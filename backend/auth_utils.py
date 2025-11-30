@@ -11,12 +11,27 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 30  # 30 天
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
+def _normalize_password(password: str) -> str:
+    """
+    bcrypt 只支持前 72 bytes，我们统一在这里截断，避免 ValueError。
+    """
+    if password is None:
+        return ""
+    # 按字节长度截断到 72
+    password_bytes = password.encode("utf-8")
+    if len(password_bytes) > 72:
+        password_bytes = password_bytes[:72]
+    return password_bytes.decode("utf-8", errors="ignore")
+
+
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    pw = _normalize_password(password)
+    return pwd_context.hash(pw)
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    pw = _normalize_password(plain)
+    return pwd_context.verify(pw, hashed)
 
 
 def create_access_token(user_id: str, email: str) -> str:
