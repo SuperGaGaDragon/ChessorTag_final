@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, Boolean, JSON, ForeignKey
+from sqlalchemy import Column, String, DateTime, Boolean, JSON, ForeignKey, Text
 from sqlalchemy.orm import relationship, synonym
 from datetime import datetime
 from nanoid import generate
@@ -30,6 +30,7 @@ class Study(Base):
     title = Column(String, nullable=True)
     owner_id = Column(String, nullable=True, index=True)
     is_public = Column(Boolean, default=True)
+    report_html = Column(Text, nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

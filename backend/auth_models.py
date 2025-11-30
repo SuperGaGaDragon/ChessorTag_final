@@ -11,5 +11,7 @@ class User(Base):
 
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid4()))
     email = Column(String, unique=True, index=True, nullable=False)
+    username = Column(String, nullable=True)
+    avatar = Column(String, nullable=True)
     hashed_password = Column("password_hash", String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

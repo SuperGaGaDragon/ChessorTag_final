@@ -12,6 +12,7 @@ import chess
 import chess.pgn
 import chess.engine
 from fastapi import APIRouter, FastAPI, HTTPException, Depends
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
@@ -125,6 +126,7 @@ class StudyGetResponse(BaseModel):
     name: str | None = None
     data: Dict[str, Any]
     created_at: datetime
+    report_html: str | None = None
 
     class Config:
         orm_mode = True
@@ -546,6 +548,49 @@ def test_db(db: Session = Depends(get_db), current_user: User = Depends(get_curr
     return {"study_id": study.id}
 
 
+class ReportSaveRequest(BaseModel):
+    html: str
+
+
+@router.post("/{study_id}/report", status_code=200)
+def save_report_html(
+    study_id: str,
+    payload: ReportSaveRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    owner_id = (current_user.id[:32] if current_user and current_user.id else None)
+    study = (
+        db.query(Study)
+        .filter(Study.id == study_id, Study.owner_id == owner_id)
+        .first()
+    )
+    if not study:
+        raise HTTPException(status_code=404, detail="Study not found")
+
+    study.report_html = payload.html
+    db.commit()
+    return {"ok": True, "message": "Report saved"}
+
+
+@router.get("/{study_id}/report", response_class=HTMLResponse)
+def get_report_html(
+    study_id: str,
+    db: Session = Depends(get_db),
+):
+    study = (
+        db.query(Study)
+        .filter(
+            Study.id == study_id,
+            or_(Study.is_public == True, Study.owner_id != None),
+        )
+        .first()
+    )
+    if not study or not study.report_html:
+        raise HTTPException(status_code=404, detail="Report not found")
+    return HTMLResponse(content=study.report_html, media_type="text/html")
+
+
 @router.get("/{study_id}", response_model=StudyGetResponse)
 def get_study(
     study_id: str,
@@ -570,4 +615,5 @@ def get_study(
         name=study.name or study.title,
         data=study.data,
         created_at=study.created_at,
+        report_html=study.report_html,
     )

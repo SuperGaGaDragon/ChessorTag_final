@@ -558,6 +558,18 @@
 
       <form id="signupForm">
         <div class="form-group">
+          <label class="form-label" for="username">Username</label>
+          <input
+            type="text"
+            id="signup-username"
+            name="username"
+            class="form-input"
+            placeholder="Choose a username"
+            required
+          />
+        </div>
+
+        <div class="form-group">
           <label class="form-label" for="email">Email</label>
           <input
             type="email"
@@ -807,12 +819,14 @@
       submitBtn.addEventListener("click", async (event) => {
         event.preventDefault();
 
+        const usernameInput = document.getElementById("signup-username");
+        const username = (usernameInput.value || "").trim();
         const email = (emailInput.value || "").trim();
         const password = passwordInput.value || "";
 
         // 简单校验
-        if (!email || !password) {
-          alert("Please enter email and password.");
+        if (!username || !email || !password) {
+          alert("Please enter username, email and password.");
           return;
         }
         if (!email.includes("@")) {
@@ -829,7 +843,7 @@
               "Content-Type": "application/json",
               "Accept": "application/json"
             },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ username, email, password })
           });
 
           if (!resp.ok) {

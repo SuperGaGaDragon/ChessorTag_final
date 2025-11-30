@@ -54,11 +54,16 @@
       color: #1f2937;
     }
     .avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 999px;
+      display: inline-block;
+      object-fit: cover;
+      border: 2px solid #e5e7eb;
+    }
+    .avatar-small {
       width: 30px;
       height: 30px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, #22c55e, #0ea5e9);
-      display: inline-block;
     }
 
     .page {
@@ -72,11 +77,12 @@
     .profile-strip {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid #e5e7eb;
+      gap: 16px;
+      padding: 16px 20px;
+      border-radius: 16px;
+      border: 2px solid #e5e7eb;
       background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
     .profile-main {
       display: flex;
@@ -86,6 +92,19 @@
     }
     .username {
       font-weight: 600;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+      margin: -4px -8px;
+      border-radius: 6px;
+      transition: background 0.2s ease;
+    }
+    .username:hover {
+      background: rgba(34, 197, 94, 0.1);
+    }
+    .username.editing {
+      outline: 2px solid #22c55e;
+      background: #ffffff;
     }
     .membership-row {
       display: flex;
@@ -532,7 +551,7 @@
       <span>Home</span>
       <span>|</span>
       <span>Log in · Sign up (later)</span>
-      <span class="avatar"></span>
+      <img id="topAvatar" class="avatar avatar-small" src="../assets/loading3.png" alt="Avatar">
     </div>
   </header>
 
@@ -540,10 +559,10 @@
   <main class="page">
     <!-- 上方用户 profile 条 -->
     <section class="profile-strip">
-      <span class="avatar"></span>
+      <img id="userAvatar" class="avatar" src="../assets/loading3.png" alt="Avatar">
       <div class="profile-main">
-        <span class="username">Player Name (placeholder)</span>
-        <span style="font-size: 12px; color: #6b7280;">username · basic member</span>
+        <span class="username" id="displayUsername" onclick="editUsername(event)">Loading...</span>
+        <span style="font-size: 12px; color: #6b7280;"><span id="userEmail">email@example.com</span> · basic member</span>
         <div class="membership-row">
           <span class="pill">⭐ reports</span>
           <span class="pill">📁 studies</span>
@@ -683,6 +702,114 @@
       }
       return false;
     }
+
+    // Load user profile
+    async function loadUserProfile() {
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/me`, {
+          headers: authHeaders(),
+        });
+        if (handleUnauthorized(res)) return;
+        if (!res.ok) {
+          console.error('Failed to load user profile', await res.text());
+          return;
+        }
+        const user = await res.json();
+
+        // Update UI with user info
+        const displayUsername = document.getElementById('displayUsername');
+        const userEmail = document.getElementById('userEmail');
+        const userAvatar = document.getElementById('userAvatar');
+        const topAvatar = document.getElementById('topAvatar');
+
+        if (displayUsername) {
+          displayUsername.textContent = user.username || 'Set your username';
+        }
+        if (userEmail) {
+          userEmail.textContent = user.email;
+        }
+        if (userAvatar && user.avatar) {
+          userAvatar.src = '../' + user.avatar;
+        }
+        if (topAvatar && user.avatar) {
+          topAvatar.src = '../' + user.avatar;
+        }
+      } catch (err) {
+        console.error('Load user profile error', err);
+      }
+    }
+
+    // Edit username
+    function editUsername(event) {
+      event.stopPropagation();
+      const element = document.getElementById('displayUsername');
+
+      if (element.classList.contains('editing')) {
+        return;
+      }
+
+      const originalText = element.textContent;
+      element.classList.add('editing');
+      element.contentEditable = true;
+
+      // Select all text
+      const range = document.createRange();
+      const selection = window.getSelection();
+      range.selectNodeContents(element);
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      element.focus();
+
+      // Handle save on blur or Enter key
+      async function finishEditing() {
+        element.classList.remove('editing');
+        element.contentEditable = false;
+
+        const newText = element.textContent.trim();
+        if (newText === '') {
+          element.textContent = originalText;
+        } else if (newText !== originalText) {
+          // Save to backend
+          try {
+            const res = await fetch(`${API_BASE}/api/auth/me/username`, {
+              method: 'PATCH',
+              headers: authHeaders(),
+              body: JSON.stringify({ username: newText }),
+            });
+            if (handleUnauthorized(res)) return;
+            if (!res.ok) {
+              console.error('Failed to update username', await res.text());
+              element.textContent = originalText;
+              alert('Failed to update username');
+            }
+          } catch (err) {
+            console.error('Update username error', err);
+            element.textContent = originalText;
+            alert('Failed to update username');
+          }
+        }
+
+        element.removeEventListener('blur', finishEditing);
+        element.removeEventListener('keydown', handleKeydown);
+      }
+
+      function handleKeydown(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          element.blur();
+        } else if (e.key === 'Escape') {
+          element.textContent = originalText;
+          element.blur();
+        }
+      }
+
+      element.addEventListener('blur', finishEditing);
+      element.addEventListener('keydown', handleKeydown);
+    }
+
+    // Load user profile on page load
+    loadUserProfile();
 
     const catImages = [
       '../assets/cat_pieces/King.png',
@@ -1135,6 +1262,24 @@
 
       element.addEventListener('blur', finishEditing);
       element.addEventListener('keydown', handleKeydown);
+    }
+
+    async function persistFolderAppearance(folderId) {
+      if (!folderId) return;
+      const meta = itemRegistry[folderId] || {};
+      try {
+        const body = {};
+        if (meta.color) body.color = JSON.stringify(meta.color);
+        if (meta.catSrc) body.image_key = meta.catSrc;
+        if (Object.keys(body).length === 0) return;
+        await fetch(`${API_BASE}/api/workspace/folders/${folderId}`, {
+          method: 'PATCH',
+          headers: authHeaders(),
+          body: JSON.stringify(body),
+        });
+      } catch (err) {
+        console.warn('Persist folder appearance failed', err);
+      }
     }
 
     async function deleteWorkspaceItem(tile) {
