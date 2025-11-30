@@ -1,7 +1,7 @@
 import os
 import io
 import uuid
-from typing import Optional, List
+from typing import Optional, List, Any, Dict
 import json
 from pathlib import Path
 import sys
@@ -11,9 +11,13 @@ from openai import OpenAI
 import chess
 import chess.pgn
 import chess.engine
-from fastapi import APIRouter, FastAPI, HTTPException
+from fastapi import APIRouter, FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from .db import get_db
+from .models import Study
 
 
 router = APIRouter(prefix="/api/study", tags=["study"])
@@ -105,9 +109,20 @@ class AnalyzeMove(BaseModel):
 
 
 class AnalyzeResponse(BaseModel):
+    study_id: str
     players: List[str]
     moves: List[AnalyzeMove]
     metadata: Optional[dict] = None
+
+
+class StudyGetResponse(BaseModel):
+    study_id: str
+    title: str | None
+    data: Dict[str, Any]
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
 
 # lazy-loaded predictor deps
 _predictor_ready = False
@@ -281,6 +296,7 @@ def _predict_with_pipeline(fen: str, engine_path: Optional[str]) -> AnalyzeRespo
         )
 
     payload = AnalyzeResponse(
+        study_id="",
         players=list(player_summaries.keys()),
         moves=moves_output,
         metadata={"engine_depth": 14, "top_n": len(moves_output)},
@@ -418,10 +434,27 @@ def engine_top(req: EngineTopRequest):
 # ----------------------------
 
 @router.post("/analyze", response_model=AnalyzeResponse)
-def analyze(req: AnalyzeRequest):
+def analyze(req: AnalyzeRequest, db: Session = Depends(get_db)):
     payload = _predict_with_pipeline(req.fen, req.engine_path)
     _log_predictor_call(req.fen, payload, req.engine_path)
-    return payload
+
+    result_data = payload.model_dump()
+    result_data.pop("study_id", None)
+
+    study = Study(
+        title=getattr(req, "title", None),
+        data=result_data,
+        is_public=True,
+        owner_id=None,
+    )
+    db.add(study)
+    db.commit()
+    db.refresh(study)
+
+    return AnalyzeResponse(
+        study_id=study.id,
+        **result_data,
+    )
 
 
 # ----------------------------
@@ -482,3 +515,21 @@ def coach_note(req: CoachNoteRequest):
             source=f"local_fallback ({exc})",
             player_id=req.player_id,
         )
+
+
+@router.get("/{study_id}", response_model=StudyGetResponse)
+def get_study(study_id: str, db: Session = Depends(get_db)):
+    study = (
+        db.query(Study)
+        .filter(Study.id == study_id, Study.is_public == True)
+        .first()
+    )
+    if not study:
+        raise HTTPException(status_code=404, detail="Study not found")
+
+    return StudyGetResponse(
+        study_id=study.id,
+        title=study.title,
+        data=study.data,
+        created_at=study.created_at,
+    )
