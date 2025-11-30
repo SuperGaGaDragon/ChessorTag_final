@@ -763,6 +763,30 @@
 
       const API_BASE = "https://api.chessortag.org";
 
+      async function loginAndStoreToken(email, password) {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        const token = data.access_token || data.token || data.authToken;
+        if (!token) {
+          throw new Error("No token returned when auto-logging in");
+        }
+
+        localStorage.setItem("authToken", token);
+        if (data.user_id) {
+          localStorage.setItem("userId", data.user_id);
+        }
+      }
+
       const showEmailTakenOverlay = (message) => {
         if (emailTakenMessage && message) {
           emailTakenMessage.textContent = message;
@@ -837,8 +861,8 @@
           }
 
           console.log("Signup success");
-          alert("Account created! Please log in.");
-          window.location.href = "/index.html";
+          await loginAndStoreToken(email, password);
+          window.location.href = "/home/";
         } catch (err) {
           console.error("Signup error:", err);
           alert("Sign up error: " + (err.message || String(err)));

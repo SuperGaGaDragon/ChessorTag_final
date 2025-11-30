@@ -441,7 +441,7 @@
       <h1 class="login-title">Welcome Back</h1>
       <p class="login-subtitle">Log in to access your chess reports and studies</p>
 
-      <form>
+      <form id="loginForm">
         <div class="form-group">
           <label class="form-label" for="email">Email</label>
           <input
@@ -500,9 +500,51 @@
   <script>
     const API_BASE = 'https://api.chessortag.org';
 
+    async function handleLogin(event) {
+      event.preventDefault();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        alert('Please enter email and password.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        const token = data.access_token || data.token || data.authToken;
+        if (!token) {
+          throw new Error('No token returned from login API');
+        }
+
+        localStorage.setItem('authToken', token);
+        if (data.user_id) {
+          localStorage.setItem('userId', data.user_id);
+        }
+
+        window.location.href = '/home/';
+      } catch (err) {
+        console.error(err);
+        alert('Login failed: ' + err.message);
+      }
+    }
+
     // Show rook when hovering over signup button
     const signupBtn = document.getElementById('signupBtn');
     const rookContainer = document.getElementById('rookContainer');
+    const loginForm = document.getElementById('loginForm');
 
     signupBtn.addEventListener('mouseenter', () => {
       rookContainer.classList.add('show');
@@ -512,38 +554,13 @@
       rookContainer.classList.remove('show');
     });
 
-    document.querySelector('form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const email = document.querySelector('input[type="email"]').value;
-      const password = document.querySelector('input[type="password"]').value;
-
-      try {
-        const res = await fetch(`${API_BASE}/api/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-
-        if (!res.ok) {
-          alert('Login failed');
-          return;
-        }
-
-        const data = await res.json();
-        localStorage.setItem('authToken', data.access_token);
-        window.location.href = '/home/';
-      } catch (err) {
-        console.error(err);
-        alert('Network error');
-      }
-    });
-
     signupBtn.addEventListener('click', (e) => {
       // Let the anchor handle navigation; this ensures users land on the signup page.
       e.preventDefault();
       window.location.href = '/signup.html';
     });
+
+    loginForm.addEventListener('submit', handleLogin);
 
     // Blinking cats system
     const catImages = [

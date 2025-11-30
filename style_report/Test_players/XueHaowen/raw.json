@@ -1,0 +1,2020 @@
+{
+  "player_id": "xuehaowen",
+  "player_name": "Xue,Haowen",
+  "tag_distribution": {
+    "prophylactic_latent": {
+      "count": 43,
+      "ratio": 0.373913
+    },
+    "constructive_maneuver": {
+      "count": 39,
+      "ratio": 0.33913
+    },
+    "deferred_initiative": {
+      "count": 32,
+      "ratio": 0.278261
+    },
+    "control_over_dynamics": {
+      "count": 31,
+      "ratio": 0.269565
+    },
+    "neutral_maneuver": {
+      "count": 30,
+      "ratio": 0.26087
+    },
+    "neutral_tension_creation": {
+      "count": 28,
+      "ratio": 0.243478
+    },
+    "control_file_seal": {
+      "count": 17,
+      "ratio": 0.147826
+    },
+    "cod_file_seal": {
+      "count": 14,
+      "ratio": 0.121739
+    },
+    "control_king_safety_shell": {
+      "count": 9,
+      "ratio": 0.078261
+    },
+    "prophylactic_direct": {
+      "count": 9,
+      "ratio": 0.078261
+    },
+    "control_regroup_consolidate": {
+      "count": 8,
+      "ratio": 0.069565
+    },
+    "maneuver_opening": {
+      "count": 8,
+      "ratio": 0.069565
+    },
+    "risk_avoidance": {
+      "count": 8,
+      "ratio": 0.069565
+    },
+    "structural_compromise_dynamic": {
+      "count": 8,
+      "ratio": 0.069565
+    },
+    "cod_king_safety_shell": {
+      "count": 7,
+      "ratio": 0.06087
+    },
+    "file_pressure_c": {
+      "count": 6,
+      "ratio": 0.052174
+    },
+    "structural_integrity": {
+      "count": 6,
+      "ratio": 0.052174
+    },
+    "constructive_maneuver_prepare": {
+      "count": 5,
+      "ratio": 0.043478
+    },
+    "control_plan_kill": {
+      "count": 5,
+      "ratio": 0.043478
+    },
+    "positional_sacrifice": {
+      "count": 5,
+      "ratio": 0.043478
+    },
+    "tactical_sacrifice": {
+      "count": 5,
+      "ratio": 0.043478
+    },
+    "cod_regroup_consolidate": {
+      "count": 4,
+      "ratio": 0.034783
+    },
+    "initiative_attempt": {
+      "count": 4,
+      "ratio": 0.034783
+    },
+    "positional_space_sacrifice": {
+      "count": 4,
+      "ratio": 0.034783
+    },
+    "accurate_knight_bishop_exchange": {
+      "count": 3,
+      "ratio": 0.026087
+    },
+    "tactical_initiative_sacrifice": {
+      "count": 3,
+      "ratio": 0.026087
+    },
+    "failed_maneuver": {
+      "count": 2,
+      "ratio": 0.017391
+    },
+    "forced_move": {
+      "count": 2,
+      "ratio": 0.017391
+    },
+    "misplaced_maneuver": {
+      "count": 2,
+      "ratio": 0.017391
+    },
+    "prophylactic_meaningless": {
+      "count": 2,
+      "ratio": 0.017391
+    },
+    "tension_creation": {
+      "count": 2,
+      "ratio": 0.017391
+    },
+    "winning_position_handling": {
+      "count": 2,
+      "ratio": 0.017391
+    },
+    "cod_freeze_bind": {
+      "count": 1,
+      "ratio": 0.008696
+    },
+    "cod_plan_kill": {
+      "count": 1,
+      "ratio": 0.008696
+    },
+    "control_freeze_bind": {
+      "count": 1,
+      "ratio": 0.008696
+    },
+    "control_space_clamp": {
+      "count": 1,
+      "ratio": 0.008696
+    },
+    "missed_tactic": {
+      "count": 1,
+      "ratio": 0.008696
+    },
+    "opening_rook_pawn_move": {
+      "count": 1,
+      "ratio": 0.008696
+    },
+    "positional_structure_sacrifice": {
+      "count": 1,
+      "ratio": 0.008696
+    },
+    "speculative_sacrifice": {
+      "count": 1,
+      "ratio": 0.008696
+    },
+    "structural_compromise_static": {
+      "count": 1,
+      "ratio": 0.008696
+    },
+    "tactical_combination_sacrifice": {
+      "count": 1,
+      "ratio": 0.008696
+    }
+  },
+  "games": [
+    {
+      "game_index": 1,
+      "game_id": "Kasparov_vs_GutierrezOlivaresDaniel_2025",
+      "color": "black",
+      "result": "win",
+      "opponent": "Gutierrez Olivares,Daniel",
+      "opponent_elo": 2354,
+      "date": "2025.04.15",
+      "eco": "",
+      "opening": "",
+      "variation": "",
+      "first_moves": "1. Nf3 Nf6 2. g3 b6 3. c4 Bb7 4. Bg2 c5",
+      "moves": [
+        {
+          "ply": 1,
+          "uci": "g8f6",
+          "cp_eval": -20.0,
+          "best_cp_eval": -20.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": -20.0,
+          "phase": "middlegame",
+          "tags": [
+            "maneuver_opening"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 3,
+          "uci": "b7b6",
+          "cp_eval": -38.0,
+          "best_cp_eval": -14.000000000000002,
+          "eval_delta_cp": -24.0,
+          "cp_before": -14.000000000000002,
+          "phase": "middlegame",
+          "tags": [],
+          "has_queen": true
+        },
+        {
+          "ply": 5,
+          "uci": "c8b7",
+          "cp_eval": -39.0,
+          "best_cp_eval": -31.0,
+          "eval_delta_cp": -8.000000000000002,
+          "cp_before": -31.0,
+          "phase": "middlegame",
+          "tags": [
+            "maneuver_opening"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 7,
+          "uci": "c7c5",
+          "cp_eval": -52.0,
+          "best_cp_eval": -40.0,
+          "eval_delta_cp": -12.0,
+          "cp_before": -40.0,
+          "phase": "middlegame",
+          "tags": [
+            "structural_compromise_dynamic"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 9,
+          "uci": "g7g6",
+          "cp_eval": -28.000000000000004,
+          "best_cp_eval": -28.000000000000004,
+          "eval_delta_cp": 0.0,
+          "cp_before": -28.000000000000004,
+          "phase": "middlegame",
+          "tags": [],
+          "has_queen": true
+        },
+        {
+          "ply": 11,
+          "uci": "f8g7",
+          "cp_eval": 19.0,
+          "best_cp_eval": 19.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 19.0,
+          "phase": "middlegame",
+          "tags": [
+            "neutral_tension_creation",
+            "maneuver_opening",
+            "constructive_maneuver_prepare"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 13,
+          "uci": "e8g8",
+          "cp_eval": 9.0,
+          "best_cp_eval": 9.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 9.0,
+          "phase": "middlegame",
+          "tags": [
+            "deferred_initiative",
+            "risk_avoidance"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 15,
+          "uci": "f6e4",
+          "cp_eval": 26.0,
+          "best_cp_eval": 26.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 26.0,
+          "phase": "middlegame",
+          "tags": [
+            "initiative_attempt",
+            "neutral_tension_creation",
+            "maneuver_opening",
+            "accurate_knight_bishop_exchange"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 17,
+          "uci": "e4c3",
+          "cp_eval": 73.0,
+          "best_cp_eval": 73.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 73.0,
+          "phase": "middlegame",
+          "tags": [
+            "control_over_dynamics",
+            "cod_freeze_bind",
+            "control_freeze_bind",
+            "control_file_seal",
+            "control_space_clamp",
+            "accurate_knight_bishop_exchange"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 19,
+          "uci": "d7d6",
+          "cp_eval": 51.0,
+          "best_cp_eval": 82.0,
+          "eval_delta_cp": -30.999999999999993,
+          "cp_before": 82.0,
+          "phase": "middlegame",
+          "tags": [
+            "prophylactic_direct",
+            "structural_compromise_dynamic"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 21,
+          "uci": "b8d7",
+          "cp_eval": 82.0,
+          "best_cp_eval": 82.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 82.0,
+          "phase": "middlegame",
+          "tags": [
+            "constructive_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 23,
+          "uci": "c5b4",
+          "cp_eval": 52.0,
+          "best_cp_eval": 73.0,
+          "eval_delta_cp": -20.999999999999996,
+          "cp_before": 73.0,
+          "phase": "middlegame",
+          "tags": [
+            "structural_integrity"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 25,
+          "uci": "a7a5",
+          "cp_eval": 68.0,
+          "best_cp_eval": 68.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 68.0,
+          "phase": "middlegame",
+          "tags": [
+            "prophylactic_latent"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 27,
+          "uci": "d8c7",
+          "cp_eval": 124.0,
+          "best_cp_eval": 124.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 124.0,
+          "phase": "middlegame",
+          "tags": [
+            "constructive_maneuver",
+            "constructive_maneuver_prepare"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 29,
+          "uci": "f8c8",
+          "cp_eval": 105.0,
+          "best_cp_eval": 150.0,
+          "eval_delta_cp": -44.99999999999999,
+          "cp_before": 150.0,
+          "phase": "middlegame",
+          "tags": [
+            "neutral_maneuver",
+            "deferred_initiative",
+            "structural_compromise_static"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 31,
+          "uci": "d7e5",
+          "cp_eval": 151.0,
+          "best_cp_eval": 151.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 151.0,
+          "phase": "middlegame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "prophylactic_latent",
+            "structural_integrity",
+            "constructive_maneuver_prepare"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 33,
+          "uci": "e5f3",
+          "cp_eval": 271.0,
+          "best_cp_eval": 271.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 271.0,
+          "phase": "middlegame",
+          "tags": [
+            "control_over_dynamics",
+            "cod_file_seal",
+            "control_file_seal",
+            "control_king_safety_shell",
+            "control_regroup_consolidate"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 35,
+          "uci": "c7d7",
+          "cp_eval": 288.0,
+          "best_cp_eval": 288.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 288.0,
+          "phase": "middlegame",
+          "tags": [
+            "constructive_maneuver",
+            "prophylactic_direct",
+            "control_over_dynamics",
+            "control_plan_kill",
+            "control_file_seal",
+            "structural_integrity",
+            "constructive_maneuver_prepare"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 37,
+          "uci": "f3d2",
+          "cp_eval": 385.0,
+          "best_cp_eval": 385.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 385.0,
+          "phase": "middlegame",
+          "tags": [
+            "winning_position_handling"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 39,
+          "uci": "d2c4",
+          "cp_eval": 434.0,
+          "best_cp_eval": 434.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 434.0,
+          "phase": "middlegame",
+          "tags": [
+            "winning_position_handling"
+          ],
+          "has_queen": true
+        }
+      ]
+    },
+    {
+      "game_index": 2,
+      "game_id": "Kasparov_vs_MitrabhaGuha_2025",
+      "color": "black",
+      "result": "draw",
+      "opponent": "Mitrabha,Guha",
+      "opponent_elo": 2515,
+      "date": "2025.05.27",
+      "eco": "",
+      "opening": "",
+      "variation": "",
+      "first_moves": "1. Nf3 Nf6 2. c4 b6 3. g3 Bb7 4. Bg2 c5",
+      "moves": [
+        {
+          "ply": 1,
+          "uci": "g8f6",
+          "cp_eval": -20.0,
+          "best_cp_eval": -20.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": -20.0,
+          "phase": "middlegame",
+          "tags": [
+            "maneuver_opening"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 3,
+          "uci": "b7b6",
+          "cp_eval": -39.0,
+          "best_cp_eval": -27.0,
+          "eval_delta_cp": -12.0,
+          "cp_before": -27.0,
+          "phase": "middlegame",
+          "tags": [],
+          "has_queen": true
+        },
+        {
+          "ply": 5,
+          "uci": "c8b7",
+          "cp_eval": -39.0,
+          "best_cp_eval": -31.0,
+          "eval_delta_cp": -8.000000000000002,
+          "cp_before": -31.0,
+          "phase": "middlegame",
+          "tags": [
+            "maneuver_opening"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 7,
+          "uci": "c7c5",
+          "cp_eval": -52.0,
+          "best_cp_eval": -40.0,
+          "eval_delta_cp": -12.0,
+          "cp_before": -40.0,
+          "phase": "middlegame",
+          "tags": [
+            "structural_compromise_dynamic"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 9,
+          "uci": "g7g6",
+          "cp_eval": -28.000000000000004,
+          "best_cp_eval": -28.000000000000004,
+          "eval_delta_cp": 0.0,
+          "cp_before": -28.000000000000004,
+          "phase": "middlegame",
+          "tags": [],
+          "has_queen": true
+        },
+        {
+          "ply": 11,
+          "uci": "f8g7",
+          "cp_eval": -21.0,
+          "best_cp_eval": -21.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": -21.0,
+          "phase": "middlegame",
+          "tags": [
+            "neutral_tension_creation",
+            "maneuver_opening"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 13,
+          "uci": "e8g8",
+          "cp_eval": -26.0,
+          "best_cp_eval": -26.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": -26.0,
+          "phase": "middlegame",
+          "tags": [
+            "deferred_initiative"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 15,
+          "uci": "d7d6",
+          "cp_eval": -11.0,
+          "best_cp_eval": 13.0,
+          "eval_delta_cp": -24.0,
+          "cp_before": 13.0,
+          "phase": "middlegame",
+          "tags": [
+            "structural_compromise_dynamic"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 17,
+          "uci": "b8d7",
+          "cp_eval": -11.0,
+          "best_cp_eval": 0.0,
+          "eval_delta_cp": -11.0,
+          "cp_before": 0.0,
+          "phase": "middlegame",
+          "tags": [
+            "initiative_attempt",
+            "neutral_tension_creation",
+            "maneuver_opening"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 19,
+          "uci": "a7a6",
+          "cp_eval": -4.0,
+          "best_cp_eval": -4.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": -4.0,
+          "phase": "middlegame",
+          "tags": [
+            "opening_rook_pawn_move",
+            "deferred_initiative"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 21,
+          "uci": "b6b5",
+          "cp_eval": -2.0,
+          "best_cp_eval": -2.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": -2.0,
+          "phase": "middlegame",
+          "tags": [
+            "initiative_attempt",
+            "tension_creation",
+            "structural_integrity"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 23,
+          "uci": "d8b6",
+          "cp_eval": -3.0,
+          "best_cp_eval": -1.0,
+          "eval_delta_cp": -1.9999999999999998,
+          "cp_before": -1.0,
+          "phase": "middlegame",
+          "tags": [
+            "initiative_attempt",
+            "neutral_tension_creation",
+            "constructive_maneuver"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 25,
+          "uci": "a8b8",
+          "cp_eval": -10.0,
+          "best_cp_eval": -9.0,
+          "eval_delta_cp": -1.0000000000000009,
+          "cp_before": -9.0,
+          "phase": "middlegame",
+          "tags": [
+            "neutral_maneuver",
+            "deferred_initiative"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 27,
+          "uci": "a6b5",
+          "cp_eval": 25.0,
+          "best_cp_eval": 25.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 25.0,
+          "phase": "middlegame",
+          "tags": [
+            "tension_creation",
+            "control_over_dynamics",
+            "cod_file_seal",
+            "control_file_seal",
+            "structural_integrity"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 29,
+          "uci": "g7f6",
+          "cp_eval": 25.0,
+          "best_cp_eval": 27.0,
+          "eval_delta_cp": -2.0000000000000018,
+          "cp_before": 27.0,
+          "phase": "middlegame",
+          "tags": [
+            "control_over_dynamics",
+            "cod_file_seal",
+            "control_file_seal"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 31,
+          "uci": "d7c5",
+          "cp_eval": 16.0,
+          "best_cp_eval": 16.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 16.0,
+          "phase": "middlegame",
+          "tags": [
+            "neutral_tension_creation",
+            "control_over_dynamics",
+            "cod_file_seal",
+            "control_file_seal"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 33,
+          "uci": "b6a7",
+          "cp_eval": 19.0,
+          "best_cp_eval": 19.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 19.0,
+          "phase": "middlegame",
+          "tags": [
+            "neutral_maneuver",
+            "deferred_initiative"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 35,
+          "uci": "a7a3",
+          "cp_eval": -6.0,
+          "best_cp_eval": 20.0,
+          "eval_delta_cp": -26.0,
+          "cp_before": 20.0,
+          "phase": "middlegame",
+          "tags": [],
+          "has_queen": true
+        },
+        {
+          "ply": 37,
+          "uci": "b7a6",
+          "cp_eval": -7.000000000000001,
+          "best_cp_eval": -7.000000000000001,
+          "eval_delta_cp": 0.0,
+          "cp_before": -7.000000000000001,
+          "phase": "middlegame",
+          "tags": [
+            "neutral_maneuver",
+            "prophylactic_direct",
+            "deferred_initiative"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 39,
+          "uci": "a3c1",
+          "cp_eval": -4.0,
+          "best_cp_eval": -4.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": -4.0,
+          "phase": "middlegame",
+          "tags": [
+            "forced_move"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 41,
+          "uci": "b8b1",
+          "cp_eval": -3.0,
+          "best_cp_eval": -3.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": -3.0,
+          "phase": "endgame",
+          "tags": [],
+          "has_queen": false
+        },
+        {
+          "ply": 43,
+          "uci": "c5d7",
+          "cp_eval": -13.0,
+          "best_cp_eval": -6.0,
+          "eval_delta_cp": -7.000000000000001,
+          "cp_before": -6.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "prophylactic_direct",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 45,
+          "uci": "f8b8",
+          "cp_eval": -7.000000000000001,
+          "best_cp_eval": -7.000000000000001,
+          "eval_delta_cp": 0.0,
+          "cp_before": -7.000000000000001,
+          "phase": "endgame",
+          "tags": [
+            "constructive_maneuver"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 47,
+          "uci": "a6b7",
+          "cp_eval": -12.0,
+          "best_cp_eval": -10.0,
+          "eval_delta_cp": -1.9999999999999991,
+          "cp_before": -10.0,
+          "phase": "endgame",
+          "tags": [
+            "constructive_maneuver",
+            "prophylactic_latent",
+            "risk_avoidance",
+            "structural_compromise_dynamic"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 49,
+          "uci": "d7b6",
+          "cp_eval": -4.0,
+          "best_cp_eval": -1.0,
+          "eval_delta_cp": -3.0,
+          "cp_before": -1.0,
+          "phase": "endgame",
+          "tags": [
+            "constructive_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 51,
+          "uci": "b7g2",
+          "cp_eval": -7.000000000000001,
+          "best_cp_eval": -6.0,
+          "eval_delta_cp": -1.0000000000000009,
+          "cp_before": -6.0,
+          "phase": "endgame",
+          "tags": [
+            "structural_integrity",
+            "accurate_knight_bishop_exchange"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 53,
+          "uci": "b6d5",
+          "cp_eval": -13.0,
+          "best_cp_eval": -11.0,
+          "eval_delta_cp": -2.0000000000000004,
+          "cp_before": -11.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 55,
+          "uci": "g8g7",
+          "cp_eval": -14.000000000000002,
+          "best_cp_eval": -8.0,
+          "eval_delta_cp": -6.000000000000001,
+          "cp_before": -8.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 57,
+          "uci": "b8c8",
+          "cp_eval": -12.0,
+          "best_cp_eval": -8.0,
+          "eval_delta_cp": -3.9999999999999996,
+          "cp_before": -8.0,
+          "phase": "endgame",
+          "tags": [
+            "file_pressure_c",
+            "neutral_maneuver",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 59,
+          "uci": "d5c3",
+          "cp_eval": -3.0,
+          "best_cp_eval": 0.0,
+          "eval_delta_cp": -3.0,
+          "cp_before": 0.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "prophylactic_direct",
+            "control_over_dynamics",
+            "control_plan_kill"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 61,
+          "uci": "d6e5",
+          "cp_eval": -16.0,
+          "best_cp_eval": -11.0,
+          "eval_delta_cp": -5.0,
+          "cp_before": -11.0,
+          "phase": "endgame",
+          "tags": [
+            "risk_avoidance"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 63,
+          "uci": "f6g5",
+          "cp_eval": -10.0,
+          "best_cp_eval": -10.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": -10.0,
+          "phase": "endgame",
+          "tags": [
+            "forced_move"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 65,
+          "uci": "g5h6",
+          "cp_eval": -5.0,
+          "best_cp_eval": -5.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": -5.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "prophylactic_direct",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 67,
+          "uci": "c3d5",
+          "cp_eval": -14.000000000000002,
+          "best_cp_eval": 0.0,
+          "eval_delta_cp": -14.000000000000002,
+          "cp_before": 0.0,
+          "phase": "endgame",
+          "tags": [
+            "file_pressure_c",
+            "neutral_maneuver",
+            "prophylactic_direct",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 69,
+          "uci": "e7e6",
+          "cp_eval": -11.0,
+          "best_cp_eval": -11.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": -11.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "prophylactic_direct",
+            "control_over_dynamics",
+            "cod_plan_kill",
+            "control_plan_kill"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 71,
+          "uci": "g7g8",
+          "cp_eval": -10.0,
+          "best_cp_eval": -10.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": -10.0,
+          "phase": "endgame",
+          "tags": [
+            "constructive_maneuver",
+            "control_over_dynamics",
+            "cod_king_safety_shell",
+            "control_king_safety_shell",
+            "constructive_maneuver_prepare"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 73,
+          "uci": "h6f8",
+          "cp_eval": -7.000000000000001,
+          "best_cp_eval": -7.000000000000001,
+          "eval_delta_cp": 0.0,
+          "cp_before": -7.000000000000001,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "neutral_maneuver",
+            "prophylactic_latent",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 75,
+          "uci": "c8b8",
+          "cp_eval": -10.0,
+          "best_cp_eval": -2.0,
+          "eval_delta_cp": -8.0,
+          "cp_before": -2.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "deferred_initiative",
+            "risk_avoidance"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 77,
+          "uci": "b8b3",
+          "cp_eval": -580.0,
+          "best_cp_eval": 215.0,
+          "eval_delta_cp": -794.9999999999999,
+          "cp_before": 215.0,
+          "phase": "endgame",
+          "tags": [
+            "missed_tactic",
+            "failed_maneuver",
+            "speculative_sacrifice",
+            "misplaced_maneuver"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 79,
+          "uci": "b3b4",
+          "cp_eval": 0.0,
+          "best_cp_eval": 0.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 0.0,
+          "phase": "endgame",
+          "tags": [
+            "constructive_maneuver",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 81,
+          "uci": "h7h6",
+          "cp_eval": 0.0,
+          "best_cp_eval": 12.0,
+          "eval_delta_cp": -12.0,
+          "cp_before": 12.0,
+          "phase": "endgame",
+          "tags": [
+            "prophylactic_latent",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 83,
+          "uci": "b4c4",
+          "cp_eval": 3.0,
+          "best_cp_eval": 6.0,
+          "eval_delta_cp": -3.0,
+          "cp_before": 6.0,
+          "phase": "endgame",
+          "tags": [
+            "file_pressure_c",
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "prophylactic_direct",
+            "control_over_dynamics",
+            "control_plan_kill"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 85,
+          "uci": "c4c7",
+          "cp_eval": -1.0,
+          "best_cp_eval": 11.0,
+          "eval_delta_cp": -12.0,
+          "cp_before": 11.0,
+          "phase": "endgame",
+          "tags": [
+            "file_pressure_c",
+            "neutral_maneuver",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 87,
+          "uci": "g8g7",
+          "cp_eval": 7.000000000000001,
+          "best_cp_eval": 7.000000000000001,
+          "eval_delta_cp": 0.0,
+          "cp_before": 7.000000000000001,
+          "phase": "endgame",
+          "tags": [
+            "constructive_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 89,
+          "uci": "f8e7",
+          "cp_eval": 16.0,
+          "best_cp_eval": 16.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 16.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "prophylactic_latent",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 91,
+          "uci": "c7c3",
+          "cp_eval": 0.0,
+          "best_cp_eval": 9.0,
+          "eval_delta_cp": -9.0,
+          "cp_before": 9.0,
+          "phase": "endgame",
+          "tags": [
+            "file_pressure_c",
+            "neutral_maneuver",
+            "control_over_dynamics",
+            "cod_regroup_consolidate",
+            "control_regroup_consolidate",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 93,
+          "uci": "e7c5",
+          "cp_eval": 1.0,
+          "best_cp_eval": 8.0,
+          "eval_delta_cp": -7.000000000000001,
+          "cp_before": 8.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "prophylactic_latent",
+            "structural_compromise_dynamic"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 95,
+          "uci": "g7g8",
+          "cp_eval": 0.0,
+          "best_cp_eval": 0.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 0.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "control_over_dynamics",
+            "control_plan_kill",
+            "control_king_safety_shell",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 97,
+          "uci": "g8g7",
+          "cp_eval": 0.0,
+          "best_cp_eval": 0.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 0.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 99,
+          "uci": "g7g8",
+          "cp_eval": 0.0,
+          "best_cp_eval": 0.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 0.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "control_over_dynamics",
+            "cod_king_safety_shell",
+            "control_king_safety_shell",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 101,
+          "uci": "c3c4",
+          "cp_eval": -1.0,
+          "best_cp_eval": -1.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": -1.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 103,
+          "uci": "c4b4",
+          "cp_eval": -1.0,
+          "best_cp_eval": -1.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": -1.0,
+          "phase": "endgame",
+          "tags": [
+            "constructive_maneuver"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 105,
+          "uci": "d5b4",
+          "cp_eval": 0.0,
+          "best_cp_eval": 0.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 0.0,
+          "phase": "endgame",
+          "tags": [],
+          "has_queen": false
+        },
+        {
+          "ply": 107,
+          "uci": "b4d3",
+          "cp_eval": 12.0,
+          "best_cp_eval": 12.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 12.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 109,
+          "uci": "c5b6",
+          "cp_eval": 2.0,
+          "best_cp_eval": 35.0,
+          "eval_delta_cp": -32.99999999999999,
+          "cp_before": 35.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "prophylactic_latent",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 111,
+          "uci": "g8g7",
+          "cp_eval": 38.0,
+          "best_cp_eval": 38.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 38.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "control_over_dynamics",
+            "cod_file_seal",
+            "control_file_seal"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 113,
+          "uci": "b6f2",
+          "cp_eval": 76.0,
+          "best_cp_eval": 76.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 76.0,
+          "phase": "endgame",
+          "tags": [
+            "tactical_sacrifice",
+            "control_over_dynamics",
+            "cod_king_safety_shell",
+            "tactical_combination_sacrifice",
+            "control_king_safety_shell"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 115,
+          "uci": "f2a7",
+          "cp_eval": 60.0,
+          "best_cp_eval": 112.00000000000001,
+          "eval_delta_cp": -52.000000000000014,
+          "cp_before": 112.00000000000001,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "prophylactic_meaningless"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 117,
+          "uci": "a7e3",
+          "cp_eval": 56.99999999999999,
+          "best_cp_eval": 124.0,
+          "eval_delta_cp": -67.0,
+          "cp_before": 124.0,
+          "phase": "endgame",
+          "tags": [
+            "failed_maneuver",
+            "prophylactic_meaningless",
+            "misplaced_maneuver"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 119,
+          "uci": "e3f4",
+          "cp_eval": 49.0,
+          "best_cp_eval": 54.0,
+          "eval_delta_cp": -5.000000000000004,
+          "cp_before": 54.0,
+          "phase": "endgame",
+          "tags": [
+            "tactical_sacrifice",
+            "control_over_dynamics",
+            "cod_regroup_consolidate",
+            "control_regroup_consolidate"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 121,
+          "uci": "g6g5",
+          "cp_eval": 31.0,
+          "best_cp_eval": 48.0,
+          "eval_delta_cp": -17.0,
+          "cp_before": 48.0,
+          "phase": "endgame",
+          "tags": [
+            "prophylactic_latent",
+            "control_over_dynamics",
+            "cod_file_seal",
+            "control_file_seal",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 123,
+          "uci": "d3b4",
+          "cp_eval": 13.0,
+          "best_cp_eval": 19.0,
+          "eval_delta_cp": -6.0,
+          "cp_before": 19.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "prophylactic_latent",
+            "control_over_dynamics",
+            "cod_file_seal",
+            "control_file_seal"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 125,
+          "uci": "b4c6",
+          "cp_eval": 10.0,
+          "best_cp_eval": 11.0,
+          "eval_delta_cp": -0.9999999999999996,
+          "cp_before": 11.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 127,
+          "uci": "c6e7",
+          "cp_eval": 7.000000000000001,
+          "best_cp_eval": 8.0,
+          "eval_delta_cp": -0.9999999999999996,
+          "cp_before": 8.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "prophylactic_latent",
+            "control_over_dynamics",
+            "cod_file_seal",
+            "control_file_seal",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 129,
+          "uci": "e7d5",
+          "cp_eval": 12.0,
+          "best_cp_eval": 12.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 12.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "positional_sacrifice",
+            "prophylactic_latent",
+            "positional_space_sacrifice"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 131,
+          "uci": "d5e3",
+          "cp_eval": 10.0,
+          "best_cp_eval": 13.0,
+          "eval_delta_cp": -3.0,
+          "cp_before": 13.0,
+          "phase": "endgame",
+          "tags": [
+            "constructive_maneuver",
+            "positional_sacrifice",
+            "prophylactic_latent",
+            "positional_space_sacrifice",
+            "risk_avoidance",
+            "structural_compromise_dynamic"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 133,
+          "uci": "e3c4",
+          "cp_eval": 5.0,
+          "best_cp_eval": 7.000000000000001,
+          "eval_delta_cp": -2.0000000000000004,
+          "cp_before": 7.000000000000001,
+          "phase": "endgame",
+          "tags": [
+            "constructive_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 135,
+          "uci": "c4d2",
+          "cp_eval": 8.0,
+          "best_cp_eval": 8.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 8.0,
+          "phase": "endgame",
+          "tags": [
+            "control_over_dynamics",
+            "cod_king_safety_shell",
+            "control_king_safety_shell",
+            "control_regroup_consolidate"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 137,
+          "uci": "d2c4",
+          "cp_eval": 6.0,
+          "best_cp_eval": 8.0,
+          "eval_delta_cp": -2.0000000000000004,
+          "cp_before": 8.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 139,
+          "uci": "c4d2",
+          "cp_eval": 11.0,
+          "best_cp_eval": 11.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 11.0,
+          "phase": "endgame",
+          "tags": [
+            "control_over_dynamics",
+            "cod_king_safety_shell",
+            "control_king_safety_shell",
+            "control_regroup_consolidate"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 141,
+          "uci": "d2b3",
+          "cp_eval": 6.0,
+          "best_cp_eval": 6.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 6.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 143,
+          "uci": "g7h8",
+          "cp_eval": 0.0,
+          "best_cp_eval": 3.0,
+          "eval_delta_cp": -3.0,
+          "cp_before": 3.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "prophylactic_latent",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 145,
+          "uci": "h8g8",
+          "cp_eval": 2.0,
+          "best_cp_eval": 10.0,
+          "eval_delta_cp": -8.0,
+          "cp_before": 10.0,
+          "phase": "endgame",
+          "tags": [
+            "constructive_maneuver",
+            "control_over_dynamics",
+            "cod_king_safety_shell",
+            "control_king_safety_shell"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 147,
+          "uci": "b3d2",
+          "cp_eval": 5.0,
+          "best_cp_eval": 5.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 5.0,
+          "phase": "endgame",
+          "tags": [
+            "control_over_dynamics",
+            "cod_king_safety_shell",
+            "control_file_seal",
+            "control_king_safety_shell",
+            "control_regroup_consolidate"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 149,
+          "uci": "d2c4",
+          "cp_eval": 6.0,
+          "best_cp_eval": 13.0,
+          "eval_delta_cp": -7.000000000000001,
+          "cp_before": 13.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 151,
+          "uci": "f4c1",
+          "cp_eval": 1.0,
+          "best_cp_eval": 6.0,
+          "eval_delta_cp": -5.0,
+          "cp_before": 6.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "prophylactic_latent",
+            "control_over_dynamics",
+            "cod_file_seal",
+            "control_file_seal",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 153,
+          "uci": "g8g7",
+          "cp_eval": 2.0,
+          "best_cp_eval": 2.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 2.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "control_over_dynamics",
+            "cod_file_seal",
+            "control_file_seal"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 155,
+          "uci": "c1b2",
+          "cp_eval": 11.0,
+          "best_cp_eval": 11.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 11.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 157,
+          "uci": "b2c1",
+          "cp_eval": 5.0,
+          "best_cp_eval": 9.0,
+          "eval_delta_cp": -3.9999999999999996,
+          "cp_before": 9.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "prophylactic_latent",
+            "control_over_dynamics",
+            "cod_file_seal",
+            "control_file_seal",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 159,
+          "uci": "c1f4",
+          "cp_eval": 0.0,
+          "best_cp_eval": 3.0,
+          "eval_delta_cp": -3.0,
+          "cp_before": 3.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "tactical_sacrifice",
+            "prophylactic_latent",
+            "tactical_initiative_sacrifice",
+            "risk_avoidance"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 161,
+          "uci": "c4d2",
+          "cp_eval": 8.0,
+          "best_cp_eval": 12.0,
+          "eval_delta_cp": -3.9999999999999996,
+          "cp_before": 12.0,
+          "phase": "endgame",
+          "tags": [
+            "constructive_maneuver",
+            "tactical_sacrifice",
+            "prophylactic_latent",
+            "tactical_initiative_sacrifice",
+            "deferred_initiative",
+            "risk_avoidance"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 163,
+          "uci": "d2c4",
+          "cp_eval": 18.0,
+          "best_cp_eval": 18.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 18.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 165,
+          "uci": "c4e3",
+          "cp_eval": 3.0,
+          "best_cp_eval": 7.000000000000001,
+          "eval_delta_cp": -4.000000000000001,
+          "cp_before": 7.000000000000001,
+          "phase": "endgame",
+          "tags": [
+            "file_pressure_c",
+            "neutral_maneuver",
+            "positional_sacrifice",
+            "prophylactic_latent",
+            "deferred_initiative",
+            "positional_structure_sacrifice"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 167,
+          "uci": "e3d5",
+          "cp_eval": 13.0,
+          "best_cp_eval": 13.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 13.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 169,
+          "uci": "f4d2",
+          "cp_eval": 9.0,
+          "best_cp_eval": 9.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 9.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "prophylactic_latent",
+            "control_over_dynamics",
+            "cod_file_seal",
+            "control_file_seal"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 171,
+          "uci": "d2c3",
+          "cp_eval": 7.000000000000001,
+          "best_cp_eval": 10.0,
+          "eval_delta_cp": -3.0,
+          "cp_before": 10.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 173,
+          "uci": "d5f4",
+          "cp_eval": 8.0,
+          "best_cp_eval": 11.0,
+          "eval_delta_cp": -3.0,
+          "cp_before": 11.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "positional_sacrifice",
+            "prophylactic_latent",
+            "deferred_initiative",
+            "positional_space_sacrifice"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 175,
+          "uci": "f4d5",
+          "cp_eval": 15.0,
+          "best_cp_eval": 21.0,
+          "eval_delta_cp": -6.0,
+          "cp_before": 21.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_tension_creation",
+            "constructive_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 177,
+          "uci": "c3d2",
+          "cp_eval": 15.0,
+          "best_cp_eval": 16.0,
+          "eval_delta_cp": -1.0000000000000009,
+          "cp_before": 16.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "prophylactic_latent",
+            "control_over_dynamics",
+            "cod_file_seal",
+            "control_file_seal",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 179,
+          "uci": "d2f4",
+          "cp_eval": 11.0,
+          "best_cp_eval": 16.0,
+          "eval_delta_cp": -5.0,
+          "cp_before": 16.0,
+          "phase": "endgame",
+          "tags": [
+            "constructive_maneuver",
+            "tactical_sacrifice",
+            "prophylactic_latent",
+            "control_over_dynamics",
+            "cod_regroup_consolidate",
+            "tactical_initiative_sacrifice",
+            "control_regroup_consolidate",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 181,
+          "uci": "d5e3",
+          "cp_eval": 0.0,
+          "best_cp_eval": 0.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 0.0,
+          "phase": "endgame",
+          "tags": [
+            "constructive_maneuver",
+            "positional_sacrifice",
+            "prophylactic_latent",
+            "positional_space_sacrifice",
+            "risk_avoidance",
+            "structural_compromise_dynamic"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 183,
+          "uci": "e3c4",
+          "cp_eval": 0.0,
+          "best_cp_eval": 4.0,
+          "eval_delta_cp": -4.0,
+          "cp_before": 4.0,
+          "phase": "endgame",
+          "tags": [
+            "constructive_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 185,
+          "uci": "g7g8",
+          "cp_eval": 6.0,
+          "best_cp_eval": 8.0,
+          "eval_delta_cp": -2.0000000000000004,
+          "cp_before": 8.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "prophylactic_latent",
+            "control_over_dynamics",
+            "cod_regroup_consolidate",
+            "control_regroup_consolidate",
+            "deferred_initiative"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 187,
+          "uci": "g8h8",
+          "cp_eval": 0.0,
+          "best_cp_eval": 0.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 0.0,
+          "phase": "endgame",
+          "tags": [
+            "neutral_maneuver",
+            "control_over_dynamics",
+            "cod_file_seal",
+            "control_file_seal"
+          ],
+          "has_queen": false
+        },
+        {
+          "ply": 189,
+          "uci": "h8g7",
+          "cp_eval": 0.0,
+          "best_cp_eval": 0.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": 0.0,
+          "phase": "endgame",
+          "tags": [
+            "constructive_maneuver",
+            "prophylactic_latent"
+          ],
+          "has_queen": false
+        }
+      ]
+    },
+    {
+      "game_index": 3,
+      "game_id": "Kasparov_vs_XuXiangyu_2025",
+      "color": "black",
+      "result": "loss",
+      "opponent": "Xu,Xiangyu",
+      "opponent_elo": 2612,
+      "date": "2025.07.14",
+      "eco": "",
+      "opening": "",
+      "variation": "",
+      "first_moves": "1. Nf3 Nf6 2. g3 b6 3. Bg2 Bb7 4. c4 c5",
+      "moves": [
+        {
+          "ply": 1,
+          "uci": "g8f6",
+          "cp_eval": -20.0,
+          "best_cp_eval": -20.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": -20.0,
+          "phase": "middlegame",
+          "tags": [
+            "maneuver_opening"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 3,
+          "uci": "b7b6",
+          "cp_eval": -38.0,
+          "best_cp_eval": -14.000000000000002,
+          "eval_delta_cp": -24.0,
+          "cp_before": -14.000000000000002,
+          "phase": "middlegame",
+          "tags": [],
+          "has_queen": true
+        },
+        {
+          "ply": 5,
+          "uci": "c8b7",
+          "cp_eval": -28.999999999999996,
+          "best_cp_eval": -28.999999999999996,
+          "eval_delta_cp": 0.0,
+          "cp_before": -28.999999999999996,
+          "phase": "middlegame",
+          "tags": [
+            "maneuver_opening"
+          ],
+          "has_queen": true
+        },
+        {
+          "ply": 7,
+          "uci": "c7c5",
+          "cp_eval": -38.0,
+          "best_cp_eval": -38.0,
+          "eval_delta_cp": 0.0,
+          "cp_before": -38.0,
+          "phase": "middlegame",
+          "tags": [],
+          "has_queen": true
+        },
+        {
+          "ply": 9,
+          "uci": "g7g6",
+          "cp_eval": -28.000000000000004,
+          "best_cp_eval": -28.000000000000004,
+          "eval_delta_cp": 0.0,
+          "cp_before": -28.000000000000004,
+          "phase": "middlegame",
+          "tags": [],
+          "has_queen": true
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "games": 3,
+    "moves": 120
+  }
+}

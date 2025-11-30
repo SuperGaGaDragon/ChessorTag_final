@@ -1141,6 +1141,13 @@
   </div>
 
   <script>
+    (function enforceAuth() {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        window.location.href = '/login/';
+      }
+    })();
+
     const API_BASE = 'https://api.chessortag.org';
 
     function authHeaders() {

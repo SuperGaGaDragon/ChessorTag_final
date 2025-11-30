@@ -657,6 +657,13 @@
   </div>
 
   <script>
+    (function enforceAuth() {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        window.location.href = '/login/';
+      }
+    })();
+
     const API_BASE = 'https://api.chessortag.org';
 
     function authHeaders() {
@@ -673,6 +680,11 @@
         return true;
       }
       return false;
+    }
+
+    function renameItem(id) {
+      // Placeholder to avoid runtime errors; hook real rename logic later.
+      console.log('renameItem called with id:', id);
     }
 
     const catImages = [
@@ -1390,7 +1402,6 @@
     });
 
     loadWorkspace();
-  });
   </script>
 </body>
 </html>
