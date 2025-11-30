@@ -10,4 +10,5 @@ nanoid
 numpy
 passlib[bcrypt]
 python-jose[cryptography]
+bcrypt
 email-validator

@@ -1,40 +1,54 @@
-import os
 from datetime import datetime, timedelta
+import os
+import jwt
+import bcrypt  # 直接用 bcrypt，而不是 passlib
 
-from jose import jwt
-from passlib.context import CryptContext
-
-SECRET_KEY = os.getenv("SECRET_KEY") or os.getenv("AUTH_SECRET_KEY") or "SUPER_SECRET_KEY"  # Railway 里要设置
+# ---- JWT 配置 ----
+SECRET_KEY = os.getenv("SECRET_KEY") or os.getenv("AUTH_SECRET_KEY") or "DEV_ONLY_SECRET_KEY"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 30  # 30 天
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# ---- 密码工具 ----
 
 
-def _normalize_password(password: str) -> str:
+def _normalize_password(password: str) -> bytes:
     """
-    bcrypt 只支持前 72 bytes，我们统一在这里截断，避免 ValueError。
+    bcrypt 只使用前 72 bytes，这里统一截断，并返回 bytes。
     """
     if password is None:
-        return ""
-    # 按字节长度截断到 72
-    password_bytes = password.encode("utf-8")
-    if len(password_bytes) > 72:
-        password_bytes = password_bytes[:72]
-    return password_bytes.decode("utf-8", errors="ignore")
+        password = ""
+    pw_bytes = password.encode("utf-8")
+    if len(pw_bytes) > 72:
+        pw_bytes = pw_bytes[:72]
+    return pw_bytes
 
 
 def hash_password(password: str) -> str:
-    pw = _normalize_password(password)
-    return pwd_context.hash(pw)
+    pw_bytes = _normalize_password(password)
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(pw_bytes, salt)
+    # 存 DB 时用 str
+    return hashed.decode("utf-8")
 
 
-def verify_password(plain: str, hashed: str) -> bool:
-    pw = _normalize_password(plain)
-    return pwd_context.verify(pw, hashed)
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    pw_bytes = _normalize_password(plain_password)
+    hashed_bytes = hashed_password.encode("utf-8")
+    return bcrypt.checkpw(pw_bytes, hashed_bytes)
+
+
+# ---- JWT 生成 ----
 
 
 def create_access_token(user_id: str, email: str) -> str:
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    payload = {"sub": str(user_id), "email": email, "exp": expire}
-    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    payload = {
+        "sub": str(user_id),
+        "email": email,
+        "exp": expire,
+    }
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    # pyjwt 在新版本里已经默认返回 str，这里保险一下
+    if isinstance(token, bytes):
+        token = token.decode("utf-8")
+    return token
