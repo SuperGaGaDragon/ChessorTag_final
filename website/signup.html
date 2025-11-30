@@ -791,6 +791,10 @@
           alert("Please enter email and password.");
           return;
         }
+        if (!email.includes("@")) {
+          alert("Please enter a valid email address.");
+          return;
+        }
 
         try {
           console.log("Sending signup request for", email);
@@ -805,8 +809,24 @@
           });
 
           if (!resp.ok) {
-            const errorText = await resp.text();
-            console.error("Signup failed:", resp.status, errorText);
+            const rawText = await resp.text();
+            let errorText = rawText;
+            try {
+              const parsed = JSON.parse(rawText);
+              // pydantic style detail message
+              if (parsed?.detail && Array.isArray(parsed.detail)) {
+                const first = parsed.detail[0];
+                if (first?.msg) {
+                  errorText = first.msg;
+                }
+              } else if (parsed.detail) {
+                errorText = typeof parsed.detail === "string" ? parsed.detail : JSON.stringify(parsed.detail);
+              }
+            } catch (_) {
+              // fallback to raw text
+            }
+
+            console.error("Signup failed:", resp.status, rawText);
             const lowerText = (errorText || "").toLowerCase();
             if (resp.status === 400 && lowerText.includes("already")) {
               showEmailTakenOverlay("email already registered, you may wanna login or change a new one");
