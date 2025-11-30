@@ -1150,6 +1150,11 @@
 
     const API_BASE = 'https://api.chessortag.org';
 
+    function getStudyIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id');
+    }
+
     function authHeaders() {
       const token = localStorage.getItem('authToken');
       return {
@@ -1165,6 +1170,65 @@
       }
       return false;
     }
+
+    function getStudyIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id');
+    }
+
+    async function loadStudy(studyId) {
+      try {
+        const res = await fetch(`${API_BASE}/api/study/${encodeURIComponent(studyId)}`, {
+          headers: authHeaders(),
+        });
+        if (handleUnauthorized(res)) return;
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || `HTTP ${res.status}`);
+        }
+        const study = await res.json();
+        const titleEl = document.getElementById('studyTitle');
+        if (titleEl) {
+          titleEl.textContent = study.name || 'Untitled study';
+        }
+        // TODO: hydrate board state from study.data when backend persists it
+      } catch (err) {
+        console.error('Failed to load study', err);
+        alert('Failed to load study');
+      }
+    }
+
+    async function loadStudy(studyId) {
+      try {
+        const res = await fetch(`${API_BASE}/api/study/${encodeURIComponent(studyId)}`, {
+          headers: authHeaders(),
+        });
+        if (handleUnauthorized(res)) return;
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || `HTTP ${res.status}`);
+        }
+        const study = await res.json();
+        const titleEl = document.getElementById('studyTitle');
+        if (titleEl) {
+          titleEl.textContent = study.name || 'Untitled study';
+        }
+        // if backend stores data (fen/moves), hydrate here later
+      } catch (err) {
+        console.error('Failed to load study', err);
+        alert('Failed to load study');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const studyId = getStudyIdFromUrl();
+      if (!studyId) {
+        alert('Missing study id');
+        window.location.href = '/home/';
+        return;
+      }
+      loadStudy(studyId);
+    });
 
   const pgnBox = document.getElementById("pgnBox");
     const gameSourceLabel = document.getElementById("gameSourceLabel");

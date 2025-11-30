@@ -960,35 +960,52 @@
     }
 
     // Create a new study tile (click to open later)
-    function createNewStudy() {
+    async function createNewStudy(parentId = null) {
       const grid = document.getElementById('desktopGrid');
-      const newStudy = document.createElement('div');
-      newStudy.className = 'icon-folder';
-      newStudy.setAttribute('data-type', 'study');
-      newStudy.setAttribute('data-id', nextId);
-      newStudy.setAttribute('data-local', 'true');
+      try {
+        const res = await fetch(`${API_BASE}/api/workspace/studies`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ name: 'New study', folder_id: parentId }),
+        });
+        if (handleUnauthorized(res)) return null;
+        if (!res.ok) {
+          alert('Failed to create study');
+          return null;
+        }
+        const study = await res.json();
+        itemRegistry[study.id] = { id: study.id, type: 'study', name: study.name };
+        itemParent[study.id] = parentId;
+        if (parentId) {
+          folderContents[parentId] = folderContents[parentId] || [];
+          if (!folderContents[parentId].includes(study.id)) {
+            folderContents[parentId].push(study.id);
+          }
+          updateFolderCaption(parentId);
+        }
 
-      newStudy.innerHTML = `
-        <strong class="folder-name" onclick="renameItem(event, this)">New study</strong>
-        <span class="icon-caption">Open board workspace</span>
-      `;
+        const newStudy = buildStudyTileFromMeta(itemRegistry[study.id]);
 
-      const firstRegularItem = grid.querySelector('.icon-folder:not(.add-tile)');
-      if (firstRegularItem) {
-        grid.insertBefore(newStudy, firstRegularItem);
-      } else {
-        grid.appendChild(newStudy);
+        // Keep the add tiles at the front, insert the new study right after them
+        const firstRegularItem = grid.querySelector('.icon-folder:not(.add-tile)');
+        if (firstRegularItem) {
+          grid.insertBefore(newStudy, firstRegularItem);
+        } else {
+          grid.appendChild(newStudy);
+        }
+
+        // Auto-select the name for renaming
+        setTimeout(() => {
+          const nameEl = newStudy.querySelector('.folder-name');
+          startEditing(nameEl);
+        }, 50);
+
+        return newStudy;
+      } catch (err) {
+        console.error('Create study failed', err);
+        alert('Network error while creating study');
+        return null;
       }
-      nextId++;
-
-      setTimeout(() => {
-        const nameEl = newStudy.querySelector('.folder-name');
-        startEditing(nameEl);
-      }, 50);
-
-      registerTile(newStudy);
-
-      return newStudy;
     }
 
     // Handle renaming items (Apple-style)
@@ -1133,7 +1150,7 @@
           const newTile = createNewFolder();
           addCatSticker(newTile);
         } else if (type === 'study') {
-          window.location.href = '../study/';
+          window.location.href = `../study/?id=${encodeURIComponent(id)}`;
         } else if (type === 'folder') {
           openFolderModal(name, id);
         }

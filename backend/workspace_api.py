@@ -75,27 +75,34 @@ def create_folder(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if payload.parent_id:
-        parent = (
-            db.query(Folder)
-            .filter(Folder.id == payload.parent_id, Folder.owner_id == current_user.id)
-            .first()
-        )
-        if not parent:
-            raise HTTPException(status_code=404, detail="Parent folder not found")
+    try:
+        if payload.parent_id:
+            parent = (
+                db.query(Folder)
+                .filter(Folder.id == payload.parent_id, Folder.owner_id == current_user.id)
+                .first()
+            )
+            if not parent:
+                raise HTTPException(status_code=404, detail="Parent folder not found")
 
-    folder = Folder(
-        id=str(uuid4()),
-        name=payload.name,
-        parent_id=payload.parent_id,
-        color=payload.color,
-        image_key=payload.image_key,
-        owner_id=current_user.id,
-    )
-    db.add(folder)
-    db.commit()
-    db.refresh(folder)
-    return folder
+        folder = Folder(
+            id=str(uuid4()),
+            name=payload.name,
+            parent_id=payload.parent_id,
+            color=payload.color,
+            image_key=payload.image_key,
+            owner_id=current_user.id,
+        )
+        db.add(folder)
+        db.commit()
+        db.refresh(folder)
+        return folder
+    except HTTPException:
+        # let HTTP errors propagate
+        raise
+    except Exception as exc:  # surface server-side errors to help debugging
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to create folder: {exc}")
 
 
 @router.patch("/folders/{folder_id}", response_model=FolderOut)
@@ -136,9 +143,51 @@ def update_folder(
     return folder
 
 
+class StudyCreate(BaseModel):
+    name: str
+    folder_id: Optional[str] = None
+
+
 class StudyUpdate(BaseModel):
     name: Optional[str] = None
     folder_id: Optional[str] = None
+
+
+@router.post("/studies", response_model=StudySummary, status_code=status.HTTP_201_CREATED)
+def create_study(
+    payload: StudyCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Create a new study"""
+    try:
+        # Validate folder_id if provided
+        if payload.folder_id:
+            folder = (
+                db.query(Folder)
+                .filter(Folder.id == payload.folder_id, Folder.owner_id == current_user.id)
+                .first()
+            )
+            if not folder:
+                raise HTTPException(status_code=404, detail="Folder not found")
+
+        # Create new study
+        study = Study(
+            name=payload.name,
+            folder_id=payload.folder_id,
+            owner_id=current_user.id,
+            data={},  # Initialize with empty data
+            is_public=False,  # Default to private
+        )
+        db.add(study)
+        db.commit()
+        db.refresh(study)
+        return study
+    except HTTPException:
+        raise
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to create study: {exc}")
 
 
 @router.patch("/studies/{study_id}", response_model=StudySummary)

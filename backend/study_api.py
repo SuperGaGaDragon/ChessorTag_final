@@ -15,6 +15,7 @@ from fastapi import APIRouter, FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from .auth_api import get_current_user
@@ -121,6 +122,7 @@ class AnalyzeResponse(BaseModel):
 class StudyGetResponse(BaseModel):
     study_id: str
     title: str | None
+    name: str | None = None
     data: Dict[str, Any]
     created_at: datetime
 
@@ -545,10 +547,17 @@ def test_db(db: Session = Depends(get_db), current_user: User = Depends(get_curr
 
 
 @router.get("/{study_id}", response_model=StudyGetResponse)
-def get_study(study_id: str, db: Session = Depends(get_db)):
+def get_study(
+    study_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     study = (
         db.query(Study)
-        .filter(Study.id == study_id, Study.is_public == True)
+        .filter(
+            Study.id == study_id,
+            or_(Study.owner_id == current_user.id, Study.is_public == True),
+        )
         .first()
     )
     if not study:
@@ -557,6 +566,7 @@ def get_study(study_id: str, db: Session = Depends(get_db)):
     return StudyGetResponse(
         study_id=study.id,
         title=study.title,
+        name=study.name or study.title,
         data=study.data,
         created_at=study.created_at,
     )
