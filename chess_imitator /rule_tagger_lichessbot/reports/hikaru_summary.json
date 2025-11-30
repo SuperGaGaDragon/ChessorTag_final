@@ -689,5 +689,318 @@
         "ratio": 0.0238
       }
     }
+  },
+  {
+    "game_index": 6,
+    "player": "Kasparov",
+    "moves_analyzed": 30,
+    "tag_distribution": {
+      "prophylactic_latent": {
+        "count": 13,
+        "ratio": 0.4333
+      },
+      "constructive_maneuver": {
+        "count": 7,
+        "ratio": 0.2333
+      },
+      "control_over_dynamics": {
+        "count": 7,
+        "ratio": 0.2333
+      },
+      "deferred_initiative": {
+        "count": 6,
+        "ratio": 0.2
+      },
+      "neutral_tension_creation": {
+        "count": 5,
+        "ratio": 0.1667
+      },
+      "structural_integrity": {
+        "count": 5,
+        "ratio": 0.1667
+      },
+      "maneuver_opening": {
+        "count": 4,
+        "ratio": 0.1333
+      },
+      "neutral_maneuver": {
+        "count": 4,
+        "ratio": 0.1333
+      },
+      "cod_king_safety_shell": {
+        "count": 3,
+        "ratio": 0.1
+      },
+      "constructive_maneuver_prepare": {
+        "count": 3,
+        "ratio": 0.1
+      },
+      "control_king_safety_shell": {
+        "count": 3,
+        "ratio": 0.1
+      },
+      "control_regroup_consolidate": {
+        "count": 3,
+        "ratio": 0.1
+      },
+      "initiative_attempt": {
+        "count": 3,
+        "ratio": 0.1
+      },
+      "prophylactic_direct": {
+        "count": 3,
+        "ratio": 0.1
+      },
+      "structural_compromise_dynamic": {
+        "count": 3,
+        "ratio": 0.1
+      },
+      "cod_file_seal": {
+        "count": 2,
+        "ratio": 0.0667
+      },
+      "control_file_seal": {
+        "count": 2,
+        "ratio": 0.0667
+      },
+      "positional_sacrifice": {
+        "count": 2,
+        "ratio": 0.0667
+      },
+      "positional_space_sacrifice": {
+        "count": 2,
+        "ratio": 0.0667
+      },
+      "structural_compromise_static": {
+        "count": 2,
+        "ratio": 0.0667
+      },
+      "tension_creation": {
+        "count": 2,
+        "ratio": 0.0667
+      },
+      "accurate_knight_bishop_exchange": {
+        "count": 1,
+        "ratio": 0.0333
+      },
+      "cod_regroup_consolidate": {
+        "count": 1,
+        "ratio": 0.0333
+      },
+      "control_freeze_bind": {
+        "count": 1,
+        "ratio": 0.0333
+      },
+      "control_plan_kill": {
+        "count": 1,
+        "ratio": 0.0333
+      },
+      "control_space_clamp": {
+        "count": 1,
+        "ratio": 0.0333
+      },
+      "failed_maneuver": {
+        "count": 1,
+        "ratio": 0.0333
+      },
+      "forced_move": {
+        "count": 1,
+        "ratio": 0.0333
+      },
+      "inaccurate_knight_bishop_exchange": {
+        "count": 1,
+        "ratio": 0.0333
+      },
+      "misplaced_maneuver": {
+        "count": 1,
+        "ratio": 0.0333
+      },
+      "missed_tactic": {
+        "count": 1,
+        "ratio": 0.0333
+      },
+      "opening_central_pawn_move": {
+        "count": 1,
+        "ratio": 0.0333
+      },
+      "premature_attack": {
+        "count": 1,
+        "ratio": 0.0333
+      }
+    }
+  },
+  {
+    "game_index": 7,
+    "player": "Kasparov",
+    "moves_analyzed": 57,
+    "tag_distribution": {
+      "winning_position_handling": {
+        "count": 16,
+        "ratio": 0.2807
+      },
+      "prophylactic_latent": {
+        "count": 13,
+        "ratio": 0.2281
+      },
+      "control_over_dynamics": {
+        "count": 12,
+        "ratio": 0.2105
+      },
+      "neutral_maneuver": {
+        "count": 11,
+        "ratio": 0.193
+      },
+      "deferred_initiative": {
+        "count": 10,
+        "ratio": 0.1754
+      },
+      "control_file_seal": {
+        "count": 8,
+        "ratio": 0.1404
+      },
+      "cod_file_seal": {
+        "count": 6,
+        "ratio": 0.1053
+      },
+      "control_regroup_consolidate": {
+        "count": 5,
+        "ratio": 0.0877
+      },
+      "maneuver_opening": {
+        "count": 5,
+        "ratio": 0.0877
+      },
+      "structural_integrity": {
+        "count": 5,
+        "ratio": 0.0877
+      },
+      "forced_move": {
+        "count": 4,
+        "ratio": 0.0702
+      },
+      "risk_avoidance": {
+        "count": 4,
+        "ratio": 0.0702
+      },
+      "tension_creation": {
+        "count": 4,
+        "ratio": 0.0702
+      },
+      "cod_regroup_consolidate": {
+        "count": 3,
+        "ratio": 0.0526
+      },
+      "constructive_maneuver": {
+        "count": 3,
+        "ratio": 0.0526
+      },
+      "control_king_safety_shell": {
+        "count": 2,
+        "ratio": 0.0351
+      },
+      "control_plan_kill": {
+        "count": 2,
+        "ratio": 0.0351
+      },
+      "inaccurate_knight_bishop_exchange": {
+        "count": 2,
+        "ratio": 0.0351
+      },
+      "neutral_tension_creation": {
+        "count": 2,
+        "ratio": 0.0351
+      },
+      "prophylactic_direct": {
+        "count": 2,
+        "ratio": 0.0351
+      },
+      "accurate_knight_bishop_exchange": {
+        "count": 1,
+        "ratio": 0.0175
+      },
+      "cod_freeze_bind": {
+        "count": 1,
+        "ratio": 0.0175
+      },
+      "cod_plan_kill": {
+        "count": 1,
+        "ratio": 0.0175
+      },
+      "control_freeze_bind": {
+        "count": 1,
+        "ratio": 0.0175
+      },
+      "failed_maneuver": {
+        "count": 1,
+        "ratio": 0.0175
+      },
+      "initiative_attempt": {
+        "count": 1,
+        "ratio": 0.0175
+      },
+      "misplaced_maneuver": {
+        "count": 1,
+        "ratio": 0.0175
+      },
+      "missed_tactic": {
+        "count": 1,
+        "ratio": 0.0175
+      },
+      "opening_central_pawn_move": {
+        "count": 1,
+        "ratio": 0.0175
+      },
+      "positional_sacrifice": {
+        "count": 1,
+        "ratio": 0.0175
+      },
+      "positional_structure_sacrifice": {
+        "count": 1,
+        "ratio": 0.0175
+      },
+      "premature_attack": {
+        "count": 1,
+        "ratio": 0.0175
+      },
+      "prophylactic_meaningless": {
+        "count": 1,
+        "ratio": 0.0175
+      },
+      "structural_compromise_dynamic": {
+        "count": 1,
+        "ratio": 0.0175
+      },
+      "structural_compromise_static": {
+        "count": 1,
+        "ratio": 0.0175
+      },
+      "tactical_sensitivity": {
+        "count": 1,
+        "ratio": 0.0175
+      }
+    }
+  },
+  {
+    "game_index": 8,
+    "player": "Kasparov",
+    "moves_analyzed": 4,
+    "tag_distribution": {
+      "maneuver_opening": {
+        "count": 2,
+        "ratio": 0.5
+      },
+      "structural_integrity": {
+        "count": 2,
+        "ratio": 0.5
+      },
+      "neutral_tension_creation": {
+        "count": 1,
+        "ratio": 0.25
+      },
+      "tension_creation": {
+        "count": 1,
+        "ratio": 0.25
+      }
+    }
   }
 ]
