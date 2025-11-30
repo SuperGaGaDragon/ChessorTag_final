@@ -476,7 +476,7 @@
           <span>or</span>
         </div>
 
-        <a href="#" class="btn-signup" id="signupBtn">Sign Up</a>
+        <a href="/signup.html" class="btn-signup" id="signupBtn">Sign Up</a>
       </form>
     </div>
   </div>
@@ -539,40 +539,10 @@
       }
     });
 
-    signupBtn.addEventListener('click', async (e) => {
+    signupBtn.addEventListener('click', (e) => {
+      // Let the anchor handle navigation; this ensures users land on the signup page.
       e.preventDefault();
-      const email = document.querySelector('input[type="email"]').value;
-      const password = document.querySelector('input[type="password"]').value;
-
-      try {
-        const res = await fetch(`${API_BASE}/api/auth/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-
-        if (!res.ok) {
-          const msg = await res.text();
-          alert('Register failed: ' + msg);
-          return;
-        }
-
-        const loginRes = await fetch(`${API_BASE}/api/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        if (!loginRes.ok) {
-          alert('Login failed after signup');
-          return;
-        }
-        const tokenData = await loginRes.json();
-        localStorage.setItem('authToken', tokenData.access_token);
-        window.location.href = '/home/';
-      } catch (err) {
-        console.error(err);
-        alert('Network error');
-      }
+      window.location.href = '/signup.html';
     });
 
     // Blinking cats system
