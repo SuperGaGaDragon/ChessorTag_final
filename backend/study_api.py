@@ -13,6 +13,7 @@ import chess.pgn
 import chess.engine
 from fastapi import APIRouter, FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -440,10 +441,11 @@ def analyze(req: AnalyzeRequest, db: Session = Depends(get_db)):
 
     result_data = payload.model_dump()
     result_data.pop("study_id", None)
+    result_json = jsonable_encoder(result_data)
 
     study = Study(
         title=getattr(req, "title", None),
-        data=result_data,
+        data=result_json,
         is_public=True,
         owner_id=None,
     )
@@ -453,7 +455,7 @@ def analyze(req: AnalyzeRequest, db: Session = Depends(get_db)):
 
     return AnalyzeResponse(
         study_id=study.id,
-        **result_data,
+        **result_json,
     )
 
 
@@ -515,6 +517,21 @@ def coach_note(req: CoachNoteRequest):
             source=f"local_fallback ({exc})",
             player_id=req.player_id,
         )
+
+
+@router.post("/test_db")
+def test_db(db: Session = Depends(get_db)):
+    dummy_data = {"hello": "world"}
+    study = Study(
+        title="test",
+        data=dummy_data,
+        is_public=True,
+        owner_id=None,
+    )
+    db.add(study)
+    db.commit()
+    db.refresh(study)
+    return {"study_id": study.id}
 
 
 @router.get("/{study_id}", response_model=StudyGetResponse)
