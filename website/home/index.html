@@ -682,11 +682,6 @@
       return false;
     }
 
-    function renameItem(id) {
-      // Placeholder to avoid runtime errors; hook real rename logic later.
-      console.log('renameItem called with id:', id);
-    }
-
     const catImages = [
       '../assets/cat_pieces/King.png',
       '../assets/cat_pieces/Knight.png',
@@ -920,7 +915,9 @@
         });
         if (handleUnauthorized(res)) return null;
         if (!res.ok) {
-          alert('Failed to create folder');
+          const text = await res.text();
+          console.error('Create folder failed', res.status, text);
+          alert(`Failed to create folder: ${text || res.status}`);
           return null;
         }
         const folder = await res.json();
@@ -1011,6 +1008,12 @@
     // Handle renaming items (Apple-style)
     function renameItem(event, element) {
       event.stopPropagation();
+
+      // Ignore the fixed "New folder/New study" add tiles
+      const tile = element.closest('.icon-folder');
+      if (tile && tile.classList.contains('add-tile')) {
+        return;
+      }
 
       // Don't start editing if already editing
       if (element.classList.contains('editing')) {
