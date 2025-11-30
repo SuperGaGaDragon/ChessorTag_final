@@ -8,3 +8,5 @@ psycopg2-binary
 openai>=1.0.0
 nanoid
 numpy
+passlib[bcrypt]
+python-jose[cryptography]

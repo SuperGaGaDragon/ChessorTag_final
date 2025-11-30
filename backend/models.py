@@ -3,7 +3,9 @@ from sqlalchemy.orm import relationship, synonym
 from datetime import datetime
 from nanoid import generate
 
+from .auth_models import User
 from .db import Base
+
 
 def generate_study_id():
     # 生成 Lichess 风格的短 ID，例如 a7F3kL90bC
@@ -20,7 +22,7 @@ class Study(Base):
     data = synonym("payload")
 
     title = Column(String, nullable=True)
-    owner_id = Column(String, nullable=True)
+    owner_id = Column(String, nullable=True, index=True)
     is_public = Column(Boolean, default=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -38,6 +40,7 @@ class Folder(Base):
     parent_id = Column(String, ForeignKey("folders.id"), nullable=True)
     color = Column(String, nullable=True)
     image_key = Column(String, nullable=True)
+    owner_id = Column(String, nullable=True, index=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -17,6 +17,8 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from .auth_api import get_current_user
+from .auth_models import User
 from .db import get_db
 from .models import Study
 
@@ -438,7 +440,11 @@ def engine_top(req: EngineTopRequest):
 # ----------------------------
 
 @router.post("/analyze", response_model=AnalyzeResponse)
-def analyze(req: AnalyzeRequest, db: Session = Depends(get_db)):
+def analyze(
+    req: AnalyzeRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     engine_bin = req.engine_path or ENGINE_DEFAULT
     payload = _predict_with_pipeline(req.fen, engine_bin)
     _log_predictor_call(req.fen, payload, engine_bin)
@@ -451,7 +457,7 @@ def analyze(req: AnalyzeRequest, db: Session = Depends(get_db)):
         title=getattr(req, "title", None),
         data=result_json,
         is_public=True,
-        owner_id=None,
+        owner_id=current_user.id,
     )
     db.add(study)
     db.commit()
@@ -524,13 +530,13 @@ def coach_note(req: CoachNoteRequest):
 
 
 @router.post("/test_db")
-def test_db(db: Session = Depends(get_db)):
+def test_db(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     dummy_data = {"hello": "world"}
     study = Study(
         title="test",
         data=dummy_data,
         is_public=True,
-        owner_id=None,
+        owner_id=current_user.id,
     )
     db.add(study)
     db.commit()

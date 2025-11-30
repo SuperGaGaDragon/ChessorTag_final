@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ChessorTag – Sign Up</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: #f8f9fa;
+      color: #1f2937;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Logo in top-left corner */
+    .logo-container {
+      position: absolute;
+      top: 32px;
+      left: 32px;
+      z-index: 10;
+    }
+
+    .logo-img {
+      width: 200px;
+      height: auto;
+      display: block;
+    }
+
+    /* Knight character in bottom-right with speech bubble */
+    .knight-container {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 20px;
+      padding: 0 40px 40px 0;
+    }
+
+    .knight-img {
+      width: 200px;
+      height: auto;
+      filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
+    }
+
+    .knight-speech-bubble {
+      position: relative;
+      background: #fffef5;
+      border: 3px solid #1f2937;
+      border-radius: 20px;
+      padding: 20px 24px;
+      font-size: 16px;
+      color: #1f2937;
+      font-weight: 600;
+      max-width: 340px;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.15);
+      line-height: 1.5;
+    }
+
+    .knight-speech-bubble::before {
+      content: '';
+      position: absolute;
+      bottom: -18px;
+      right: 60px;
+      width: 0;
+      height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-top: 18px solid #1f2937;
+    }
+
+    .knight-speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      right: 63px;
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-top: 15px solid #fffef5;
+    }
+
+    /* Rook character in bottom-left */
+    .rook-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 0 0 40px 40px;
+    }
+
+    .rook-img {
+      width: 180px;
+      height: auto;
+      filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
+    }
+
+    .rook-speech-bubble {
+      position: relative;
+      background: #fffef5;
+      border: 3px solid #1f2937;
+      border-radius: 20px;
+      padding: 20px 24px;
+      font-size: 16px;
+      color: #1f2937;
+      font-weight: 600;
+      max-width: 360px;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.15);
+      line-height: 1.5;
+    }
+
+    .rook-speech-bubble::before {
+      content: '';
+      position: absolute;
+      bottom: -18px;
+      left: 60px;
+      width: 0;
+      height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-top: 18px solid #1f2937;
+    }
+
+    .rook-speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      left: 63px;
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-top: 15px solid #fffef5;
+    }
+
+    /* Signup form in center */
+    .signup-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+    }
+
+    .signup-card {
+      background: #ffffff;
+      border-radius: 16px;
+      border: 2px solid #e5e7eb;
+      padding: 48px 40px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 420px;
+      z-index: 10;
+      position: relative;
+    }
+
+    .signup-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 12px;
+      text-align: center;
+    }
+
+    .signup-subtitle {
+      font-size: 15px;
+      color: #6b7280;
+      margin: 0 0 36px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 15px;
+      color: #1f2937;
+      background: #ffffff;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+    }
+
+    .btn-signup {
+      width: 100%;
+      padding: 14px 28px;
+      border-radius: 10px;
+      border: none;
+      background: #22c55e;
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+      margin-bottom: 20px;
+    }
+
+    .btn-signup:hover {
+      background: #16a34a;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35);
+    }
+
+    .divider {
+      text-align: center;
+      margin: 24px 0;
+      position: relative;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
+    .divider::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 100%;
+      height: 1px;
+      background: #e5e7eb;
+      z-index: 0;
+    }
+
+    .divider span {
+      background: #ffffff;
+      padding: 0 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 14px 28px;
+      border-radius: 10px;
+      border: 2px solid #d1d5db;
+      background: #ffffff;
+      color: #374151;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: block;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .btn-login:hover {
+      background: #f9fafb;
+      border-color: #9ca3af;
+    }
+
+    /* Rotating cats around signup form */
+    .rotating-cats-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .rotating-cat {
+      position: absolute;
+      width: 160px;
+      height: 160px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+      animation: rotateAroundCenter 12s linear infinite;
+      pointer-events: auto;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      left: 50%;
+      top: 50%;
+      margin-left: -80px;
+      margin-top: -80px;
+    }
+
+    .rotating-cat:hover {
+      transform: scale(1.2) !important;
+    }
+
+    /* Evenly distribute all 15 cats around the circle */
+    /* Each cat is separated by 360/15 = 24 degrees */
+    /* Animation is 12s, so each degree = 12/360 = 0.0333s */
+    /* Delay for each position: -position * 24 * 0.0333s = -position * 0.8s */
+    .rotating-cat:nth-child(1) { animation-delay: 0s; }
+    .rotating-cat:nth-child(2) { animation-delay: -0.8s; }
+    .rotating-cat:nth-child(3) { animation-delay: -1.6s; }
+    .rotating-cat:nth-child(4) { animation-delay: -2.4s; }
+    .rotating-cat:nth-child(5) { animation-delay: -3.2s; }
+    .rotating-cat:nth-child(6) { animation-delay: -4.0s; }
+    .rotating-cat:nth-child(7) { animation-delay: -4.8s; }
+    .rotating-cat:nth-child(8) { animation-delay: -5.6s; }
+    .rotating-cat:nth-child(9) { animation-delay: -6.4s; }
+    .rotating-cat:nth-child(10) { animation-delay: -7.2s; }
+    .rotating-cat:nth-child(11) { animation-delay: -8.0s; }
+    .rotating-cat:nth-child(12) { animation-delay: -8.8s; }
+    .rotating-cat:nth-child(13) { animation-delay: -9.6s; }
+    .rotating-cat:nth-child(14) { animation-delay: -10.4s; }
+    .rotating-cat:nth-child(15) { animation-delay: -11.2s; }
+
+    /* Loading3 and Loading4 positioned at opposite ends of diameter */
+    .loading-cat-3 {
+      animation-delay: 0s !important;
+    }
+
+    .loading-cat-4 {
+      animation-delay: -6s !important; /* Exactly half of 12s to be on opposite side */
+    }
+
+    @keyframes rotateAroundCenter {
+      0% {
+        transform: rotate(0deg) translateX(350px) rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg) translateX(350px) rotate(-360deg);
+      }
+    }
+
+    /* Cat meow speech bubble */
+    .cat-meow-bubble {
+      position: fixed;
+      background: #fffef5;
+      border: 3px solid #1f2937;
+      border-radius: 20px;
+      padding: 16px 22px;
+      font-size: 17px;
+      color: #1f2937;
+      font-weight: 700;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.15);
+      z-index: 20;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: none;
+      max-width: 280px;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .cat-meow-bubble.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .logo-container {
+        top: 20px;
+        left: 20px;
+      }
+
+      .logo-img {
+        width: 140px;
+      }
+
+      .knight-container {
+        padding: 0 20px 20px 0;
+      }
+
+      .knight-img {
+        width: 140px;
+      }
+
+      .knight-speech-bubble {
+        font-size: 14px;
+        max-width: 260px;
+        padding: 16px 18px;
+      }
+
+      .rook-container {
+        padding: 0 0 20px 20px;
+      }
+
+      .rook-img {
+        width: 130px;
+      }
+
+      .rook-speech-bubble {
+        font-size: 14px;
+        max-width: 280px;
+        padding: 16px 18px;
+      }
+
+      .signup-card {
+        padding: 36px 28px;
+      }
+
+      .signup-title {
+        font-size: 28px;
+      }
+
+      @keyframes rotateAroundCenter {
+        0% {
+          transform: rotate(0deg) translateX(250px) rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg) translateX(250px) rotate(-360deg);
+        }
+      }
+
+      .rotating-cat {
+        width: 120px;
+        height: 120px;
+        margin-left: -60px;
+        margin-top: -60px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .knight-container,
+      .rook-container {
+        display: none;
+      }
+
+      .signup-card {
+        box-shadow: none;
+        border: none;
+        background: transparent;
+      }
+
+      @keyframes rotateAroundCenter {
+        0% {
+          transform: rotate(0deg) translateX(175px) rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg) translateX(175px) rotate(-360deg);
+        }
+      }
+
+      .rotating-cat {
+        width: 100px;
+        height: 100px;
+        margin-left: -50px;
+        margin-top: -50px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Rotating cats container -->
+  <div class="rotating-cats-container" id="rotatingCatsContainer"></div>
+
+  <!-- Meow speech bubble -->
+  <div class="cat-meow-bubble" id="meowBubble">Meow!</div>
+
+  <!-- Logo in top-left corner -->
+  <div class="logo-container">
+    <img src="assets/logo2.png" alt="ChessorTag Logo" class="logo-img" />
+  </div>
+
+  <!-- Signup form in center -->
+  <div class="signup-wrapper">
+    <div class="signup-card">
+      <h1 class="signup-title">Join ChessorTag</h1>
+      <p class="signup-subtitle">Create an account to start analyzing your chess games</p>
+
+      <form id="signupForm">
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input
+            type="email"
+            id="signup-email"
+            name="email"
+            class="form-input"
+            placeholder="your@email.com"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input
+            type="password"
+            id="signup-password"
+            name="password"
+            class="form-input"
+            placeholder="Create a password"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="confirm-password">Confirm Password</label>
+          <input
+            type="password"
+            id="confirm-password"
+            name="confirm-password"
+            class="form-input"
+            placeholder="Confirm your password"
+            required
+          />
+        </div>
+
+        <button type="submit" id="signup-submit" class="btn-signup">Sign Up</button>
+
+        <div class="divider">
+          <span>or</span>
+        </div>
+
+        <a href="login/" class="btn-login">Log In</a>
+      </form>
+    </div>
+  </div>
+
+  <!-- Knight character in bottom-right -->
+  <div class="knight-container">
+    <div class="knight-speech-bubble">
+      Welcome to our cat family! Join us and let's have some fun together!
+    </div>
+    <img src="assets/cat_pieces/Knight.png" alt="Knight" class="knight-img" />
+  </div>
+
+  <!-- Rook character in bottom-left -->
+  <div class="rook-container">
+    <div class="rook-speech-bubble">
+      Nice to see you! Seems that I'm gonna have a new friend! Trust me you'll enjoy your time here!!!
+    </div>
+    <img src="assets/cat_pieces/Rook.png" alt="Rook" class="rook-img" />
+  </div>
+
+  <script>
+    // All cat pieces and loading images
+    const catPieces = [
+      'assets/cat_pieces/King.png',
+      'assets/cat_pieces/Knight.png',
+      'assets/cat_pieces/Queen.png',
+      'assets/cat_pieces/Rook.png',
+      'assets/cat_pieces/black_bishop.png',
+      'assets/cat_pieces/black_pawn.png',
+      'assets/cat_pieces/white_bishop.png',
+      'assets/cat_pieces/pawn.png',
+      'assets/cat_pieces/folder1.png',
+      'assets/cat_pieces/folder2.png',
+      'assets/cat_pieces/folder3.png',
+      'assets/cat_pieces/folder4.png',
+      'assets/cat_pieces/folder5.png',
+      'assets/loading3.png',
+      'assets/loading4.png'
+    ];
+
+    // Morandi color palette
+    const morandiPalette = [
+      { base: '#f3e7d1', top: '#f9f0de' },
+      { base: '#f1e4de', top: '#f7ede7' },
+      { base: '#e6e0d8', top: '#f0e8df' },
+      { base: '#e0ddd6', top: '#e9e5dd' },
+      { base: '#dcd9d2', top: '#e6e3dc' },
+      { base: '#d8d5cc', top: '#e2dfd6' },
+      { base: '#d6d8df', top: '#e1e3ea' },
+      { base: '#d5dde3', top: '#e0e7ec' },
+      { base: '#d6e3e1', top: '#e0ecea' },
+      { base: '#dbe6d9', top: '#e6efe4' },
+      { base: '#e7ead6', top: '#f2f5df' },
+      { base: '#e9e0d3', top: '#f3e9dc' },
+      { base: '#e2d8e0', top: '#ece1e9' },
+      { base: '#dcd7e6', top: '#e7e2ef' },
+      { base: '#d8dbe9', top: '#e3e6f3' },
+      { base: '#d9e0ed', top: '#e3e8f4' },
+      { base: '#d9e5f0', top: '#e3eef8' },
+      { base: '#dae8e6', top: '#e4f1ef' },
+      { base: '#e3e9de', top: '#edf3e8' },
+      { base: '#e9e5d8', top: '#f3efe2' },
+    ];
+
+    // Cat messages
+    const catMessages = [
+      "Meow!",
+      "Welcome!",
+      "Join us!",
+      "Ga Ga Ga!",
+      "Sign up and have fun!",
+      "I made this website myself",
+      "I love cat cans",
+      "Could you plz give me some salmon",
+      "I love sunshine",
+      "I love flowers",
+      "To be or not to be....",
+      "You never know dear~ how much I love you~",
+      "I am a loyal fan of Khalil Fong.",
+      "Katrina, I can't stop looking in your eyes~",
+      "Oh It's a singalong song~ It's not so long~",
+      "天青色等烟雨，而我在等你～",
+      "Shall I compare thee to a summer day?",
+      "A thing of beauty is a joy forever"
+    ];
+
+    const rotatingCatsContainer = document.getElementById('rotatingCatsContainer');
+    const meowBubble = document.getElementById('meowBubble');
+
+    // Create rotating cats
+    function createRotatingCats() {
+      catPieces.forEach((catSrc, index) => {
+        const cat = document.createElement('img');
+        cat.className = 'rotating-cat';
+        cat.src = catSrc;
+        cat.alt = 'Cat';
+
+        // Special classes for loading3 and loading4 to ensure they're on opposite sides
+        if (catSrc.includes('loading3.png')) {
+          cat.classList.add('loading-cat-3');
+        } else if (catSrc.includes('loading4.png')) {
+          cat.classList.add('loading-cat-4');
+        }
+
+        // Click handler for meow
+        cat.addEventListener('click', (e) => {
+          showMeow(e.clientX, e.clientY);
+        });
+
+        rotatingCatsContainer.appendChild(cat);
+      });
+    }
+
+    // Show meow bubble
+    function showMeow(x, y) {
+      const bubbleWidth = 250;
+      const bubbleHeight = 60;
+
+      // Random message
+      const randomMessage = catMessages[Math.floor(Math.random() * catMessages.length)];
+      meowBubble.textContent = randomMessage;
+
+      // Random Morandi color
+      const randomColor = morandiPalette[Math.floor(Math.random() * morandiPalette.length)];
+      meowBubble.style.background = randomColor.base;
+      meowBubble.style.borderColor = '#1f2937';
+
+      // Position bubble near click with some offset
+      const offsetX = Math.random() > 0.5 ? 60 : -280;
+      const offsetY = Math.random() > 0.5 ? 60 : -120;
+
+      let bubbleX = x + offsetX;
+      let bubbleY = y + offsetY;
+
+      // Keep bubble in viewport
+      bubbleX = Math.max(20, Math.min(bubbleX, window.innerWidth - bubbleWidth - 20));
+      bubbleY = Math.max(20, Math.min(bubbleY, window.innerHeight - bubbleHeight - 20));
+
+      meowBubble.style.left = bubbleX + 'px';
+      meowBubble.style.top = bubbleY + 'px';
+
+      meowBubble.classList.add('show');
+
+      // Hide after 2 seconds
+      setTimeout(() => {
+        meowBubble.classList.remove('show');
+      }, 2000);
+    }
+
+    // Initialize rotating cats
+    createRotatingCats();
+  </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const emailInput = document.getElementById('signup-email');
+      const passwordInput = document.getElementById('signup-password');
+      const signupButton = document.getElementById('signup-submit');
+
+      signupButton.addEventListener('click', async function (event) {
+        event.preventDefault(); // 阻止表单默认提交
+
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+
+        // 简单校验：不能空
+        if (!email || !password) {
+          alert('Please enter both email and password.');
+          return;
+        }
+
+        console.log('Sending signup request for', email);
+
+        try {
+          const response = await fetch('https://api.chessortag.org/api/auth/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              email: email,
+              password: password
+            })
+          });
+
+          const data = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            console.error('Signup failed:', data);
+            const msg =
+              (data && (data.detail || data.message)) ||
+              'Sign up failed. Please try a different email.';
+            alert(msg);
+            return;
+          }
+
+          console.log('Signup success:', data);
+
+          // 兼容几种可能字段名
+          const token =
+            data.access_token ||
+            data.token ||
+            (data.data && data.data.access_token);
+
+          if (!token) {
+            console.error('No token found in response:', data);
+            alert('Sign up succeeded but no token returned. Please contact support.');
+            return;
+          }
+
+          // 存到 localStorage
+          localStorage.setItem('chessortag_token', token);
+
+          // TODO: 如果后端返回 user 信息，你也可以顺便存
+          // localStorage.setItem('chessortag_user', JSON.stringify(data.user || {}));
+
+          // 跳转到 /home/（根据你的部署，必要时改成 /home/index.html）
+          window.location.href = '/home/';
+        } catch (err) {
+          console.error('Network or JS error during signup:', err);
+          alert('Network error. Please check your connection and try again.');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -3,8 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .db import Base, engine
 from . import models
-from backend.study_api import router as study_router
-from backend.workspace_api import router as workspace_router
+from .auth_api import router as auth_router
+from .study_api import router as study_router
+from .workspace_api import router as workspace_router
 
 # 自动创建数据库表
 Base.metadata.create_all(bind=engine)
@@ -21,6 +22,7 @@ app.add_middleware(
 )
 
 # 注册 study API
+app.include_router(auth_router)
 app.include_router(study_router)
 app.include_router(workspace_router)
 
