@@ -132,7 +132,9 @@ def run_phase2_report(
     if raw_data is None:
         # Copy PGN into black-box input
         blackbox_pgn = BLACKBOX_INPUT / f"{player_id}.pgn"
-        shutil.copy2(source_pgn, blackbox_pgn)
+        # Avoid SameFileError if source is already the black-box input.
+        if source_pgn.resolve() != blackbox_pgn.resolve():
+            shutil.copy2(source_pgn, blackbox_pgn)
 
         artifacts = _run_player_batch(
             detected_name,
