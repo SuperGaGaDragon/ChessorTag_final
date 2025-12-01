@@ -119,6 +119,10 @@ class UpdateUsernameRequest(BaseModel):
     username: str
 
 
+class UpdateAvatarRequest(BaseModel):
+    avatar: str
+
+
 @router.get("/me", response_model=UserProfileResponse)
 def get_me(current_user: User = Depends(get_current_user)):
     return UserProfileResponse(
@@ -136,6 +140,23 @@ def update_username(
     db: Session = Depends(get_db),
 ):
     current_user.username = req.username
+    db.commit()
+    db.refresh(current_user)
+    return UserProfileResponse(
+        user_id=current_user.id,
+        email=current_user.email,
+        username=current_user.username,
+        avatar=current_user.avatar,
+    )
+
+
+@router.patch("/me/avatar", response_model=UserProfileResponse)
+def update_avatar(
+    req: UpdateAvatarRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    current_user.avatar = req.avatar
     db.commit()
     db.refresh(current_user)
     return UserProfileResponse(

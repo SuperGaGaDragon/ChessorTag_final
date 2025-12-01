@@ -60,10 +60,16 @@
       display: inline-block;
       object-fit: cover;
       border: 2px solid #e5e7eb;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .avatar:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
     .avatar-small {
-      width: 30px;
-      height: 30px;
+      width: 42px;
+      height: 42px;
     }
 
     .page {
@@ -196,6 +202,29 @@
     .report-meta {
       font-size: 11px;
       color: #6b7280;
+    }
+    .report-card.add-new {
+      background: linear-gradient(135deg, #ecfdf3 0%, #d1fae5 60%, #f0fdf4 100%);
+      border: 1px dashed #22c55e;
+      color: #166534;
+      box-shadow: 0 6px 18px rgba(34, 197, 94, 0.18);
+    }
+    .report-card.add-new .report-name {
+      color: #14532d;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .report-card.add-new .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.12);
+      color: #166534;
+      font-weight: 600;
+      font-size: 11px;
     }
 
     .desktop {
@@ -549,9 +578,7 @@
       <a href="../index.html">About</a>
       <span>|</span>
       <span>Home</span>
-      <span>|</span>
-      <span>Log in · Sign up (later)</span>
-      <img id="topAvatar" class="avatar avatar-small" src="../assets/loading3.png" alt="Avatar">
+      <img id="topAvatar" class="avatar avatar-small" src="../assets/loading3.png" alt="Avatar" onclick="toggleAvatar()">
     </div>
   </header>
 
@@ -559,7 +586,7 @@
   <main class="page">
     <!-- 上方用户 profile 条 -->
     <section class="profile-strip">
-      <img id="userAvatar" class="avatar" src="../assets/loading3.png" alt="Avatar">
+      <img id="userAvatar" class="avatar" src="../assets/loading3.png" alt="Avatar" onclick="toggleAvatar()">
       <div class="profile-main">
         <span class="username" id="displayUsername" onclick="editUsername(event)">Loading...</span>
         <span style="font-size: 12px; color: #6b7280;"><span id="userEmail">email@example.com</span> · basic member</span>
@@ -588,6 +615,18 @@
         </div>
 
         <div class="report-list">
+          <a class="report-card add-new"
+             href="../new_report/index.html">
+            <div class="report-top">
+              <span class="report-name">
+                <span class="pill-badge">＋</span>
+                Add new report
+              </span>
+              <span class="report-meta">launch builder</span>
+            </div>
+            <div class="report-meta">Start a new interactive report.</div>
+          </a>
+
           <a class="report-card"
              href="../sample%20report/yuyaochen_report.html"
              target="_blank" rel="noopener">
@@ -816,6 +855,56 @@
 
       element.addEventListener('blur', finishEditing);
       element.addEventListener('keydown', handleKeydown);
+    }
+
+    // Toggle avatar between loading3.png and loading4.png
+    async function toggleAvatar() {
+      const userAvatar = document.getElementById('userAvatar');
+      const topAvatar = document.getElementById('topAvatar');
+
+      if (!userAvatar) return;
+
+      // Get current avatar path
+      const currentSrc = userAvatar.src;
+
+      // Determine new avatar
+      let newAvatarPath;
+      if (currentSrc.includes('loading3.png')) {
+        newAvatarPath = 'assets/loading4.png';
+      } else {
+        newAvatarPath = 'assets/loading3.png';
+      }
+
+      // Update UI immediately for responsiveness
+      userAvatar.src = '../' + newAvatarPath;
+      if (topAvatar) {
+        topAvatar.src = '../' + newAvatarPath;
+      }
+
+      // Save to backend (but don't persist across sessions - will reset on refresh)
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/me/avatar`, {
+          method: 'PATCH',
+          headers: authHeaders(),
+          body: JSON.stringify({ avatar: newAvatarPath }),
+        });
+        if (handleUnauthorized(res)) return;
+        if (!res.ok) {
+          console.error('Failed to update avatar', await res.text());
+          // Revert UI on failure
+          userAvatar.src = currentSrc;
+          if (topAvatar) {
+            topAvatar.src = currentSrc;
+          }
+        }
+      } catch (err) {
+        console.error('Update avatar error', err);
+        // Revert UI on failure
+        userAvatar.src = currentSrc;
+        if (topAvatar) {
+          topAvatar.src = currentSrc;
+        }
+      }
     }
 
     // Load user profile on page load

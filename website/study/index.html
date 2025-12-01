@@ -277,6 +277,13 @@
       width: 100%;
       height: 100%;
     }
+    .std-piece-img {
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 90%;
+      width: 100%;
+      height: 100%;
+    }
     .gm-loading-bar {
       position: relative;
       height: 8px;
@@ -1010,8 +1017,8 @@
           </div>
 
           <div class="gm-footer-note">
-            现在：每下一步棋，会调用后端引擎 + style tagger，给出引擎候选并标注最像所选棋手的走法。<br/>
-            需本地运行 superchess predictor FastAPI（/analyze）。
+            Each move calls the backend engine + style tagger to propose best lines and tag the move most similar to selected GMs.<br/>
+            Run superchess predictor FastAPI locally (`/analyze`) to enable this.
           </div>
         </div>
       </aside>
@@ -1047,8 +1054,8 @@
         </div>
 
         <div class="board-bottom-hint">
-          以后流程：前端通过 API 把 FEN/PGN 发到 FastAPI → FastAPI 调用引擎 + style-tag →
-          返回各棋手候选走法和评估，刷新左侧与右侧。
+          Planned flow: front-end sends FEN/PGN to FastAPI → FastAPI calls engine + style tagger →
+          returns candidate moves per player and evals, updating the left and right panels.
         </div>
       </section>
 
@@ -1069,7 +1076,7 @@
     </aside>
 
     <div class="embed-note">
-      当前使用后端 PGN 解析返回的 SAN 列表，棋盘渲染和引擎预测将在后续接入。
+      Currently showing SAN moves parsed by backend PGN service; board rendering + engine prediction will be wired in later.
       </div>
     </section>
 
@@ -1082,7 +1089,7 @@
       <form class="note-form" onsubmit="return addNote(event);">
         <textarea id="noteInput" placeholder="Type a comment, variation idea, or next steps..."></textarea>
         <div class="coach-note-status" id="coachNoteStatus">
-          生成的 LLM 教练点评会自动填入上面的输入框，点击 “Generate coach note” 触发。
+          Generated LLM coach notes will auto-fill the input above. Click “Generate coach note” to run it.
         </div>
         <button class="note-btn" type="submit">Add comment</button>
       </form>
@@ -1355,6 +1362,35 @@
       "p": "♟", "r": "♜", "n": "♞", "b": "♝", "q": "♛", "k": "♚",
       "P": "♙", "R": "♖", "N": "♘", "B": "♗", "Q": "♕", "K": "♔"
     };
+    const STANDARD_PIECE_BASE = "../assets/chess_pieces/";
+    const STANDARD_PIECE_MAP = {
+      bp: "black_pawn.png",
+      br: "black_rook.png",
+      bn: "black_knight.png",
+      bb: "black_bishop.png",
+      bq: "black_queen.png",
+      bk: "black_king.png",
+      wp: "white_pawn.png",
+      wr: "white_rook.png",
+      wn: "white_knight.png",
+      wb: "white_bishop.png",
+      wq: "white_queen.png",
+      wk: "white_king.png",
+    };
+    // Per-type scale to normalize visual size differences between PNG files.
+    const STANDARD_PIECE_SCALE = {
+      p: 78,
+      r: 86,
+      n: 88,
+      b: 88,
+      q: 90,
+      k: 90,
+    };
+    // Optional color-specific tweaks (overrides type scale when present).
+    const STANDARD_PIECE_COLOR_SCALE = {
+      bp: 90, // make black pawns a bit bigger
+      wr: 80, // make white rooks a bit smaller
+    };
 
     // 根据 chessGame 当前状态渲染棋盘
     function renderBoardFromGame() {
@@ -1369,7 +1405,8 @@
       squares.forEach(sq => {
         sq.textContent = "";
         sq.style.backgroundImage = "";
-        sq.classList.remove("cat-piece-img");
+        sq.style.backgroundSize = "";
+        sq.classList.remove("cat-piece-img", "std-piece-img");
       });
 
       const board = chessGame.board(); // 8x8 数组，board[0][0] 是 a8
@@ -1400,12 +1437,23 @@
               el.style.color = "#000000";
             }
           } else {
-            // Use Unicode glyphs for normal pieces
-            el.textContent = glyph;
-            el.style.color = "#000000";
-            el.style.backgroundImage = "";
-            el.classList.remove("cat-piece-img");
-            console.log(`Set piece at ${squareName}: ${glyph}`);
+            // Use image set in assets/chess_pieces/
+            const keyLower = (piece.color + piece.type).toLowerCase();
+            const imgFile = STANDARD_PIECE_MAP[keyLower];
+            if (imgFile) {
+              el.style.backgroundImage = `url("${STANDARD_PIECE_BASE + imgFile}")`;
+              el.classList.add("std-piece-img");
+              const scaleOverride = STANDARD_PIECE_COLOR_SCALE[keyLower];
+              const scale = scaleOverride || STANDARD_PIECE_SCALE[piece.type] || 88;
+              el.style.backgroundSize = `${scale}%`;
+              el.textContent = "";
+              el.style.color = "";
+              console.log(`Set image piece at ${squareName}: ${imgFile}`);
+            } else {
+              // Fallback to glyphs if mapping missing
+              el.textContent = glyph;
+              el.style.color = "#000000";
+            }
           }
         }
       }
@@ -1415,7 +1463,10 @@
         if (!el) return false;
         if (el.textContent && el.textContent.trim() !== "") return true;
         const bg = el.style.backgroundImage || "";
-        return bg.includes("cat_pieces") || el.classList.contains("cat-piece-img");
+        return bg.includes("cat_pieces") ||
+          bg.includes("chess_pieces") ||
+          el.classList.contains("cat-piece-img") ||
+          el.classList.contains("std-piece-img");
       };
 
       // 如果有棋子，隐藏覆盖层；否则显示提示
