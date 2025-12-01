@@ -41,6 +41,15 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 16px;
     }
+    .hero-row {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: center;
+    }
+    .hero-photo {
+      max-width: 640px;
+      width: 100%;
+    }
     .photo {
       position: relative;
       overflow: hidden;
@@ -86,10 +95,12 @@
     </header>
 
     <section class="gallery">
-      <figure class="photo">
-        <img src="../assets/Cats/Cat7.jpg" alt="Cat 7" />
-        <figcaption class="photo-caption">Executive meeting selfie.</figcaption>
-      </figure>
+      <div class="hero-row">
+        <figure class="photo hero-photo">
+          <img src="../assets/Cats/Cat7.jpg" alt="Cat 7" style="object-fit: contain;" />
+          <figcaption class="photo-caption">Executive meeting selfie.</figcaption>
+        </figure>
+      </div>
 
       <figure class="photo">
         <img src="../assets/Cats/Cat1.jpg" alt="Cat 1" />

@@ -102,6 +102,41 @@
       max-width: 420px;
       line-height: 1.6;
     }
+    .hero-visual-row {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 18px;
+      align-items: center;
+      justify-items: start;
+    }
+    .hero-visual-row img {
+      width: 120px;
+      margin: 0;
+      border-radius: 14px;
+      border: none;
+      background: transparent;
+      display: block;
+    }
+    .hero-visual-row .card {
+      padding: 0;
+      background: transparent;
+      box-shadow: none;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 27px;
+      color: var(--text-main);
+      font-weight: 700;
+      margin-left: 0;
+      font-family: "Comic Sans MS", "Comic Neue", cursive, "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    .hero-visual-row .card-title {
+      font-weight: 700;
+      font-size: 27px;
+      color: var(--text-main);
+    }
     .section { margin-top: 48px; }
     .section-title {
       font-size: 22px;
@@ -189,6 +224,12 @@
           She personally reviewed every line of code, batted at every bug,
           and demanded snacks for every new feature.
         </p>
+        <div class="hero-visual-row">
+          <img src="../assets/developer_dec.png" alt="Developer declaration" />
+          <div class="card">
+            <div class="card-title">Cat VS Fish Code</div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -206,7 +247,7 @@
           <div class="dev-name">ChessNut</div>
           <div class="dev-text">
             “This is ChessNut. Get it? <strong>Chest-nut</strong>; <strong>Chess-nut</strong>.”
-            Full-stack human, part-time queen blunderer.
+            She likes fish fish fish fish fish fish fish.
           </div>
         </div>
 

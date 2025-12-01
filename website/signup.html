@@ -372,34 +372,7 @@
       transform: scale(1.2) !important;
     }
 
-    /* Evenly distribute all 15 cats around the circle */
-    /* Each cat is separated by 360/15 = 24 degrees */
-    /* Animation is 12s, so each degree = 12/360 = 0.0333s */
-    /* Delay for each position: -position * 24 * 0.0333s = -position * 0.8s */
-    .rotating-cat:nth-child(1) { animation-delay: 0s; }
-    .rotating-cat:nth-child(2) { animation-delay: -0.8s; }
-    .rotating-cat:nth-child(3) { animation-delay: -1.6s; }
-    .rotating-cat:nth-child(4) { animation-delay: -2.4s; }
-    .rotating-cat:nth-child(5) { animation-delay: -3.2s; }
-    .rotating-cat:nth-child(6) { animation-delay: -4.0s; }
-    .rotating-cat:nth-child(7) { animation-delay: -4.8s; }
-    .rotating-cat:nth-child(8) { animation-delay: -5.6s; }
-    .rotating-cat:nth-child(9) { animation-delay: -6.4s; }
-    .rotating-cat:nth-child(10) { animation-delay: -7.2s; }
-    .rotating-cat:nth-child(11) { animation-delay: -8.0s; }
-    .rotating-cat:nth-child(12) { animation-delay: -8.8s; }
-    .rotating-cat:nth-child(13) { animation-delay: -9.6s; }
-    .rotating-cat:nth-child(14) { animation-delay: -10.4s; }
-    .rotating-cat:nth-child(15) { animation-delay: -11.2s; }
-
-    /* Loading3 and Loading4 positioned at opposite ends of diameter */
-    .loading-cat-3 {
-      animation-delay: 0s !important;
-    }
-
-    .loading-cat-4 {
-      animation-delay: -6s !important; /* Exactly half of 12s to be on opposite side */
-    }
+    /* Removed individual nth-child delays - will be set dynamically in JS */
 
     @keyframes rotateAroundCenter {
       0% {
@@ -703,18 +676,22 @@
 
     // Create rotating cats
     function createRotatingCats() {
+      const totalCats = catPieces.length; // 15 cats
+      const animationDuration = 12; // 12 seconds for full rotation
+      const degreesPerCat = 360 / totalCats; // 24 degrees between each cat
+      const secondsPerDegree = animationDuration / 360; // 0.0333s per degree
+
       catPieces.forEach((catSrc, index) => {
         const cat = document.createElement('img');
         cat.className = 'rotating-cat';
         cat.src = catSrc;
         cat.alt = 'Cat';
 
-        // Special classes for loading3 and loading4 to ensure they're on opposite sides
-        if (catSrc.includes('loading3.png')) {
-          cat.classList.add('loading-cat-3');
-        } else if (catSrc.includes('loading4.png')) {
-          cat.classList.add('loading-cat-4');
-        }
+        // Calculate delay for even distribution
+        // Each cat should be offset by (index * degreesPerCat) degrees
+        // Negative delay because we want them to start at different points in the rotation
+        const delay = -(index * degreesPerCat * secondsPerDegree);
+        cat.style.animationDelay = `${delay}s`;
 
         // Click handler for meow
         cat.addEventListener('click', (e) => {

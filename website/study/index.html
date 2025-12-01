@@ -101,7 +101,7 @@
       font-size: 13px;
     }
 
-    /* 三列：左预测，中棋盘，右 PGN 列表 */
+    /* Three columns: left predictions, center board, right PGN list */
     .embed-shell {
       border-radius: 16px;
       border: 1px solid #e5e7eb;
@@ -372,7 +372,7 @@
       padding-left: 16px;
     }
 
-    /* 小开关样式 */
+    /* Toggle switch styling */
     .gm-switch {
       position: relative;
       display: inline-block;
@@ -413,7 +413,7 @@
       transform: translateX(14px);
     }
 
-    /* 选择 GM 的弹窗 */
+    /* GM picker modal */
     .gm-modal-backdrop {
       position: fixed;
       inset: 0;
@@ -493,7 +493,7 @@
       background: #16a34a;
     }
 
-    /* 中间棋盘区域 */
+    /* Center board area */
     .board-panel {
       padding: 10px 12px;
       display: flex;
@@ -714,7 +714,7 @@
       color: #9ca3af;
     }
 
-    /* 右侧 PGN 列表 */
+    /* Right-side PGN list */
     .pgn-panel {
       padding: 10px;
       font-size: 12px;
@@ -745,7 +745,7 @@
       background: #f9fafb;
     }
 
-    /* 底部 comment 区保持原样 */
+    /* Comment area */
     .notes-panel {
       border-radius: 14px;
       border: 1px solid #e5e7eb;
@@ -943,7 +943,7 @@
       background: #f3f4f6;
     }
   </style>
-  <!-- chess.js 用来管理棋局状态、合法走法和 SAN；直接用 CDN 版，全局 Chess -->
+  <!-- chess.js manages game state, legal moves, and SAN; CDN version exposes global Chess -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 </head>
 <body>
@@ -972,9 +972,9 @@
     </div>
     <script src="../assets/cat_pieces.js"></script>
 
-    <!-- 三列主体：左预测 / 中棋盘 / 右 PGN -->
+    <!-- Three-column layout: predictions / board / PGN -->
     <section class="embed-shell">
-      <!-- 左：GM possible moves（动态可选） -->
+      <!-- Left: GM possible moves (dynamic) -->
       <aside class="side-panel">
         <div class="gm-panel">
           <div class="gm-header-row">
@@ -1009,7 +1009,7 @@
 
           <div class="gm-divider"></div>
 
-          <!-- 选中的 GM 会被 JS 填到这里 -->
+          <!-- Selected GMs are rendered here -->
           <div id="gmSelectedList" class="gm-selected-list">
             <div class="gm-empty-hint">
               No GM profiles selected yet. Click <strong>＋ Add</strong> to choose.
@@ -1023,7 +1023,7 @@
         </div>
       </aside>
 
-      <!-- 中：棋盘壳 + demo 按钮 -->
+      <!-- Center: board container + demo buttons -->
       <section class="board-panel">
         <div class="board-top">
           <div>Game source: <strong id="gameSourceLabel">none (demo)</strong></div>
@@ -1059,7 +1059,7 @@
         </div>
       </section>
 
-      <!-- 右：PGN move list（会随着 demo 按钮自动更新） -->
+      <!-- Right: PGN move list (updates with demo buttons) -->
       <aside class="pgn-panel">
         <div class="side-title">Move list (PGN view)</div>
         <div class="side-sub">Shows SAN from imported PGN.</div>
@@ -1080,7 +1080,7 @@
       </div>
     </section>
 
-    <!-- 下方 comment / coach notes 保持 -->
+    <!-- Comment / coach notes -->
     <section class="notes-panel">
       <div>
         <h2>Comment / coach notes</h2>
@@ -1113,7 +1113,7 @@
         <button class="gm-modal-close" type="button" onclick="closeProfilePicker()">×</button>
       </div>
       <div class="gm-modal-list" id="gmModalList">
-        <!-- JS 填充 -->
+        <!-- Filled by JS -->
       </div>
       <div class="gm-modal-footer">
         <button class="gm-modal-btn" type="button" onclick="closeProfilePicker()">Cancel</button>
@@ -1283,7 +1283,7 @@
     const moveInput = document.getElementById("moveInput");
     const catToggleBtn = document.getElementById("catToggleBtn");
 
-    // 当前 PGN 的 SAN 序列
+    // Current SAN sequence for the active PGN
     let moves = [];           // active line
     let mainMoves = [];       // main line reference
     const variations = {};    // index -> array of variation lines (each array of SAN from root to end)
@@ -1327,7 +1327,7 @@
       };
     }
 
-    // 用 chess.js 管理棋局（延迟到库加载后）
+    // Manage the game with chess.js (lazy until the library is ready)
     let chessGame = null;
     let selectedSquare = null;
 
@@ -1341,7 +1341,7 @@
       return true;
     }
 
-    // 初始化棋盘格子
+    // Initialize board squares
     function initBoardGrid() {
       const files = ["a","b","c","d","e","f","g","h"];
       boardGrid.innerHTML = "";
@@ -1393,7 +1393,7 @@
       wr: 80, // make white rooks a bit smaller
     };
 
-    // 根据 chessGame 当前状态渲染棋盘
+    // Render board from the current chessGame state
     function renderBoardFromGame() {
       console.log("renderBoardFromGame called");
       if (!requireChessGame()) {
@@ -1410,7 +1410,7 @@
         sq.classList.remove("cat-piece-img", "std-piece-img");
       });
 
-      const board = chessGame.board(); // 8x8 数组，board[0][0] 是 a8
+      const board = chessGame.board(); // 8x8 array; board[0][0] is a8
       console.log("Board state:", board);
       const files = "abcdefgh";
       for (let rankIndex = 0; rankIndex < 8; rankIndex++) {
@@ -1459,7 +1459,7 @@
         }
       }
 
-      // 判断格子是否有棋子（文字或猫图片）
+      // Detect if a square shows a piece (text or image)
       const hasPiece = (el) => {
         if (!el) return false;
         if (el.textContent && el.textContent.trim() !== "") return true;
@@ -1470,11 +1470,11 @@
           el.classList.contains("std-piece-img");
       };
 
-      // 如果有棋子，隐藏覆盖层；否则显示提示
+      // Hide overlay if any piece exists; otherwise show hint
       const hasPieces = squares.some(hasPiece);
       boardOverlayText.style.display = hasPieces ? "none" : "flex";
 
-      // 如果选中格子已无棋子，取消高亮
+      // If selected square is now empty, drop highlight
       if (selectedSquare) {
         const el = boardGrid.querySelector(`[data-square="${selectedSquare}"]`);
         if (el && !hasPiece(el)) {
@@ -1484,7 +1484,7 @@
       }
     }
 
-    // 渲染右侧 PGN 文本（表格样式，带注释指示器，可点击跳转）
+    // Render PGN list (table style with comment indicators and clickable rows)
     function attachCommentIndicator(cell, index) {
       const key = moveKeyAtIndex(index);
       const comment = key ? moveComments[key] : null;
@@ -1560,7 +1560,7 @@
       Object.keys(variations).forEach(k => delete variations[k]);
       Object.keys(moveComments).forEach(k => delete moveComments[k]);
       if (typeof Chess === "function") {
-        chessGame = new Chess(); // 回到起始局面
+        chessGame = new Chess(); // back to start position
       } else {
         chessGame = null;
       }
@@ -1593,7 +1593,7 @@
           alert("Illegal move or cannot parse SAN.");
           return;
         }
-        // 分支支持：如果在中间走不同棋，不覆盖主线，创建变体
+        // Branch support: if you move in the middle, spawn a variation instead of overwriting mainline
         if (currentMoveIndex < moves.length - 1) {
           const branchStart = currentMoveIndex;
           const prefix = moves.slice(0, branchStart + 1);
@@ -1701,7 +1701,7 @@
 
       const data = await res.json();
 
-      // 保存 study 状态
+      // Save study state
       window.studyState = {
         studyId: data.study_id,
         title: data.title,
@@ -1709,7 +1709,7 @@
         ownerId: data.owner_id,
       };
 
-      // 用后端返回的 san_moves 驱动棋局和 PGN
+      // Apply backend san_moves to drive board and PGN
       moves = [];
       mainMoves = [];
       chessGame = new Chess();
@@ -1730,7 +1730,7 @@
       renderPgn();
       renderBoardFromGame();
       fetchEngineMoves();
-      boardOverlayText.textContent = ""; // 去掉提示
+      boardOverlayText.textContent = ""; // clear hint
 
       gameSourceLabel.textContent = `PGN imported (id=${data.study_id})`;
       alert(`Study created: ${data.study_id}`);
@@ -1770,7 +1770,7 @@
     }
     }
 
-    /* ---- comment 区逻辑（你原来的） ---- */
+    /* ---- Comment section logic (original) ---- */
   const noteInput = document.getElementById('noteInput');
   const noteList = document.getElementById('noteList');
   const commentBubble = document.getElementById("commentBubble");
@@ -1782,7 +1782,7 @@
   const engineToggle = document.getElementById("engineToggle");
   const coachNoteStatus = document.getElementById("coachNoteStatus");
 
-  const COACH_NOTE_PROMPT = "你是这个棋手，请根据这个棋手的参数（放在players文件夹中），对你在这个棋当中的选择做出解释。100-400词看情况。包含：你为什么选择这个，不选择别的；从这步棋当中，有什么takeaway";
+  const COACH_NOTE_PROMPT = "You are this player. Using the player's parameters (stored in the players folder), explain your choices in this game in 100-400 words: why you chose this over alternatives, and the key takeaway from this move.";
   const PLAYER_FILE_BY_ID = {
     kasparov: "Kasparov.json",
     petrosian: "Petrosian.json",
@@ -1810,7 +1810,7 @@
       noteInput.value = '';
       noteInput.focus();
 
-      // 将评论附加到当前步（使用走子序列作为键，避免分支复用）
+      // Attach comment to the current move (keyed by move sequence to avoid sharing across branches)
       const targetIndex = currentMoveIndex >= 0 ? currentMoveIndex : (moves.length - 1);
       const key = moveKeyAtIndex(targetIndex);
       if (key) {
@@ -1818,12 +1818,12 @@
         renderPgn();
         renderVariations();
         showCommentBubble(key);
-        // 不再填回输入框,保持清空状态,让用户可以点击其他走法
+        // Keep input cleared so user can click other moves
       }
       return false;
     }
 
-    // 跳转到指定步数（ply）
+    // Jump to a specific ply index
     function goToMove(targetIndex) {
     if (!requireChessGame()) return;
     chessGame = new Chess();
@@ -1834,7 +1834,7 @@
       renderBoardFromGame();
       renderPgn();
       renderVariations();
-      // 填充 comment 输入框为该步的已有评论
+      // Fill comment input with existing note for that move
       const key = moveKeyAtIndex(currentMoveIndex);
       noteInput.value = (key && moveComments[key]) ? moveComments[key].text : "";
       boardOverlayText.textContent = currentMoveIndex >= 0 ? "" : "Start position – you can type moves like \"e4\", \"Nf3\" below.";
@@ -2059,14 +2059,14 @@
       };
     }
 
-    // ---------------- GM profiles 选择逻辑 ----------------
+    // ---------------- GM profiles logic ----------------
 
     const gmModalBackdrop = document.getElementById("gmModalBackdrop");
     const gmModalList = document.getElementById("gmModalList");
     const gmSelectedList = document.getElementById("gmSelectedList");
     const engineMovesList = document.getElementById("engineMovesList");
 
-    // 可选 GM（头像路径你按自己 assets 放）
+    // Available GMs (avatar paths can be customized)
     const AVAILABLE_GMS = [
       {
         id: "kasparov",
@@ -2119,7 +2119,7 @@
       }
     ];
 
-    // 当前已选 GM id 列表
+    // Currently selected GM ids
     let activeGmIds = [];
     let latestPrediction = null;
     let latestEnginePrediction = null;
@@ -2144,7 +2144,7 @@
     function bestMoveForPlayer(gm) {
       if (!latestPrediction || !latestPrediction.moves) return null;
       if (!latestPrediction.moves.length) return null;
-      // 如果没有概率（fallback 引擎），直接取第一步作为“最可能”
+      // If probabilities are missing (fallback engine), take the first move as "most likely"
       const hasProbs = latestPrediction.moves.some(m => m.probabilities);
       if (!hasProbs) {
         const first = latestPrediction.moves[0];
@@ -2231,31 +2231,33 @@
 
     function buildLocalCoachDraft({ gm, fen, moveSan, bestMove, topMoves }) {
       const gmName = gm?.name || "Selected player";
-      const tagline = gm?.tagline ? `我的风格关键词：${gm.tagline}。` : "";
-      const bestLine = bestMove?.san ? `我首选 ${bestMove.san}${bestMove.prob ? `（模型置信度 ${(bestMove.prob * 100).toFixed(1)}%）` : ""}，因为它符合局面的势能与节奏。` : "没有明确首选，我会保持灵活。";
+      const tagline = gm?.tagline ? `Style keywords: ${gm.tagline}.` : "";
+      const bestLine = bestMove?.san
+        ? `My first choice is ${bestMove.san}${bestMove.prob ? ` (model confidence ${(bestMove.prob * 100).toFixed(1)}%)` : ""} because it matches the position's energy and tempo.`
+        : "There is no clear first choice; I will stay flexible.";
       const alternatives = (topMoves || []).filter(m => m.san !== bestMove?.san);
       const altLine = alternatives.length
-        ? `备选是 ${alternatives.map((m, idx) => `${idx + 1}. ${m.san}${m.prob ? `（${(m.prob * 100).toFixed(1)}%）` : ""}`).join("，")}，但它们要么让出关键格，要么无法制造同样的压力。`
-        : "此处其他走法要么让出关键格，要么缺乏同样的压力。";
-      const fenLine = fen ? `当前 FEN：${fen}。` : "";
-      const takeaway = "Takeaway：确认自己的计划是否与子力分布、弱点位置一致；在执行主计划时要持续评估对手的反击资源，并为下一步的节奏留出余地。";
+        ? `Alternatives: ${alternatives.map((m, idx) => `${idx + 1}. ${m.san}${m.prob ? ` (${(m.prob * 100).toFixed(1)}%)` : ""}`).join(", ")}. They either concede key squares or fail to create the same pressure.`
+        : "Other moves here either concede key squares or lack comparable pressure.";
+      const fenLine = fen ? `Current FEN: ${fen}.` : "";
+      const takeaway = "Takeaway: check that your plan matches piece placement and weaknesses; while executing, keep evaluating counterplay and leave room for the next tempo.";
 
       return [
-        `作为 ${gmName}，我在这一回合会从自身风格出发审视局面。`,
-        `${fenLine}当前或最近一步是 ${moveSan}，我倾向的候选路线是：${bestLine}`,
+        `As ${gmName}, I view this position through my own style.`,
+        `${fenLine}The current or most recent move is ${moveSan}; my candidate line is: ${bestLine}`,
         altLine,
-        `${tagline}我选择这一手，是为了巩固优势并把对手限制在不舒服的格子上，避免给他们简单的反击窗口。`,
+        `${tagline}I choose this move to consolidate the edge and keep the opponent in uncomfortable squares, avoiding easy counterplay windows.`,
         takeaway,
-        "（正式接入 LLM 后，这里将由模型生成 100-400 词的完整教练点评草稿。）"
+        "(Once LLM is wired in, this will be a 100–400 word coach draft from the model.)"
       ].join("\n\n");
     }
 
-    // 显示确认弹窗
+    // Show confirmation modal
     function generateCoachNote() {
       const gm = pickActiveGm();
       if (!gm) {
         alert("Please add/select a player first so we know whose voice to use.");
-        updateCoachStatus("请选择一个棋手后再生成教练点评。");
+        updateCoachStatus("Please select a player before generating a coach note.");
         return;
       }
       if (!requireChessGame()) {
@@ -2263,14 +2265,14 @@
         return;
       }
 
-      // 显示确认弹窗
+      // Show confirmation overlay
       const overlay = document.getElementById('coachConfirmOverlay');
       if (overlay) {
         overlay.classList.add('show');
       }
     }
 
-    // 关闭确认弹窗
+    // Close confirmation overlay
     function closeCoachConfirm() {
       const overlay = document.getElementById('coachConfirmOverlay');
       if (overlay) {
@@ -2278,7 +2280,7 @@
       }
     }
 
-    // 点击弹窗外部关闭
+    // Click outside to close
     document.addEventListener('DOMContentLoaded', () => {
       const overlay = document.getElementById('coachConfirmOverlay');
       if (overlay) {
@@ -2290,15 +2292,15 @@
       }
     });
 
-    // 确认后真正执行生成
+    // Execute generation after confirmation
     async function confirmGenerateCoachNote() {
       const gm = pickActiveGm();
       if (!gm) return;
       if (!requireChessGame()) return;
 
-      // ⚡ 立即关闭弹窗并显示旋转动画 - 不等待任何操作!
+      // ⚡ Close modal immediately and show spinner without waiting
       closeCoachConfirm();
-      updateCoachStatus(`正在为 ${gm.name} 生成教练点评…`, true);
+      updateCoachStatus(`Generating coach note for ${gm.name}…`, true);
 
       // fen_after: position after the current move; fen_before: the position where this move was chosen
       const fenAfter = chessGame.fen();
@@ -2369,10 +2371,10 @@
 
       noteInput.value = noteText;
       noteInput.focus();
-      updateCoachStatus(`Coach note ready: 已为 ${gm.name} 写入输入框，点击下方 "Add comment" 保存。`, false);
+      updateCoachStatus(`Coach note ready: drafted for ${gm.name} and filled into the box above. Click "Add comment" below to save.`, false);
     }
 
-    // 变体区域（简单展示所有分支）
+    // Variations area (show all branches)
     function renderVariations() {
       const variationsBox = document.getElementById("variationsBox");
       if (!variationsBox) return;
@@ -2571,10 +2573,10 @@
 
     }
 
-    // 初始渲染一次（没有 GM）
+    // Initial render (no GM selected)
     renderSelectedGms();
 
-    // 页面加载时初始化一次棋盘和 PGN
+    // Initialize board and PGN on load
     console.log("Initializing board grid...");
     console.log("boardGrid element:", boardGrid);
     console.log("boardGrid exists:", !!boardGrid);
@@ -2582,7 +2584,7 @@
     console.log("Board grid initialized, children:", boardGrid.children.length);
     boardGrid.addEventListener("click", handleSquareClick);
 
-    // 评论泡泡拖拽
+    // Enable dragging for comment bubble
     (() => {
       let dragging = false;
       let offsetX = 0;
@@ -2624,7 +2626,7 @@
       }
     };
 
-    // 如果 Chess 仍不可用（CDN 被拦），再做一次回退
+    // Fallback if Chess is still unavailable (e.g., CDN blocked)
     if (typeof Chess !== "function") {
       console.log("Chess.js not loaded from CDN, trying fallback...");
       const fallback = document.createElement("script");
