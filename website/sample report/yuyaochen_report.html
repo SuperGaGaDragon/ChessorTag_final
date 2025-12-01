@@ -53,6 +53,22 @@
       visibility: visible;
     }
   </style>
+  <script>
+    // Fallback: if root-based assets are served with wrong MIME/404, retry relative to this file.
+    (function() {
+      const fallbackMap = {
+        'report-css': '../assets/report.css',
+        'report-viz-css': '../assets/report_viz.css',
+      };
+      Object.entries(fallbackMap).forEach(([id, href]) => {
+        const linkEl = document.getElementById(id);
+        if (!linkEl) return;
+        linkEl.addEventListener('error', () => {
+          linkEl.href = href;
+        });
+      });
+    })();
+  </script>
 </head>
 <body>
   <div class="report-root">

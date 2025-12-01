@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chessortag Style Report - Nakamura,Hikaru</title>
-  <link rel="stylesheet" href="../../assets/report.css" id="report-css" />
-  <link rel="stylesheet" href="../../assets/report_viz.css" id="report-viz-css" />
+  <link rel="stylesheet" href="/assets/report.css" id="report-css" />
+  <link rel="stylesheet" href="/assets/report_viz.css" id="report-viz-css" />
   <style>
     .tag-help {
       display: inline-flex;
@@ -54,28 +54,19 @@
     }
   </style>
   <script>
-    // Fallback loader: if relative paths fail (e.g., served from a different base), retry with root-based paths.
+    // Fallback: if root-based assets are served with wrong MIME/404, retry relative to this file.
     (function() {
-      const ensureCss = (id, fallbackHref) => {
+      const fallbackMap = {
+        'report-css': '../assets/report.css',
+        'report-viz-css': '../assets/report_viz.css',
+      };
+      Object.entries(fallbackMap).forEach(([id, href]) => {
         const linkEl = document.getElementById(id);
         if (!linkEl) return;
-
-        let loaded = false;
-        linkEl.addEventListener('load', () => { loaded = true; });
         linkEl.addEventListener('error', () => {
-          linkEl.href = fallbackHref;
+          linkEl.href = href;
         });
-
-        // If the CSS hasn't loaded shortly after DOM start, switch to fallback.
-        setTimeout(() => {
-          if (!loaded && !linkEl.href.endsWith(fallbackHref)) {
-            linkEl.href = fallbackHref;
-          }
-        }, 300);
-      };
-
-      ensureCss('report-css', '../../assets/report.css');
-      ensureCss('report-viz-css', '../../assets/report_viz.css');
+      });
     })();
   </script>
 </head>
@@ -2090,12 +2081,12 @@
 
       // Whitelisted GMs (must exist in "current GM metrics" folder) with photo paths
       const GM_PHOTO_MAP = {
-        'bobby fischer': '../../current GM metrics /Bobby Fischer/Fischer.jpg',
-        'garry kasparov': '../../current GM metrics /Garry Kasparov/Kasparov.jpg',
-        'anatoly karpov': '../../current GM metrics /Anatoly Karpov/Anatoly.jpeg',
-        'mihail tal': '../../current GM metrics /Mihail Tal/Tal.jpg',
-        'tigran petrosian': '../../current GM metrics /Tigran Petrosian/Petrosian.jpg',
-        'ding liren': '../../current GM metrics /Ding Liren/Ding.jpg',
+        'bobby fischer': '/assets/bobby-fischer.jpg',
+        'garry kasparov': '/assets/garry-kasparov.jpg',
+        'anatoly karpov': '/assets/anatoly-karpov.jpeg',
+        'mihail tal': '/assets/mihail-tal.jpg',
+        'tigran petrosian': '/assets/tigran-petrosian.jpg',
+        'ding liren': '/assets/ding-liren.jpg',
       };
 
       // ========== GM AXIS VISUALIZATION LIBRARY ==========
