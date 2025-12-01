@@ -53,31 +53,6 @@
       visibility: visible;
     }
   </style>
-  <script>
-    // Fallback loader: if relative paths fail (e.g., served from a different base), retry with root-based paths.
-    (function() {
-      const ensureCss = (id, fallbackHref) => {
-        const linkEl = document.getElementById(id);
-        if (!linkEl) return;
-
-        let loaded = false;
-        linkEl.addEventListener('load', () => { loaded = true; });
-        linkEl.addEventListener('error', () => {
-          linkEl.href = fallbackHref;
-        });
-
-        // If the CSS hasn't loaded shortly after DOM start, switch to fallback.
-        setTimeout(() => {
-          if (!loaded && !linkEl.href.endsWith(fallbackHref)) {
-            linkEl.href = fallbackHref;
-          }
-        }, 300);
-      };
-
-      ensureCss('report-css', '../../assets/report.css');
-      ensureCss('report-viz-css', '../../assets/report_viz.css');
-    })();
-  </script>
 </head>
 <body>
   <div class="report-root">
