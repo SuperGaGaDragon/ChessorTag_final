@@ -24,7 +24,7 @@ SCRIPTS_DIR = BASE_DIR / "scripts"
 TEST_PLAYERS_DIR = BASE_DIR / "Test_players"
 GM_METRICS_DIR = BASE_DIR / "current GM metrics "
 
-BLACKBOX_ROOT = REPO_ROOT / "chess_imitator " / "rule_tagger_lichessbot"
+BLACKBOX_ROOT = REPO_ROOT / "chess_imitator" / "rule_tagger_lichessbot"
 BLACKBOX_INPUT = BLACKBOX_ROOT / "Test_players"
 BLACKBOX_REPORTS = BLACKBOX_ROOT / "reports"
 

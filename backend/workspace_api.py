@@ -64,7 +64,7 @@ class WorkspaceSnapshot(BaseModel):
 def get_workspace_snapshot(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
-    owner_id = (current_user.id[:32] if current_user and current_user.id else None)
+    owner_id = (current_user.id if current_user and current_user.id else None)
     folders = db.query(Folder).filter(Folder.owner_id == owner_id).all()
     studies = db.query(Study).filter(Study.owner_id == owner_id).all()
     return WorkspaceSnapshot(folders=folders, studies=studies)
@@ -77,7 +77,7 @@ def create_folder(
     current_user: User = Depends(get_current_user),
 ):
     try:
-        owner_id = (current_user.id[:32] if current_user and current_user.id else None)
+        owner_id = (current_user.id if current_user and current_user.id else None)
         if payload.parent_id:
             parent = (
                 db.query(Folder)
@@ -113,7 +113,7 @@ def update_folder(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    owner_id = (current_user.id[:32] if current_user and current_user.id else None)
+    owner_id = (current_user.id if current_user and current_user.id else None)
     folder = (
         db.query(Folder)
         .filter(Folder.id == folder_id, Folder.owner_id == owner_id)
@@ -162,7 +162,7 @@ def delete_folder(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    owner_id = (current_user.id[:32] if current_user and current_user.id else None)
+    owner_id = (current_user.id if current_user and current_user.id else None)
     folder = (
         db.query(Folder)
         .filter(Folder.id == folder_id, Folder.owner_id == owner_id)
@@ -199,7 +199,7 @@ def create_study(
 ):
     """Create a new study"""
     try:
-        owner_id = (current_user.id[:32] if current_user and current_user.id else None)
+        owner_id = (current_user.id if current_user and current_user.id else None)
         # Validate folder_id if provided
         if payload.folder_id:
             folder = (
@@ -236,7 +236,7 @@ def update_study(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    owner_id = (current_user.id[:32] if current_user and current_user.id else None)
+    owner_id = (current_user.id if current_user and current_user.id else None)
     study = (
         db.query(Study)
         .filter(Study.id == study_id, Study.owner_id == owner_id)
@@ -273,7 +273,7 @@ def delete_study(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    owner_id = (current_user.id[:32] if current_user and current_user.id else None)
+    owner_id = (current_user.id if current_user and current_user.id else None)
     study = (
         db.query(Study)
         .filter(Study.id == study_id, Study.owner_id == owner_id)

@@ -18,6 +18,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 5. 拷贝后端代码
 COPY backend/ ./backend/
 
-# 6. 启动 FastAPI（Railway 默认会把 PORT 传进来）
+# 6. 拷贝 predictor 资源（superchess predictor / rule tagger）
+COPY chess_imitator/ ./chess_imitator/
+
+# 7. 启动 FastAPI（Railway 默认会把 PORT 传进来）
 ENV PORT=8080
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8080"]

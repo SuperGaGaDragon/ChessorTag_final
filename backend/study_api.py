@@ -134,6 +134,7 @@ class StudyGetResponse(BaseModel):
 # lazy-loaded predictor deps
 _predictor_ready = False
 _predictor_err = None
+_predictor_root_path: Optional[Path] = None
 _fetch_engine_moves = None
 _tag_moves = None
 _load_player_summaries = None
@@ -237,19 +238,27 @@ def _build_local_note(req: CoachNoteRequest) -> str:
 
 def _ensure_predictor():
     """Lazy import predictor pipeline (engine + tagger + probability)"""
-    global _predictor_ready, _predictor_err
+    global _predictor_ready, _predictor_err, _predictor_root_path
     global _fetch_engine_moves, _tag_moves, _load_player_summaries, _compute_move_probabilities  # noqa: PLW0603
     if _predictor_ready:
         return
+    env_root_raw = os.getenv("PREDICTOR_ROOT")
+    env_root = env_root_raw.strip() if env_root_raw else None
+    candidates = []
+    if env_root:
+        candidates.append(Path(env_root))
+
     base = Path(__file__).resolve().parent.parent
-    predictor_root = None
-    for child in base.iterdir():
-        if child.name.strip() == "chess_imitator":
-            predictor_root = child / "rule_tagger_lichessbot"
-            break
-    if predictor_root is None:
-        _predictor_err = "predictor root not found"
+    candidates.append(base / "chess_imitator" / "rule_tagger_lichessbot")
+    candidates.append(Path("/app/chess_imitator/rule_tagger_lichessbot"))
+
+    predictor_root = next((p for p in candidates if p and p.exists()), None)
+    if not predictor_root:
+        tried = [str(p) for p in candidates]
+        _predictor_err = f"predictor root not found (tried: {tried})"
         return
+
+    _predictor_root_path = predictor_root
     sys.path.insert(0, str(predictor_root))
     try:
         from superchess_predictor.backend.engine_utils import fetch_engine_moves as fem  # type: ignore
@@ -281,9 +290,8 @@ def _predict_with_pipeline(fen: str, engine_path: Optional[str]) -> AnalyzeRespo
         ),
         engine_path=engine_bin,
     )
-    player_summaries = _load_player_summaries(
-        Path(__file__).resolve().parent.parent / "chess_imitator " / "rule_tagger_lichessbot" / "superchess_predictor" / "reports"
-    )
+    player_summaries_root = (_predictor_root_path or Path(".")) / "superchess_predictor" / "reports"
+    player_summaries = _load_player_summaries(player_summaries_root)
     if not player_summaries:
         raise HTTPException(status_code=500, detail="No player summaries found.")
 
@@ -559,7 +567,7 @@ def save_report_html(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    owner_id = (current_user.id[:32] if current_user and current_user.id else None)
+    owner_id = (current_user.id if current_user and current_user.id else None)
     study = (
         db.query(Study)
         .filter(Study.id == study_id, Study.owner_id == owner_id)
@@ -597,7 +605,7 @@ def get_study(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    owner_id = (current_user.id[:32] if current_user and current_user.id else None)
+    owner_id = (current_user.id if current_user and current_user.id else None)
     study = (
         db.query(Study)
         .filter(
