@@ -236,7 +236,7 @@ def update_study(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    owner_id = (current_user.id if current_user and current_user.id else None)
+    owner_id = current_user.id
     study = (
         db.query(Study)
         .filter(Study.id == study_id, Study.owner_id == owner_id)
@@ -259,7 +259,7 @@ def update_study(
     if payload.folder_id is not None:
         study.folder_id = payload.folder_id
     if payload.data is not None:
-        # merge/replace stored data blob
+        # replace stored data blob with the incoming snapshot
         study.data = payload.data
 
     db.commit()

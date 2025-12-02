@@ -7,11 +7,12 @@ from pathlib import Path
 import sys
 from datetime import datetime
 from openai import OpenAI
+import jwt
 
 import chess
 import chess.pgn
 import chess.engine
-from fastapi import APIRouter, FastAPI, HTTPException, Depends
+from fastapi import APIRouter, FastAPI, HTTPException, Depends, Request
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
@@ -23,6 +24,7 @@ from .auth_api import get_current_user
 from .auth_models import User
 from .db import get_db
 from .models import Study
+from .auth_utils import SECRET_KEY, ALGORITHM
 
 
 router = APIRouter(prefix="/api/study", tags=["study"])
@@ -125,6 +127,11 @@ class StudyGetResponse(BaseModel):
     title: str | None
     name: str | None = None
     data: Dict[str, Any]
+    moves: Optional[List[str]] = None
+    comments: Optional[dict] = None
+    variations: Optional[dict] = None
+    owner_id: Optional[str] = None
+    is_public: Optional[bool] = None
     created_at: datetime
     report_html: str | None = None
 
@@ -143,6 +150,22 @@ _compute_move_probabilities = None
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 ENGINE_DEFAULT = os.getenv("STOCKFISH_PATH", "/usr/games/stockfish")
+
+# Optional auth helper: returns user when token present/valid, else None (keeps public access working)
+def get_current_user_optional(request: Request, db: Session = Depends(get_db)) -> Optional[User]:
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.lower().startswith("bearer "):
+        return None
+    token = auth_header.split(" ", 1)[1].strip()
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+        if not user_id:
+            return None
+        return db.get(User, user_id)
+    except Exception:
+        return None
+
 
 # ----------------------------
 # Helpers
@@ -603,9 +626,9 @@ def get_report_html(
 def get_study(
     study_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
-    owner_id = (current_user.id if current_user and current_user.id else None)
+    owner_id = current_user.id if current_user else None
     study = (
         db.query(Study)
         .filter(
@@ -617,11 +640,22 @@ def get_study(
     if not study:
         raise HTTPException(status_code=404, detail="Study not found")
 
+    payload = study.data or {}
+    raw = payload if isinstance(payload, dict) else {}
+    moves = raw.get("moves") or []
+    comments = raw.get("comments") or {}
+    variations = raw.get("variations") or {}
+
     return StudyGetResponse(
         study_id=study.id,
         title=study.title,
         name=study.name or study.title,
-        data=study.data,
+        data=raw,
+        moves=moves,
+        comments=comments,
+        variations=variations,
+        owner_id=study.owner_id,
+        is_public=study.is_public,
         created_at=study.created_at,
         report_html=study.report_html,
     )

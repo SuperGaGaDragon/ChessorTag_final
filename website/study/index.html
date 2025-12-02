@@ -1164,12 +1164,28 @@
     }
 
     let currentStudyId = null;
+    let currentOwnerId = null;
+    let currentIsPublic = null;
     function authHeaders() {
       const token = localStorage.getItem('authToken');
       return {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       };
+    }
+
+    function getCurrentUserIdFromToken() {
+      const token = localStorage.getItem('authToken');
+      if (!token) return null;
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+      try {
+        const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+        return payload.sub || payload.user_id || payload.id || null;
+      } catch (e) {
+        console.warn('Failed to decode auth token', e);
+        return null;
+      }
     }
 
     function handleUnauthorized(res) {
@@ -1180,12 +1196,21 @@
       return false;
     }
 
-    function getStudyIdFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('id');
+    function updateSaveButtonState() {
+      const btn = document.getElementById('save-study-btn');
+      if (!btn) return;
+      const userId = getCurrentUserIdFromToken();
+      const isOwner = !!(currentOwnerId && userId && currentOwnerId === userId);
+      btn.disabled = !isOwner;
+      btn.title = isOwner ? '' : 'Read-only: you are not the owner of this study.';
     }
 
     async function loadStudy(studyId) {
+      if (!studyId) {
+        alert('Missing study id');
+        return;
+      }
+      currentStudyId = studyId;
       try {
         const res = await fetch(`${API_BASE}/api/study/${encodeURIComponent(studyId)}`, {
           headers: authHeaders(),
@@ -1196,12 +1221,55 @@
           throw new Error(text || `HTTP ${res.status}`);
         }
         const study = await res.json();
-        currentStudyId = study.study_id || study.id;
+        currentStudyId = study.study_id || study.id || studyId;
         const titleEl = document.getElementById('studyTitle');
         if (titleEl) {
           titleEl.textContent = study.name || 'Untitled study';
         }
-        // TODO: hydrate board state from study.data when backend persists it
+
+        const payload = study.data || {};
+        const loadedMoves = Array.isArray(study.moves)
+          ? study.moves
+          : (Array.isArray(payload.moves) ? payload.moves : []);
+        moves = loadedMoves.slice();
+        mainMoves = moves.slice();
+        currentOwnerId = study.owner_id || null;
+        currentIsPublic = !!study.is_public;
+
+        Object.keys(variations).forEach(k => delete variations[k]);
+        const loadedVariations = (study.variations && typeof study.variations === 'object')
+          ? study.variations
+          : (payload.variations && typeof payload.variations === 'object' ? payload.variations : {});
+        Object.entries(loadedVariations).forEach(([k, v]) => { variations[k] = v; });
+
+        Object.keys(moveComments).forEach(k => delete moveComments[k]);
+        const loadedComments = (study.comments && typeof study.comments === 'object')
+          ? study.comments
+          : (payload.comments && typeof payload.comments === 'object' ? payload.comments : {});
+        Object.entries(loadedComments).forEach(([k, v]) => { moveComments[k] = v; });
+
+        currentMoveIndex = moves.length - 1;
+
+        if (typeof Chess === "function") {
+          chessGame = new Chess();
+          moves.forEach((san) => {
+            try { chessGame.move(san, { sloppy: true }); } catch (e) { console.warn("Failed to replay move", san, e); }
+          });
+        } else {
+          chessGame = null;
+        }
+
+        const key = moveKeyAtIndex(currentMoveIndex);
+        if (noteInput) {
+          noteInput.value = (key && moveComments[key]) ? moveComments[key].text || moveComments[key] : "";
+        }
+
+        updateSaveButtonState();
+        renderPgn();
+        renderVariations();
+        renderBoardFromGame();
+        fetchEngineMoves();
+        boardOverlayText.textContent = currentMoveIndex >= 0 ? "" : "Start position – you can type moves like \"e4\", \"Nf3\" below.";
       } catch (err) {
         console.error('Failed to load study', err);
         alert('Failed to load study');
@@ -1229,34 +1297,22 @@
         if (handleUnauthorized(res)) return;
         if (!res.ok) {
           const text = await res.text();
-          throw new Error(text || `HTTP ${res.status}`);
+          const message = text || `HTTP ${res.status}`;
+          if (res.status === 401 || res.status === 403) {
+            alert("You can view this study but cannot save changes (read-only).");
+            return;
+          }
+          if (res.status === 404) {
+            alert("Study not found or you are not the owner.");
+            return;
+          }
+          alert("Unexpected error while saving.");
+          return;
         }
         alert('Saved to cloud ✅');
       } catch (err) {
         console.error('Failed to save study', err);
-        alert('Failed to save study');
-      }
-    }
-
-    async function loadStudy(studyId) {
-      try {
-        const res = await fetch(`${API_BASE}/api/study/${encodeURIComponent(studyId)}`, {
-          headers: authHeaders(),
-        });
-        if (handleUnauthorized(res)) return;
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || `HTTP ${res.status}`);
-        }
-        const study = await res.json();
-        const titleEl = document.getElementById('studyTitle');
-        if (titleEl) {
-          titleEl.textContent = study.name || 'Untitled study';
-        }
-        // if backend stores data (fen/moves), hydrate here later
-      } catch (err) {
-        console.error('Failed to load study', err);
-        alert('Failed to load study');
+        alert(`Failed to save study: ${err.message || err}`);
       }
     }
 
@@ -1267,8 +1323,8 @@
         window.location.href = '/home/';
         return;
       }
-      currentStudyId = studyId;
       loadStudy(studyId);
+      updateSaveButtonState();
 
       const saveBtn = document.getElementById('save-study-btn');
       if (saveBtn) {
