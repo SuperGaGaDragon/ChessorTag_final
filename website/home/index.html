@@ -679,15 +679,15 @@
             <strong class="folder-name" onclick="renameItem(event, this)">New study</strong>
             <span class="icon-caption">Open study board</span>
           </div>
-          <div class="icon-folder" data-type="folder" data-id="1">
+          <div class="icon-folder" data-type="folder" data-id="1" data-local="true">
             <strong class="folder-name" onclick="renameItem(event, this)">My prep vs Tal</strong>
             <span class="icon-caption">Folder · 3 studies</span>
           </div>
-          <div class="icon-folder" data-type="folder" data-id="2">
+          <div class="icon-folder" data-type="folder" data-id="2" data-local="true">
             <strong class="folder-name" onclick="renameItem(event, this)">Endgame drills</strong>
             <span class="icon-caption">Folder · 5 studies</span>
           </div>
-          <div class="icon-folder" data-type="study" data-id="3">
+          <div class="icon-folder" data-type="study" data-id="3" data-local="true">
             <strong class="folder-name" onclick="renameItem(event, this)">Study: Sample game</strong>
             <span class="icon-caption">Open board workspace (demo)</span>
           </div>
@@ -952,6 +952,7 @@
       if (!tile || tile.classList.contains('add-tile')) return;
       const type = tile.getAttribute('data-type');
       if (type !== 'folder') return;
+      if (tile.getAttribute('data-local') === 'true') return;
       const existing = tile.querySelector('.cat-sticker');
       if (existing) existing.remove();
       const img = document.createElement('img');
@@ -994,9 +995,10 @@
       tile.style.setProperty('--folder-top', palette.top);
       const id = tile.getAttribute('data-id');
       if (id) {
+        const isLocal = tile.getAttribute('data-local') === 'true';
         itemRegistry[id] = { ...(itemRegistry[id] || {}), color: palette };
         updateFolderCaption(id);
-        persistFolderAppearance(id);
+        if (!isLocal) persistFolderAppearance(id);
       }
     }
 
@@ -1165,7 +1167,7 @@
           body: JSON.stringify({
             name: 'New Folder',
             parent_id: parentId,
-            color: JSON.stringify(palette),
+            color: palette.base,
             image_key: catSrc,
           }),
         });
@@ -1366,9 +1368,10 @@
     async function persistFolderAppearance(folderId) {
       if (!folderId) return;
       const meta = itemRegistry[folderId] || {};
+      if (meta.local) return;
       try {
         const body = {};
-        if (meta.color) body.color = JSON.stringify(meta.color);
+        if (meta.color) body.color = meta.color.base || meta.color;
         if (meta.catSrc) body.image_key = meta.catSrc;
         if (Object.keys(body).length === 0) return;
         await fetch(`${API_BASE}/api/workspace/folders/${folderId}`, {

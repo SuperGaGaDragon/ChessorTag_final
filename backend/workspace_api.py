@@ -236,7 +236,7 @@ def update_study(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    owner_id = current_user.id
+    owner_id = (current_user.id if current_user and current_user.id else None)
     study = (
         db.query(Study)
         .filter(Study.id == study_id, Study.owner_id == owner_id)
