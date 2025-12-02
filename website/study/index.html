@@ -41,16 +41,9 @@
       gap: 10px;
     }
     .logo-mark {
-      width: 30px;
-      height: 30px;
-      border-radius: 10px;
-      border: 2px solid #22c55e;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      font-weight: 700;
-      color: #22c55e;
+      width: 40px;
+      height: 40px;
+      display: block;
     }
     .logo-text {
       font-weight: 600;
@@ -74,8 +67,15 @@
       width: 30px;
       height: 30px;
       border-radius: 999px;
-      background: linear-gradient(135deg, #22c55e, #0ea5e9);
       display: inline-block;
+      object-fit: cover;
+      border: 2px solid #e5e7eb;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .avatar:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     main {
@@ -299,7 +299,8 @@
       height: 90px;
       background: url("../assets/Loading2.png") no-repeat center/contain;
       animation: crawl-left 1.6s linear infinite;
-      pointer-events: none;
+      pointer-events: auto;
+      cursor: pointer;
       z-index: 2;
     }
     @keyframes spin360 {
@@ -350,6 +351,202 @@
     }
     .gm-remove-btn:hover {
       color: #f97373;
+    }
+    .gm-refresh-btn {
+      border: none;
+      background: #22c55e;
+      color: #ffffff;
+      font-size: 20px;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+    }
+    .gm-refresh-btn:hover {
+      background: #16a34a;
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+    }
+
+    /* Shouting cat overlay */
+    .cat-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none; /* keep hover target on the refresh button so overlay doesn't instantly hide */
+    }
+    .cat-overlay.show {
+      display: flex;
+      opacity: 1;
+    }
+    /* Save overlay */
+    .save-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .save-overlay.show {
+      display: flex;
+      opacity: 1;
+    }
+    .save-overlay-content {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      max-width: 90vw;
+      padding: 10px;
+    }
+    .save-overlay img {
+      width: min(26vw, 300px);
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+    .save-speech {
+      position: relative;
+      background: #fffef5;
+      border: 4px solid #1f2937;
+      border-radius: 18px;
+      padding: 18px 20px;
+      font-size: clamp(14px, 2vw, 18px);
+      font-weight: 700;
+      line-height: 1.5;
+      color: #1f2937;
+      max-width: 360px;
+      box-shadow: 8px 10px 0 rgba(0, 0, 0, 0.3);
+      white-space: pre-line;
+    }
+    .save-speech::before {
+      content: '';
+      position: absolute;
+      left: -20px;
+      top: 26px;
+      border-width: 14px 20px 14px 0;
+      border-style: solid;
+      border-color: transparent #1f2937 transparent transparent;
+    }
+    .save-speech::after {
+      content: '';
+      position: absolute;
+      left: -16px;
+      top: 30px;
+      border-width: 12px 16px 12px 0;
+      border-style: solid;
+      border-color: transparent #fffef5 transparent transparent;
+      z-index: 1;
+    }
+    .save-close {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid #e5e7eb;
+      background: rgba(255, 255, 255, 0.95);
+      cursor: pointer;
+      font-size: 18px;
+      color: #1f2937;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+      transition: transform 0.15s ease;
+      z-index: 2;
+    }
+    .save-close:hover {
+      transform: scale(1.05);
+      background: #ffffff;
+    }
+    .cat-overlay-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      max-width: 90vw;
+    }
+    .shouting-cat-img {
+      width: min(32vw, 360px);
+      height: auto;
+      filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.5));
+    }
+    .cat-speech-bubble {
+      position: relative;
+      background: #fffef5;
+      border: 4px solid #1f2937;
+      border-radius: 20px;
+      padding: 20px 22px;
+      font-size: clamp(14px, 2vw, 18px);
+      font-weight: 700;
+      line-height: 1.5;
+      color: #1f2937;
+      max-width: 420px;
+      box-shadow: 8px 10px 0 rgba(0, 0, 0, 0.3);
+      white-space: pre-line;
+    }
+    .cat-speech-bubble::before {
+      content: '';
+      position: absolute;
+      left: -24px;
+      top: 32px;
+      border-width: 16px 24px 16px 0;
+      border-style: solid;
+      border-color: transparent #1f2937 transparent transparent;
+    }
+    .cat-speech-bubble::after {
+      content: '';
+      position: absolute;
+      left: -18px;
+      top: 36px;
+      border-width: 12px 18px 12px 0;
+      border-style: solid;
+      border-color: transparent #fffef5 transparent transparent;
+      z-index: 1;
+    }
+
+    @media (max-width: 768px) {
+      .cat-overlay-content {
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+      }
+      .shouting-cat-img {
+        width: 70vw;
+      }
+      .cat-speech-bubble {
+        font-size: 16px;
+        padding: 20px 24px;
+      }
+      .cat-speech-bubble::before,
+      .cat-speech-bubble::after {
+        left: 32px;
+        top: -24px;
+        border-width: 0 16px 24px 16px;
+        border-color: transparent transparent #1f2937 transparent;
+      }
+      .cat-speech-bubble::after {
+        left: 36px;
+        top: -18px;
+        border-width: 0 12px 18px 12px;
+        border-color: transparent transparent #fffef5 transparent;
+      }
     }
     .gm-footer-note {
       margin-top: 6px;
@@ -949,22 +1146,22 @@
 <body>
   <header class="topbar">
     <div class="logo-row">
-      <div class="logo-mark">C</div>
+      <img class="logo-mark" src="../assets/logo2.png" alt="Chessortag logo">
       <div class="logo-text">Chessortag</div>
     </div>
     <div class="top-links">
-      <a href="index.html">About</a>
+      <a href="../index.html">About</a>
       <span>|</span>
       <a href="../home/">Home</a>
       <span>|</span>
       <span>Study board</span>
-      <span class="avatar"></span>
+      <img id="topAvatar" class="avatar" src="../assets/loading3.png" alt="Avatar" onclick="toggleAvatar()">
     </div>
   </header>
 
   <main>
     <div class="hero">
-      <h1>Study workspace</h1>
+      <h1 id="studyTitle">Study workspace</h1>
       <p>Left: GM-style predictions. Center: board. Right: PGN move list from imported game.</p>
     </div>
     <div style="margin-bottom:8px; display:flex; justify-content:center;">
@@ -1196,6 +1393,90 @@
       return false;
     }
 
+    // Load user avatar
+    async function loadUserAvatar() {
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/me`, {
+          headers: authHeaders(),
+        });
+        if (handleUnauthorized(res)) return;
+        if (!res.ok) {
+          console.error('Failed to load user profile', await res.text());
+          return;
+        }
+        const user = await res.json();
+        const topAvatar = document.getElementById('topAvatar');
+        if (topAvatar && user.avatar) {
+          topAvatar.src = '../' + user.avatar;
+        }
+      } catch (err) {
+        console.error('Load user avatar error', err);
+      }
+    }
+
+    // Toggle avatar between loading3.png and loading4.png
+    async function toggleAvatar() {
+      const topAvatar = document.getElementById('topAvatar');
+      if (!topAvatar) return;
+
+      const currentSrc = topAvatar.src;
+      let newAvatarPath;
+      if (currentSrc.includes('loading3.png')) {
+        newAvatarPath = 'assets/loading4.png';
+      } else {
+        newAvatarPath = 'assets/loading3.png';
+      }
+
+      topAvatar.src = '../' + newAvatarPath;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/me/avatar`, {
+          method: 'PATCH',
+          headers: authHeaders(),
+          body: JSON.stringify({ avatar: newAvatarPath }),
+        });
+        if (handleUnauthorized(res)) return;
+        if (!res.ok) {
+          console.error('Failed to update avatar', await res.text());
+          topAvatar.src = currentSrc;
+        }
+      } catch (err) {
+        console.error('Update avatar error', err);
+        topAvatar.src = currentSrc;
+      }
+    }
+
+    // Load study name and update title
+    async function loadStudyName() {
+      const studyId = getStudyIdFromUrl();
+      if (!studyId) {
+        document.getElementById('studyTitle').textContent = 'Study workspace';
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/workspace/studies/${studyId}`, {
+          headers: authHeaders(),
+        });
+        if (handleUnauthorized(res)) return;
+        if (!res.ok) {
+          console.error('Failed to load study', await res.text());
+          return;
+        }
+        const study = await res.json();
+        const studyTitle = document.getElementById('studyTitle');
+        if (studyTitle && study.name) {
+          studyTitle.textContent = study.name;
+        }
+      } catch (err) {
+        console.error('Load study name error', err);
+      }
+    }
+
+    // Initialize on page load
+    loadUserAvatar();
+    loadStudyName();
+
     function updateSaveButtonState() {
       const btn = document.getElementById('save-study-btn');
       if (!btn) return;
@@ -1309,7 +1590,7 @@
           alert("Unexpected error while saving.");
           return;
         }
-        alert('Saved to cloud ✅');
+        showSaveOverlay();
       } catch (err) {
         console.error('Failed to save study', err);
         alert(`Failed to save study: ${err.message || err}`);
@@ -2056,6 +2337,10 @@
       fetchEngineMoves();
     }
 
+    function openGamePage() {
+      window.open("https://chessortag.org/games", "_blank", "noopener");
+    }
+
     // Fetch a one-off prediction for a specific FEN (used for coach note so it reflects the side that just moved).
     async function fetchPredictionForFen(fen) {
       if (!fen) return null;
@@ -2089,6 +2374,38 @@
       engineToggle.addEventListener("change", () => {
         fetchEngineMoves();
       });
+    }
+
+    // Shared helpers to show/hide the overlay (used by hover handlers)
+    function showCatOverlay() {
+      const overlay = document.getElementById('catOverlay');
+      if (!overlay) return;
+      overlay.style.display = 'flex';
+      // Force reflow so transition fires when adding the class
+      overlay.offsetHeight;
+      overlay.classList.add('show');
+    }
+    function hideCatOverlay() {
+      const overlay = document.getElementById('catOverlay');
+      if (!overlay) return;
+      overlay.classList.remove('show');
+      // Remove immediately on mouse leave to restore page state
+      overlay.style.display = 'none';
+    }
+
+    // Save overlay helpers
+    function showSaveOverlay() {
+      const overlay = document.getElementById('saveOverlay');
+      if (!overlay) return;
+      overlay.style.display = 'flex';
+      overlay.offsetHeight;
+      overlay.classList.add('show');
+    }
+    function hideSaveOverlay() {
+      const overlay = document.getElementById('saveOverlay');
+      if (!overlay) return;
+      overlay.classList.remove('show');
+      overlay.style.display = 'none';
     }
 
     // Delete from here handler
@@ -2585,22 +2902,75 @@
         title.className = "gm-pred-title";
         title.textContent = "This player is likely to play:";
         const refreshBtn = document.createElement("button");
-        refreshBtn.className = "gm-remove-btn";
-        refreshBtn.style.fontSize = "12px";
-        refreshBtn.style.marginLeft = "8px";
+        refreshBtn.className = "gm-refresh-btn";
         refreshBtn.textContent = "⟳";
         refreshBtn.title = "Refresh predictions";
-        refreshBtn.onclick = refreshPrediction;
+
+        // Add hover event to show cat overlay with delay to prevent flickering
+        let overlayTimeout = null;
+        let suppressOverlayUntilLeave = false;
+
+        refreshBtn.addEventListener('mousedown', (e) => {
+          e.stopPropagation();
+          suppressOverlayUntilLeave = true;
+          if (overlayTimeout) {
+            clearTimeout(overlayTimeout);
+            overlayTimeout = null;
+          }
+          hideCatOverlay();
+        });
+        refreshBtn.addEventListener('mouseenter', (e) => {
+          e.stopPropagation();
+          // Clear any existing hide timeout
+          if (overlayTimeout) {
+            clearTimeout(overlayTimeout);
+            overlayTimeout = null;
+          }
+          if (suppressOverlayUntilLeave) return;
+          // Show overlay after short delay to prevent flickering
+          overlayTimeout = setTimeout(() => {
+            showCatOverlay();
+          }, 3000);
+        });
+
+        refreshBtn.addEventListener('mouseleave', (e) => {
+          e.stopPropagation();
+          // Clear show timeout if user leaves quickly
+          if (overlayTimeout) {
+            clearTimeout(overlayTimeout);
+            overlayTimeout = null;
+          }
+          suppressOverlayUntilLeave = false;
+          // Hide overlay when mouse leaves the button
+          hideCatOverlay();
+        });
+
+        // Click handler: hide overlay first, then execute refresh
+        refreshBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // Clear any pending overlay timeout
+          if (overlayTimeout) {
+            clearTimeout(overlayTimeout);
+            overlayTimeout = null;
+          }
+          // Hide overlay immediately on click
+          hideCatOverlay();
+          // Execute refresh function
+          refreshPrediction();
+        });
+
         titleRow.appendChild(title);
         titleRow.appendChild(refreshBtn);
         predBox.appendChild(titleRow);
         if (isPredicting) {
-          const bar = document.createElement("div");
-          bar.className = "gm-loading-bar";
-          const cat = document.createElement("div");
-          cat.className = "gm-loading-cat";
-          bar.appendChild(cat);
-          predBox.appendChild(bar);
+        const bar = document.createElement("div");
+        bar.className = "gm-loading-bar";
+        const cat = document.createElement("div");
+        cat.className = "gm-loading-cat";
+        cat.title = "Play Cat Memory Game";
+        cat.addEventListener("click", openGamePage);
+        bar.appendChild(cat);
+        predBox.appendChild(bar);
         } else {
           const topList = document.createElement("div");
           topList.style.marginTop = "4px";
@@ -2710,6 +3080,27 @@
       renderVariations();
       fetchEngineMoves();
     }
+
+    // Close overlay when clicking on it
   </script>
+
+  <!-- Shouting cat overlay -->
+  <div class="cat-overlay" id="catOverlay">
+    <div class="cat-overlay-content">
+      <img src="../assets/Shouting_Cat.png" alt="Shouting cat" class="shouting-cat-img" />
+      <div class="cat-speech-bubble">WE ARE STILL IMPROVING!!!
+Just Click on this refresh button if you meet any issues.
+This is the Tiger Balm</div>
+    </div>
+  </div>
+
+  <!-- Save success overlay -->
+  <div class="save-overlay" id="saveOverlay">
+    <div class="save-overlay-content">
+      <button class="save-close" type="button" aria-label="Close" onclick="hideSaveOverlay()">×</button>
+      <img src="../assets/gotit.JPG" alt="Got it" />
+      <div class="save-speech">Saved successfully to cloud</div>
+    </div>
+  </div>
 </body>
 </html>

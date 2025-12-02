@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Memory Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .level-info {
+            font-size: 1.5em;
+            color: #764ba2;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+
+        .game-board {
+            display: grid;
+            gap: 3mm;
+            margin: 30px auto;
+            justify-content: center;
+        }
+
+        .card {
+            width: 120px;
+            height: 120px;
+            background: #f0f0f0;
+            border: 2mm solid #333;
+            border-radius: 10px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.3s;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .card.disabled {
+            cursor: not-allowed;
+        }
+
+        .card.matched {
+            cursor: default;
+            position: relative;
+        }
+
+        .card.matched::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(144, 238, 144, 0.5);
+            z-index: 10;
+        }
+
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .start-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin: 20px 0;
+        }
+
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .start-button:active {
+            transform: translateY(-1px);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .overlay.active {
+            display: flex;
+        }
+
+        .passed-image {
+            max-width: 500px;
+            max-height: 500px;
+            border-radius: 20px;
+            animation: celebrate 0.5s ease-in-out;
+        }
+
+        @keyframes celebrate {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .flip {
+            animation: flipCard 0.3s ease-in-out;
+        }
+
+        @keyframes flipCard {
+            0% {
+                transform: rotateY(0deg);
+            }
+            50% {
+                transform: rotateY(90deg);
+            }
+            100% {
+                transform: rotateY(0deg);
+            }
+        }
+
+        .game-logo {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 120px;
+            z-index: 1200;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        }
+
+        .click-counter {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            display: none;
+            z-index: 1100;
+        }
+
+        .click-counter img {
+            width: 160px;
+            height: auto;
+            display: block;
+        }
+
+        .counter-bubble {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 8px 12px;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+            border: 2px solid #764ba2;
+        }
+
+        .result-bubble {
+            position: absolute;
+            top: 20px;
+            right: 100%;
+            margin-right: 12px;
+            background: #fffaf0;
+            border: 2px solid #764ba2;
+            border-radius: 14px;
+            padding: 12px 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            font-weight: 800;
+            color: #333;
+            min-width: 230px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <img class="game-logo" src="assets/logo2.png" alt="ChessCats logo">
+    <div class="game-container">
+        <h1>🐱 Cat Memory Game 🐱</h1>
+        <div class="level-info">Level <span id="levelNumber">1</span></div>
+        <button class="start-button" id="startButton">START</button>
+        <div class="game-board" id="gameBoard"></div>
+    </div>
+
+    <div class="overlay" id="overlay">
+        <img class="passed-image" src="assets/games/Others/Passed.png" alt="Passed!" id="passedImage">
+    </div>
+
+    <div class="click-counter" id="clickCounter">
+        <div class="counter-bubble" id="clickBubble">Clicks: 0</div>
+        <img src="assets/games/Others/count.png" alt="Click counter cat">
+    </div>
+
+    <script>
+        // Game configuration
+        const catImages = [
+            'assets/games/GameCat1.png',
+            'assets/games/GameCat2.png',
+            'assets/games/GameCat3.png',
+            'assets/games/GameCat4.png',
+            'assets/games/GameCat5.png',
+            'assets/games/GameCat7.png',
+            'assets/games/GameCat8.png',
+            'assets/games/GameCat9.png',
+            'assets/games/GameCat10.png',
+            'assets/games/GameCat11.png',
+            'assets/games/GameCat12.png'
+        ];
+
+        const backImages = [
+            'assets/games/Others/back1.png',
+            'assets/games/Others/back2.png'
+        ];
+
+        const youGotItImage = 'assets/games/Others/You_Got_It.JPG';
+
+        // Game state
+        let currentLevel = 1;
+        let currentBackIndex = 0;
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let canFlip = false;
+        let clickCount = 0;
+        let initialBackChosen = false;
+        let startTime = null;
+
+        // Level configurations: [rows, cols]
+        const levels = [
+            [3, 4],  // Level 1: 3x4 = 12 cards
+            [4, 4],  // Level 2: 4x4 = 16 cards
+            [5, 4],  // Level 3: 5x4 = 20 cards
+            [6, 4]   // Level 4: 6x4 = 24 cards
+        ];
+
+        // Elements
+        const startButton = document.getElementById('startButton');
+        const gameBoard = document.getElementById('gameBoard');
+        const overlay = document.getElementById('overlay');
+        const levelNumber = document.getElementById('levelNumber');
+        const clickCounter = document.getElementById('clickCounter');
+        const clickBubble = document.getElementById('clickBubble');
+        const resultBubble = document.createElement('div');
+        resultBubble.className = 'result-bubble';
+        clickCounter.appendChild(resultBubble);
+
+        // Event listeners
+        startButton.addEventListener('click', startGame);
+        overlay.addEventListener('click', nextLevel);
+
+        // Initialize game board on load
+        initializeBoard();
+
+        function initializeBoard() {
+            const levelIndex = Math.min(currentLevel - 1, levels.length - 1);
+            const [rows, cols] = levels[levelIndex];
+            const totalCards = rows * cols;
+            const pairsNeeded = totalCards / 2;
+
+            // Select random cats for this level
+            const selectedCats = [];
+            const shuffledCats = [...catImages].sort(() => Math.random() - 0.5);
+
+            for (let i = 0; i < pairsNeeded; i++) {
+                const cat = shuffledCats[i % catImages.length];
+                selectedCats.push(cat, cat); // Add each cat twice
+            }
+
+            // Shuffle cards
+            cards = selectedCats.sort(() => Math.random() - 0.5);
+            matchedPairs = 0;
+
+            // Setup game board
+            gameBoard.style.gridTemplateColumns = `repeat(${cols}, 120px)`;
+            gameBoard.style.gridTemplateRows = `repeat(${rows}, 120px)`;
+            gameBoard.innerHTML = '';
+
+            // Create cards and show cats
+            cards.forEach((cat, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.index = index;
+                card.dataset.cat = cat;
+
+                const img = document.createElement('img');
+                img.src = cat;
+                card.appendChild(img);
+
+                gameBoard.appendChild(card);
+            });
+        }
+
+        function startGame() {
+            if (currentLevel === 1 && !initialBackChosen) {
+                currentBackIndex = Math.random() < 0.5 ? 0 : 1;
+                initialBackChosen = true;
+            }
+
+            resetClickCount();
+            clickCounter.style.display = 'block';
+            hideResultBubble();
+            startTime = Date.now();
+            startButton.style.display = 'none';
+
+            // Hide all cards by flipping them to back images
+            const allCards = document.querySelectorAll('.card');
+            const backImage = backImages[currentBackIndex];
+
+            allCards.forEach(card => {
+                const img = card.querySelector('img');
+                img.src = backImage;
+                card.classList.remove('matched', 'flip');
+                card.removeEventListener('click', flipCard);
+                card.addEventListener('click', flipCard);
+            });
+
+            // Enable flipping
+            canFlip = true;
+        }
+
+        function flipCard(e) {
+            if (!canFlip) return;
+
+            const card = e.currentTarget;
+
+            // Prevent clicking the same card twice or matched cards
+            if (flippedCards.includes(card) || card.classList.contains('matched')) {
+                return;
+            }
+
+            clickCount++;
+            updateClickBubble();
+
+            // Show the cat
+            const img = card.querySelector('img');
+            const catSrc = card.dataset.cat;
+            img.src = catSrc;
+            card.classList.add('flip');
+
+            flippedCards.push(card);
+
+            // Check for match when two cards are flipped
+            if (flippedCards.length === 2) {
+                canFlip = false;
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+            const cat1 = card1.dataset.cat;
+            const cat2 = card2.dataset.cat;
+
+            if (cat1 === cat2) {
+                // Match found!
+                setTimeout(() => {
+                    card1.classList.add('matched');
+                    card2.classList.add('matched');
+
+                    // Replace with "You Got It" image
+                    card1.querySelector('img').src = youGotItImage;
+                    card2.querySelector('img').src = youGotItImage;
+
+                    matchedPairs++;
+                    flippedCards = [];
+                    canFlip = true;
+
+                    // Check if level is complete
+                    const [rows, cols] = levels[currentLevel - 1];
+                    if (matchedPairs === (rows * cols) / 2) {
+                        levelComplete();
+                    }
+                }, 500);
+            } else {
+                // No match - flip back
+                setTimeout(() => {
+                    const backImage = backImages[currentBackIndex];
+                    card1.querySelector('img').src = backImage;
+                    card2.querySelector('img').src = backImage;
+                    card1.classList.remove('flip');
+                    card2.classList.remove('flip');
+                    flippedCards = [];
+                    canFlip = true;
+                }, 1000);
+            }
+        }
+
+        function levelComplete() {
+            overlay.classList.add('active');
+            canFlip = false;
+
+            const elapsedSeconds = startTime ? ((Date.now() - startTime) / 1000).toFixed(1) : '0.0';
+            showResultBubble(Number(elapsedSeconds));
+
+            // Auto advance after 3 seconds
+            setTimeout(() => {
+                nextLevel();
+            }, 3000);
+        }
+
+        function nextLevel() {
+            overlay.classList.remove('active');
+            clickCounter.style.display = 'none';
+            hideResultBubble();
+
+            if (currentLevel < levels.length) {
+                // Advance to next level and alternate back image
+                currentLevel++;
+                currentBackIndex = 1 - currentBackIndex; // Alternate between back1 (0) and back2 (1)
+                levelNumber.textContent = currentLevel;
+                flippedCards = [];
+                canFlip = false;
+                initializeBoard();
+            } else {
+                // Keep repeating the last (6x4) level indefinitely
+                currentLevel++;
+                levelNumber.textContent = currentLevel;
+                currentBackIndex = 1 - currentBackIndex;
+                flippedCards = [];
+                canFlip = false;
+                initializeBoard(); // uses last entry (6x4) by design
+            }
+
+            startButton.style.display = 'block';
+        }
+
+        function resetClickCount() {
+            clickCount = 0;
+            updateClickBubble();
+        }
+
+        function updateClickBubble() {
+            clickBubble.textContent = `Clicks: ${clickCount}`;
+        }
+
+        function showResultBubble(elapsedSeconds) {
+            const [rows, cols] = levels[Math.min(currentLevel - 1, levels.length - 1)];
+            const percentile = computePercentile(elapsedSeconds, clickCount, rows, cols);
+            resultBubble.textContent = `You use ${elapsedSeconds} seconds, ${clickCount} clicks. You surpassed ${percentile}% players.`;
+            resultBubble.style.display = 'block';
+        }
+
+        function hideResultBubble() {
+            resultBubble.style.display = 'none';
+        }
+
+        function computePercentile(timeSec, clicksUsed, rows, cols) {
+            const pairs = (rows * cols) / 2;
+            const optimalClicks = pairs * 2;
+            const clickEfficiency = clicksUsed / optimalClicks;
+            const timePerCard = timeSec / (rows * cols);
+
+            if (clickEfficiency <= 1.15 && timePerCard <= 0.7) return 97;
+            if (clickEfficiency <= 1.35 && timePerCard <= 1.0) return 90;
+            if (clickEfficiency <= 1.6 && timePerCard <= 1.3) return 80;
+            return 65;
+        }
+    </script>
+</body>
+</html>
