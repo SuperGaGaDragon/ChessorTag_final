@@ -1,0 +1,20 @@
+{
+  "fen": "r3r1k1/pp1q1ppp/2p1pn2/5b2/PbBP4/2N1P3/1P2QPPP/R1BR2K1 w - - 0 13",
+  "candidates": [
+    {
+      "uci": "f2f3",
+      "sf_eval": 0.23,
+      "sf_pv": "f3 Bg6 e4 ..."
+    },
+    {
+      "uci": "h2h3",
+      "sf_eval": 0.18,
+      "sf_pv": "h3 Bg6 e4 ..."
+    },
+    {
+      "uci": "c4d3",
+      "sf_eval": 0.20,
+      "sf_pv": "Bd3 Bg6 e4 ..."
+    }
+  ]
+}
