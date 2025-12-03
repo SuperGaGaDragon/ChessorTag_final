@@ -34,7 +34,7 @@
     <script src="../pieces_ability/aggressive_tower_ability.js"></script>
     <script src="../pieces_ability/solid_tower_ability.js"></script>
     <script src="../pieces_ability/ruler_ability.js"></script>
-    <script src="game_ends.java"></script>
+    <script src="game_ends.js"></script>
     <style>
         * {
             margin: 0;
@@ -701,10 +701,16 @@
         let boardOrientation = 'a';
         let mySide = window.GAME_SIDE || 'spectate';
         let isHost = window.IS_HOST || false;
+        const hasParentBridge = window.parent && window.parent !== window;
+        let directBridgeHandler = null;
+        let directWs = null;
+        let directGameId = null;
 
         function postToParent(type, payload = {}) {
-            if (window.parent && window.parent !== window) {
+            if (hasParentBridge) {
                 window.parent.postMessage({ type, payload }, '*');
+            } else if (typeof directBridgeHandler === 'function') {
+                directBridgeHandler(type, payload);
             }
         }
 
@@ -738,6 +744,141 @@
                 map[card.type] = card;
                 return map;
             }, {});
+            const isProdHost = window.location.hostname === 'chessortag.org' || window.location.hostname === 'www.chessortag.org';
+            const apiBase = isProdHost ? 'https://api.chessortag.org' : '';
+
+            function buildWsUrl(gameId) {
+                if (isProdHost) {
+                    return `wss://api.chessortag.org/ws/battle/${gameId}`;
+                }
+                const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+                return `${proto}://${window.location.host}/ws/battle/${gameId}`;
+            }
+
+            function sendViaDirectWs(msg) {
+                if (directWs && directWs.readyState === WebSocket.OPEN) {
+                    directWs.send(JSON.stringify(msg));
+                } else {
+                    console.warn('[battle] WS not open, dropped', msg);
+                }
+            }
+
+            function setupDirectBridge(gameId) {
+                directGameId = gameId;
+                directBridgeHandler = (type, payload = {}) => {
+                    switch (type) {
+                        case 'deploy_request':
+                        case 'local_deploy':
+                            sendViaDirectWs({
+                                type: 'deploy_request',
+                                game_id: directGameId,
+                                ...payload,
+                            });
+                            break;
+                        case 'local_ruler_move':
+                            sendViaDirectWs({
+                                type: 'ruler_move_request',
+                                game_id: directGameId,
+                                ...payload,
+                            });
+                            break;
+                        case 'state_update':
+                            sendViaDirectWs({
+                                type: 'state_update',
+                                game_id: directGameId,
+                                ...payload,
+                            });
+                            break;
+                        default:
+                            break;
+                    }
+                };
+            }
+
+            async function directJoin(gameId) {
+                try {
+                    const res = await fetch(`${apiBase}/api/battle/join`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ game_id: gameId }),
+                    });
+                    if (!res.ok) throw new Error(`Join failed (${res.status})`);
+                    const data = await res.json();
+                    if (data.side) {
+                        updateSideFlags(data.side);
+                    }
+                } catch (err) {
+                    console.error('Join failed:', err);
+                }
+            }
+
+            function connectDirectWs(gameId) {
+                const url = buildWsUrl(gameId);
+                console.log('[battle] connecting WS:', url);
+                directWs = new WebSocket(url);
+                window.battleSocket = directWs;
+
+                directWs.onopen = () => {
+                    console.log('[battle] WS open');
+                };
+                directWs.onclose = (ev) => {
+                    console.log('[battle] WS closed', ev.code, ev.reason);
+                };
+                directWs.onerror = (err) => {
+                    console.error('[battle] WS error', err);
+                };
+                directWs.onmessage = (event) => {
+                    console.log('[battle] WS message', event.data);
+                    try {
+                        const msg = JSON.parse(event.data);
+                        switch (msg.type) {
+                            case 'side':
+                                updateSideFlags(msg.side);
+                                break;
+                            case 'deploy_request':
+                                handleDeployRequest(msg);
+                                break;
+                            case 'state_update':
+                                handleStateUpdate(msg);
+                                break;
+                            case 'start':
+                                beginMatch(msg);
+                                break;
+                            case 'deploy':
+                                handleRemoteDeploy(msg);
+                                break;
+                            case 'ruler_move':
+                                handleRemoteRulerMove(msg);
+                                break;
+                            case 'opponent_disconnected':
+                                alert('Opponent disconnected.');
+                                break;
+                            default:
+                                break;
+                        }
+                    } catch (err) {
+                        console.error('Failed to parse WS message', err);
+                    }
+                };
+            }
+
+            async function initStandaloneNetworking() {
+                const params = new URLSearchParams(window.location.search);
+                const game = params.get('game');
+                if (!game) {
+                    console.warn('No game id in URL; networking disabled.');
+                    return;
+                }
+                const gameId = game.trim().toUpperCase();
+                setupDirectBridge(gameId);
+                await directJoin(gameId);
+                connectDirectWs(gameId);
+            }
+
+            function sendReadyDirect(towerType) {
+                const tower = towerType || playerTowerType || 'solid';
+                sendViaDirectWs({ type: 'ready', tower, game_id: directGameId });
+            }
 
             let clickCount = 0;
             let clickTimer = null;
@@ -1176,7 +1317,11 @@
 
                     if (selectedTower) {
                         console.log(`Tower confirmed: ${selectedTower}`);
-                        beginMatch();
+                        if (hasParentBridge) {
+                            beginMatch();
+                        } else {
+                            sendReadyDirect(selectedTower);
+                        }
                     }
                 }
             }
@@ -1231,6 +1376,10 @@
                         break;
                 }
             });
+
+            if (!hasParentBridge) {
+                initStandaloneNetworking();
+            }
         });
 
         window.handleLocalDeploy = function(payload) {
