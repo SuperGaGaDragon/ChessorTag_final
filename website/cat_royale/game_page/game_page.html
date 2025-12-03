@@ -691,6 +691,7 @@
         window.PLAYER_SIDE = window.PLAYER_SIDE || null;
         let OPPONENT_SIDE = null;
         let IS_SPECTATOR = false;
+        let boardOrientation = 'a';
 
         function postToParent(type, payload = {}) {
             if (window.parent && window.parent !== window) {
@@ -703,6 +704,7 @@
             const solidTowerOption = document.getElementById('solid-tower-option');
             const aggressiveTowerOption = document.getElementById('aggressive-tower-option');
             const towerToggle = document.getElementById('tower-toggle');
+            const FILES = ['a','b','c','d','e','f','g','h'];
             const CARD_CONFIG = [
                 { type: 'shouter', cost: 3, card: '../pieces/shouter/shouter.png', board: '../pieces/shouter/shouter_board.png' },
                 { type: 'squirmer', cost: 4, card: '../pieces/squirmer/squirmer.png', board: '../pieces/squirmer/squirmer_board.png' },
@@ -717,12 +719,27 @@
             let clickCount = 0;
             let clickTimer = null;
 
-            function createBoardGrid() {
+            function logicalToGridRow(row) {
+                return boardOrientation === 'b' ? 8 - row : row + 1;
+            }
+
+            function logicalToGridCol(col) {
+                return boardOrientation === 'b' ? 8 - col : col + 1;
+            }
+
+            function getDisplaySquare(row, col, fallbackSquare) {
+                if (boardOrientation === 'b') {
+                    return `${FILES[7 - col]}${row + 1}`;
+                }
+                return fallbackSquare || `${FILES[col]}${8 - row}`;
+            }
+
+            function createBoardGrid(orientation = boardOrientation) {
                 const boardGrid = document.querySelector('.board-grid');
                 if (!boardGrid) return;
 
+                boardOrientation = orientation === 'b' ? 'b' : 'a';
                 boardGrid.innerHTML = '';
-                const files = ['a','b','c','d','e','f','g','h'];
 
                 for (let row = 0; row < 8; row++) {
                     for (let col = 0; col < 8; col++) {
@@ -730,19 +747,29 @@
                         cell.className = 'board-cell';
                         cell.dataset.row = row.toString();
                         cell.dataset.col = col.toString();
-                        cell.style.gridRow = (row + 1).toString();
-                        cell.style.gridColumn = (col + 1).toString();
-                        const square = `${files[col]}${8 - row}`;
-                        cell.dataset.square = square;
+                        cell.style.gridRow = logicalToGridRow(row).toString();
+                        cell.style.gridColumn = logicalToGridCol(col).toString();
+                        const logicalSquare = `${FILES[col]}${8 - row}`;
+                        const displaySquare = getDisplaySquare(row, col, logicalSquare);
+                        cell.dataset.square = logicalSquare;
 
                         const label = document.createElement('span');
                         label.className = 'cell-label';
-                        label.textContent = square;
+                        label.textContent = displaySquare;
                         cell.appendChild(label);
 
                         boardGrid.appendChild(cell);
                     }
                 }
+            }
+
+            function bindBoardCellDebugLogs() {
+                const boardCells = document.querySelectorAll('.board-cell');
+                boardCells.forEach(cell => {
+                    cell.addEventListener('click', function() {
+                        console.log(`Clicked cell: Row ${this.dataset.row}, Col ${this.dataset.col}`);
+                    });
+                });
             }
 
             function registerKingTowers() {
@@ -755,21 +782,21 @@
                 const kingImgB = swap ? '../pieces/king_tower/king_tower_1.png' : '../pieces/king_tower/king_tower_2.png';
 
                 const createKingAnchor = (allegiance, imgSrc, rowStart, colStart) => {
+                    const rows = [rowStart - 1, rowStart];
+                    const cols = [colStart - 1, colStart];
+                    const gridRows = rows.map(logicalToGridRow);
+                    const gridCols = cols.map(logicalToGridCol);
                     const anchor = document.createElement('div');
                     anchor.className = 'king-anchor';
                     anchor.dataset.allegiance = allegiance;
-                    anchor.style.gridRow = `${rowStart} / ${rowStart + 2}`;
-                    anchor.style.gridColumn = `${colStart} / ${colStart + 2}`;
+                    anchor.style.gridRow = `${Math.min(...gridRows)} / ${Math.max(...gridRows) + 1}`;
+                    anchor.style.gridColumn = `${Math.min(...gridCols)} / ${Math.max(...gridCols) + 1}`;
                     anchor.innerHTML = `<img src="${imgSrc}" alt="King Tower">`;
                     boardGrid.appendChild(anchor);
-                    const cells = [];
-                    for (let r = rowStart - 1; r <= rowStart; r++) {
-                        for (let c = colStart - 1; c <= colStart; c++) {
-                            cells.push({ r, c });
-                        }
-                    }
-                    cells.forEach(({ r, c }) => {
-                        pieceDeployment.registerStaticPiece('king_tower', r, c, allegiance, anchor);
+                    rows.forEach((r) => {
+                        cols.forEach((c) => {
+                            pieceDeployment.registerStaticPiece('king_tower', r, c, allegiance, anchor);
+                        });
                     });
                 };
 
@@ -901,6 +928,10 @@
                 pieceDeployment.setPlayerSide(IS_SPECTATOR ? 'spectate' : window.PLAYER_SIDE);
                 OPPONENT_SIDE = window.PLAYER_SIDE === 'a' ? 'b' : 'a';
 
+                const desiredOrientation = window.PLAYER_SIDE === 'b' ? 'b' : 'a';
+                createBoardGrid(desiredOrientation);
+                bindBoardCellDebugLogs();
+
                 const towersFromServer = startPayload.towers || {};
                 playerTowerType = selectedTower || towersFromServer[window.PLAYER_SIDE] || 'solid';
                 opponentTowerType = towersFromServer[OPPONENT_SIDE] || opponentTowerType || 'aggressive';
@@ -1004,13 +1035,7 @@
             });
 
             createBoardGrid();
-
-            const boardCells = document.querySelectorAll('.board-cell');
-            boardCells.forEach(cell => {
-                cell.addEventListener('click', function() {
-                    console.log(`Clicked cell: Row ${this.dataset.row}, Col ${this.dataset.col}`);
-                });
-            });
+            bindBoardCellDebugLogs();
 
             const abilityButtons = document.querySelectorAll('.ability-button');
             abilityButtons.forEach(button => {
