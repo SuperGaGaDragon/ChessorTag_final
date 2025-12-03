@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cat Royale - Game Page</title>
+    <script>
+        // Global defaults so other scripts can read side/host safely.
+        window.GAME_SIDE = window.GAME_SIDE || 'spectate';
+        window.IS_HOST = window.GAME_SIDE === 'a';
+        window.isHost = window.IS_HOST;
+        window.MY_SIDE = window.GAME_SIDE;
+    </script>
     <script src="elixir.js"></script>
     <script src="../moving/general.js"></script>
     <script src="../moving/pieces_HP/aggressive_tower_hp.js"></script>
@@ -692,11 +699,27 @@
         let OPPONENT_SIDE = null;
         let IS_SPECTATOR = false;
         let boardOrientation = 'a';
+        let mySide = window.GAME_SIDE || 'spectate';
+        let isHost = window.IS_HOST || false;
 
         function postToParent(type, payload = {}) {
             if (window.parent && window.parent !== window) {
                 window.parent.postMessage({ type, payload }, '*');
             }
+        }
+
+        function serializePiece(entry) {
+            if (!entry) return null;
+            return {
+                id: entry.id,
+                owner: entry.allegiance,
+                kind: entry.type,
+                row: entry.position?.row,
+                col: entry.position?.col,
+                hp: entry.hp,
+                max_hp: entry.maxHP,
+                boardImagePath: entry.boardImagePath || null
+            };
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -718,6 +741,127 @@
 
             let clickCount = 0;
             let clickTimer = null;
+
+            function spawnPieceFromServer(pieceMsg = {}) {
+                if (!pieceMsg) return;
+                const row = parseInt(pieceMsg.row ?? pieceMsg.r);
+                const col = parseInt(pieceMsg.col ?? pieceMsg.c);
+                if (Number.isNaN(row) || Number.isNaN(col)) return;
+                const type = pieceMsg.kind || pieceMsg.pieceType;
+                const allegiance = pieceMsg.owner || pieceMsg.allegiance || 'a';
+                const cell = document.querySelector(`.board-cell[data-row="${row}"][data-col="${col}"]`);
+                if (!cell) return;
+                const pieceEntry = pieceDeployment.deployPiece(cell, null, {
+                    fromNetwork: true,
+                    skipElixir: true,
+                    pieceType: type,
+                    allegiance,
+                    id: pieceMsg.id,
+                    cost: pieceMsg.cost,
+                    boardImagePath: pieceMsg.boardImagePath
+                });
+                if (pieceEntry) {
+                    if (typeof pieceMsg.hp === 'number') pieceEntry.hp = pieceMsg.hp;
+                    if (typeof pieceMsg.max_hp === 'number') pieceEntry.maxHP = pieceMsg.max_hp;
+                    if (pieceEntry.healthBar && typeof pieceEntry.healthBar.update === 'function' && typeof pieceEntry.hp === 'number') {
+                        pieceEntry.healthBar.update(pieceEntry.hp);
+                    }
+                }
+            }
+
+            function applyDamageFromServer(pieceId, hp) {
+                const entry = pieceDeployment.boardPieces.find(p => p.id === pieceId);
+                if (!entry) return;
+                pieceDeployment.updateHealth(entry, hp);
+            }
+
+            function setElixir(side, value) {
+                if (typeof elixirManager === 'undefined') return;
+                if (side === 'a') {
+                    elixirManager.currentElixir = value;
+                }
+                elixirManager.updateElixirDisplay();
+                elixirManager.updateElixirBar();
+            }
+
+            function hostSetElixir(side, value) {
+                if (!isHost) return;
+                setElixir(side, value);
+                postToParent('state_update', {
+                    type: 'state_update',
+                    event: 'elixir',
+                    side,
+                    elixir: value
+                });
+            }
+
+            function hostChangeElixir(side, delta) {
+                if (!isHost) return;
+                const current = side === 'a' ? elixirManager.currentElixir : 0;
+                hostSetElixir(side, current + delta);
+            }
+
+            function updateTimerDisplay(seconds) {
+                const display = document.getElementById('time-value');
+                if (!display) return;
+                const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const s = (seconds % 60).toString().padStart(2, '0');
+                display.textContent = `${m}:${s}`;
+            }
+
+            function handleStateUpdate(msg) {
+                const event = msg.event;
+                switch (event) {
+                    case 'spawn':
+                        spawnPieceFromServer(msg.piece);
+                        break;
+                    case 'damage':
+                        applyDamageFromServer(msg.piece_id, msg.hp);
+                        break;
+                    case 'elixir':
+                        setElixir(msg.side, msg.elixir);
+                        break;
+                    case 'timer':
+                        updateTimerDisplay(msg.seconds_left);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            function handleDeployRequest(msg) {
+                if (!isHost) return;
+                const row = parseInt(msg.row);
+                const col = parseInt(msg.col);
+                if (Number.isNaN(row) || Number.isNaN(col)) return;
+                const cell = document.querySelector(`.board-cell[data-row="${row}"][data-col="${col}"]`);
+                if (!cell) return;
+                const pieceEntry = pieceDeployment.deployPiece(cell, null, {
+                    pieceType: msg.pieceType || msg.cardType,
+                    allegiance: msg.allegiance || mySide,
+                    cost: msg.cost,
+                    boardImagePath: msg.boardImagePath,
+                });
+                if (!pieceEntry || pieceEntry.requested) return;
+                const payload = {
+                    type: 'state_update',
+                    event: 'spawn',
+                    piece: serializePiece(pieceEntry),
+                };
+                postToParent('state_update', payload);
+            }
+
+            function updateSideFlags(side) {
+                const normalized = side === 'a' || side === 'b' ? side : 'spectate';
+                mySide = normalized;
+                isHost = normalized === 'a';
+                window.GAME_SIDE = normalized;
+                window.IS_HOST = isHost;
+                window.isHost = isHost;
+                window.MY_SIDE = normalized;
+                IS_SPECTATOR = normalized === 'spectate';
+            }
+            updateSideFlags(window.GAME_SIDE || window.PLAYER_SIDE || 'spectate');
 
             function logicalToGridRow(row) {
                 return boardOrientation === 'b' ? 8 - row : row + 1;
@@ -807,6 +951,7 @@
             function startTimer() {
                 if (timerInterval) return;
                 remainingSeconds = 90;
+                if (!isHost) return;
                 const display = document.getElementById('time-value');
                 const updateDisplay = () => {
                     const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
@@ -814,10 +959,20 @@
                     if (display) display.textContent = `${m}:${s}`;
                 };
                 updateDisplay();
+                postToParent('state_update', {
+                    type: 'state_update',
+                    event: 'timer',
+                    seconds_left: remainingSeconds
+                });
                 timerInterval = setInterval(() => {
                     if (remainingSeconds > 0) {
                         remainingSeconds--;
                         updateDisplay();
+                        postToParent('state_update', {
+                            type: 'state_update',
+                            event: 'timer',
+                            seconds_left: remainingSeconds
+                        });
                     } else {
                         clearInterval(timerInterval);
                         timerInterval = null;
@@ -924,7 +1079,7 @@
                     ? startPayload.side
                     : (window.PLAYER_SIDE || 'a');
                 window.PLAYER_SIDE = effectiveSide;
-                IS_SPECTATOR = startPayload.side === 'spectate';
+                updateSideFlags(effectiveSide);
                 pieceDeployment.setPlayerSide(IS_SPECTATOR ? 'spectate' : window.PLAYER_SIDE);
                 OPPONENT_SIDE = window.PLAYER_SIDE === 'a' ? 'b' : 'a';
 
@@ -1051,8 +1206,17 @@
             window.addEventListener('message', (event) => {
                 const msg = event.data || {};
                 switch (msg.type) {
+                    case 'side_update':
+                        updateSideFlags(msg.payload?.side || msg.side);
+                        break;
+                    case 'state_update':
+                        handleStateUpdate(msg.payload || msg);
+                        break;
                     case 'battle_start':
                         beginMatch(msg.payload || {});
+                        break;
+                    case 'deploy_request':
+                        handleDeployRequest(msg.payload || msg);
                         break;
                     case 'remote_deploy':
                         handleRemoteDeploy(msg.payload || msg);
@@ -1070,14 +1234,42 @@
         });
 
         window.handleLocalDeploy = function(payload) {
-            postToParent('local_deploy', {
+            const entry = pieceDeployment.boardPieces.find(p => p.id === payload.id);
+            const serialized = serializePiece(entry || {
                 id: payload.id,
+                allegiance: payload.allegiance || window.PLAYER_SIDE,
+                type: payload.pieceType,
+                position: { row: payload.row, col: payload.col },
+                hp: payload.hp,
+                maxHP: payload.maxHP,
+                boardImagePath: payload.boardImagePath
+            });
+            if (window.IS_HOST) {
+                postToParent('state_update', {
+                    type: 'state_update',
+                    event: 'spawn',
+                    piece: serialized
+                });
+            } else {
+                postToParent('deploy_request', {
+                    row: payload.row,
+                    col: payload.col,
+                    pieceType: payload.pieceType,
+                    allegiance: payload.allegiance || window.PLAYER_SIDE,
+                    cost: payload.cost,
+                    boardImagePath: payload.boardImagePath
+                });
+            }
+        };
+
+        window.handleLocalDeployRequest = function(payload) {
+            postToParent('deploy_request', {
                 row: payload.row,
                 col: payload.col,
                 pieceType: payload.pieceType,
                 allegiance: payload.allegiance || window.PLAYER_SIDE,
                 cost: payload.cost,
-                boardImagePath: payload.boardImagePath,
+                boardImagePath: payload.boardImagePath
             });
         };
 

@@ -482,6 +482,21 @@ class PieceDeployment {
             return false;
         }
 
+        // If this client is not host, just emit a request and let host handle placement.
+        if (!fromNetwork && window.IS_HOST !== true) {
+            if (typeof window.handleLocalDeployRequest === 'function') {
+                window.handleLocalDeployRequest({
+                    row,
+                    col,
+                    pieceType,
+                    allegiance,
+                    cost,
+                    boardImagePath: options.boardImagePath || this.getBoardImagePath(pieceType, cardSlot?.dataset?.imagePath),
+                });
+            }
+            return { requested: true };
+        }
+
         const piece = document.createElement('div');
         piece.className = 'deployed-piece';
         piece.dataset.pieceType = pieceType;
@@ -526,6 +541,7 @@ class PieceDeployment {
             allegiance,
             maxHP,
             hp: maxHP,
+            boardImagePath: boardImg,
             shouter_on_board: pieceType === 'shouter',
             be_attacked: false,
             attackedById: null,

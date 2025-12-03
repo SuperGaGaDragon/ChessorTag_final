@@ -81,7 +81,7 @@ async def battle_ws(websocket: WebSocket, game_id: str):
                             }
                         )
 
-            elif msg_type in ("deploy", "ruler_move", "surrender", "tower_setup"):
+            elif msg_type in ("deploy", "deploy_request", "ruler_move", "ruler_move_request", "surrender", "tower_setup", "state_update"):
                 await broadcast(msg, exclude=side)
 
             else:

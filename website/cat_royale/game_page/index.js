@@ -115,6 +115,13 @@
                 case 'side':
                     setSide(msg.side);
                     setStatus(`Connected. You are ${msg.side.toUpperCase()}`);
+                    forwardToFrame('side_update', { side: msg.side });
+                    break;
+                case 'deploy_request':
+                    forwardToFrame('deploy_request', msg);
+                    break;
+                case 'state_update':
+                    forwardToFrame('state_update', msg);
                     break;
                 case 'players_connected':
                     state.playersConnected = true;
@@ -230,11 +237,11 @@
         if (state.ui.startBtn) state.ui.startBtn.disabled = true;
     }
 
-    function sendDeploy(payload) {
+    function sendDeployRequest(payload) {
         if (!state.ws || state.ws.readyState !== WebSocket.OPEN) return;
         const message = {
-            type: 'deploy',
-            id: payload.id,
+            type: 'deploy_request',
+            game_id: state.gameId,
             row: payload.row,
             col: payload.col,
             pieceType: payload.pieceType,
@@ -243,18 +250,25 @@
             boardImagePath: payload.boardImagePath,
         };
         state.ws.send(JSON.stringify(message));
+        // Host should also process locally without waiting for echo
+        if (state.side === 'a') {
+            forwardToFrame('deploy_request', message);
+        }
     }
 
     function sendRulerMove(payload) {
         if (!state.ws || state.ws.readyState !== WebSocket.OPEN) return;
         const message = {
-            type: 'ruler_move',
+            type: 'ruler_move_request',
             id: payload.id,
             row: payload.row,
             col: payload.col,
             allegiance: payload.allegiance || state.side,
         };
         state.ws.send(JSON.stringify(message));
+        if (state.side === 'a') {
+            forwardToFrame('ruler_move_request', message);
+        }
     }
 
     function handleQueryJoin() {
@@ -293,10 +307,21 @@
             const msg = event.data || {};
             switch (msg.type) {
                 case 'local_deploy':
-                    sendDeploy(msg.payload || msg);
+                    sendDeployRequest(msg.payload || msg);
+                    break;
+                case 'deploy_request':
+                    sendDeployRequest(msg.payload || msg);
                     break;
                 case 'local_ruler_move':
                     sendRulerMove(msg.payload || msg);
+                    break;
+                case 'state_update':
+                    if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+                        state.ws.send(JSON.stringify({
+                            ...msg.payload,
+                            type: 'state_update',
+                        }));
+                    }
                     break;
                 default:
                     break;
