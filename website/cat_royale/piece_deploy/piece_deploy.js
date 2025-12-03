@@ -484,22 +484,28 @@ class PieceDeployment {
             return false;
         }
 
-        // If this client is not host, just emit a request and let host handle placement.
-        if (!fromNetwork && window.IS_HOST !== true) {
-            console.log('[piece_deploy] CLIENT mode: calling handleLocalDeployRequest');
-            if (typeof window.handleLocalDeployRequest === 'function') {
-                window.handleLocalDeployRequest({
-                    row,
-                    col,
-                    pieceType,
-                    allegiance,
-                    cost,
-                    boardImagePath: options.boardImagePath || this.getBoardImagePath(pieceType, cardSlot?.dataset?.imagePath),
-                });
+        // HOST vs CLIENT branching: only one path should execute
+        if (!fromNetwork) {
+            if (window.IS_HOST === true) {
+                // HOST mode: deploy locally and broadcast
+                console.log('[piece_deploy] HOST mode: will deploy and broadcast');
             } else {
-                console.error('[piece_deploy] handleLocalDeployRequest is not defined!');
+                // CLIENT mode: send request to host
+                console.log('[piece_deploy] CLIENT mode: calling handleLocalDeployRequest');
+                if (typeof window.handleLocalDeployRequest === 'function') {
+                    window.handleLocalDeployRequest({
+                        row,
+                        col,
+                        pieceType,
+                        allegiance,
+                        cost,
+                        boardImagePath: options.boardImagePath || this.getBoardImagePath(pieceType, cardSlot?.dataset?.imagePath),
+                    });
+                } else {
+                    console.error('[piece_deploy] handleLocalDeployRequest is not defined!');
+                }
+                return { requested: true };
             }
-            return { requested: true };
         }
 
         const piece = document.createElement('div');
@@ -598,19 +604,22 @@ class PieceDeployment {
             pieceEntry._mover = mover;
         }
 
-        if (!fromNetwork && typeof window.handleLocalDeploy === 'function') {
-            console.log('[piece_deploy] HOST mode: calling handleLocalDeploy');
-            window.handleLocalDeploy({
-                id: pieceId,
-                row,
-                col,
-                pieceType,
-                allegiance,
-                cost,
-                boardImagePath: boardImg,
-            });
-        } else if (!fromNetwork) {
-            console.error('[piece_deploy] handleLocalDeploy is not defined!');
+        // Only call handleLocalDeploy if HOST mode
+        if (!fromNetwork && window.IS_HOST === true) {
+            if (typeof window.handleLocalDeploy === 'function') {
+                console.log('[piece_deploy] HOST mode: calling handleLocalDeploy');
+                window.handleLocalDeploy({
+                    id: pieceId,
+                    row,
+                    col,
+                    pieceType,
+                    allegiance,
+                    cost,
+                    boardImagePath: boardImg,
+                });
+            } else {
+                console.error('[piece_deploy] handleLocalDeploy is not defined!');
+            }
         }
 
         this.deployedPieces.push({

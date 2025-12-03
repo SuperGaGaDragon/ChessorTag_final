@@ -318,6 +318,7 @@
     }
 
     function bindFrameMessages() {
+        console.log('[PAGE] bindFrameMessages registered');
         window.addEventListener('message', (event) => {
             const msg = event.data || {};
             console.log('[PAGE raw message]', event.origin, event.data);
@@ -349,6 +350,7 @@
     }
 
     function init() {
+        console.log('[PAGE] init top', window.location.href);
         cacheUI();
         bindUI();
         bindFrameMessages();
