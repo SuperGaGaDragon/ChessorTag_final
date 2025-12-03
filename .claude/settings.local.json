@@ -8,7 +8,8 @@
       "Bash(echo:*)",
       "Bash(done)",
       "Bash(curl:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

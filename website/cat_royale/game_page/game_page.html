@@ -1414,24 +1414,13 @@
                 maxHP: payload.maxHP,
                 boardImagePath: payload.boardImagePath
             });
-            if (window.IS_HOST) {
-                console.log('[game_page] HOST mode: sending state_update');
-                postToParent('state_update', {
-                    type: 'state_update',
-                    event: 'spawn',
-                    piece: serialized
-                });
-            } else {
-                console.log('[game_page] CLIENT mode: sending deploy_request');
-                postToParent('deploy_request', {
-                    row: payload.row,
-                    col: payload.col,
-                    pieceType: payload.pieceType,
-                    allegiance: payload.allegiance || window.PLAYER_SIDE,
-                    cost: payload.cost,
-                    boardImagePath: payload.boardImagePath
-                });
-            }
+            // handleLocalDeploy should ALWAYS send state_update (only HOST calls this)
+            console.log('[game_page] sending state_update');
+            postToParent('state_update', {
+                type: 'state_update',
+                event: 'spawn',
+                piece: serialized
+            });
         };
 
         window.handleLocalDeployRequest = function(payload) {

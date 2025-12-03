@@ -245,7 +245,10 @@
     }
 
     function sendDeployRequest(payload) {
-        if (!state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+        if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
+            console.error('[PAGE] sendDeployRequest: WebSocket not open!', state.ws?.readyState);
+            return;
+        }
         const message = {
             type: 'deploy_request',
             game_id: state.gameId,
@@ -256,8 +259,8 @@
             cost: payload.cost,
             boardImagePath: payload.boardImagePath,
         };
-        state.ws.send(JSON.stringify(message));
         console.log('[PAGE → WS] sending deploy_request', message);
+        state.ws.send(JSON.stringify(message));
         // Host should also process locally without waiting for echo
         if (state.side === 'a') {
             forwardToFrame('deploy_request', message);
@@ -265,7 +268,10 @@
     }
 
     function sendRulerMove(payload) {
-        if (!state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+        if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
+            console.error('[PAGE] sendRulerMove: WebSocket not open!', state.ws?.readyState);
+            return;
+        }
         const message = {
             type: 'ruler_move_request',
             id: payload.id,
@@ -273,8 +279,8 @@
             col: payload.col,
             allegiance: payload.allegiance || state.side,
         };
-        state.ws.send(JSON.stringify(message));
         console.log('[PAGE → WS] sending ruler_move_request', message);
+        state.ws.send(JSON.stringify(message));
         if (state.side === 'a') {
             forwardToFrame('ruler_move_request', message);
         }
