@@ -314,18 +314,18 @@
     function bindFrameMessages() {
         window.addEventListener('message', (event) => {
             const msg = event.data || {};
-            console.log('[PAGE message]', msg);
+            console.log('[PAGE raw message]', event.origin, event.data);
             switch (msg.type) {
-                case 'local_deploy':
-                    sendDeployRequest(msg.payload || msg);
-                    break;
                 case 'deploy_request':
+                    console.log('[PAGE] handling deploy_request');
                     sendDeployRequest(msg.payload || msg);
                     break;
                 case 'local_ruler_move':
+                    console.log('[PAGE] handling local_ruler_move');
                     sendRulerMove(msg.payload || msg);
                     break;
                 case 'state_update':
+                    console.log('[PAGE] handling state_update');
                     if (state.ws && state.ws.readyState === WebSocket.OPEN) {
                         const payload = {
                             ...msg.payload,
@@ -336,6 +336,7 @@
                     }
                     break;
                 default:
+                    console.log('[PAGE] unhandled message type:', msg.type);
                     break;
             }
         });
