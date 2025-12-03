@@ -2,18 +2,24 @@
 // When attacking, it bobs vertically and fires a 📱 projectile toward the target every 1s.
 
 (function() {
-    const RANGE = 2;
     const INTERVAL_MS = 1000;
     const SPEED_MS = 900;
     const DAMAGE = 40;
 
     ensureBobStyle();
 
+    function isInQuarter(attacker, target) {
+        if (!attacker?.position || !target?.position) return false;
+        const myRowTop = attacker.position.row <= 3;
+        const myColLeft = attacker.position.col <= 3;
+        const rowOk = myRowTop ? target.position.row <= 3 : target.position.row >= 4;
+        const colOk = myColLeft ? target.position.col <= 3 : target.position.col >= 4;
+        return rowOk && colOk;
+    }
+
     function isSolidTowerInRange(attacker, target) {
         if (!attacker || !target || target.role !== 'troop') return false;
-        const dr = Math.abs((attacker.position?.row ?? 0) - (target.position?.row ?? 0));
-        const dc = Math.abs((attacker.position?.col ?? 0) - (target.position?.col ?? 0));
-        return Math.max(dr, dc) <= RANGE;
+        return isInQuarter(attacker, target);
     }
 
     function startSolidTowerAttack(attacker, target) {

@@ -33,6 +33,7 @@
                 if (p.allegiance === this.unit.allegiance) return false;
                 if (p.role !== 'building') return false;
                 if (p.hp !== undefined && p.hp <= 0) return false;
+                if (p.type === 'king_tower' && window.isKingTowerCellTargetable && !window.isKingTowerCellTargetable(p, pieces)) return false;
                 return true;
             });
             if (candidates.length === 0) return null;

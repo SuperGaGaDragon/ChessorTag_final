@@ -27,8 +27,8 @@ const PieceRegistry = {
         targets: ['troop'],
     },
     ruler: {
-        role: 'troop',
-        targets: ['building', 'troop'],
+        role: 'building',
+        targets: ['troop'],
     },
 };
 
@@ -44,22 +44,35 @@ function isKingTowerCellTargetable(targetEntry, allPieces = []) {
     const allegiance = targetEntry.allegiance;
     if (col === undefined || allegiance === undefined) return true;
 
-    // Find alive side towers for that allegiance
-    const towers = (allPieces || []).filter(p =>
+    // Guard towers:
+    // allegiance 'b' (top): b7 -> row 1, col 1 guards d7/d8 (col 3); g7 -> row 1, col 6 guards e7/e8 (col 4)
+    // allegiance 'a' (bottom): b2 -> row 6, col 1 guards d1/d2 (col 3); g2 -> row 6, col 6 guards e1/e2 (col 4)
+    const guardRow = allegiance === 'b' ? 1 : 6;
+    const leftGuard = (allPieces || []).find(p =>
         p &&
         p.allegiance === allegiance &&
         p.type &&
         p.type !== 'king_tower' &&
         p.type.includes('tower') &&
+        p.position &&
+        p.position.row === guardRow &&
+        p.position.col === 1 &&
+        (p.hp ?? p.maxHP ?? 0) > 0
+    );
+    const rightGuard = (allPieces || []).find(p =>
+        p &&
+        p.allegiance === allegiance &&
+        p.type &&
+        p.type !== 'king_tower' &&
+        p.type.includes('tower') &&
+        p.position &&
+        p.position.row === guardRow &&
+        p.position.col === 6 &&
         (p.hp ?? p.maxHP ?? 0) > 0
     );
 
-    const leftAlive = towers.some(p => p.position && p.position.col <= 3);
-    const rightAlive = towers.some(p => p.position && p.position.col >= 4);
-
-    // King tower cells are col 3 (left) and 4 (right)
-    if (col === 3 && leftAlive) return false;
-    if (col === 4 && rightAlive) return false;
+    if (col === 3 && leftGuard) return false;
+    if (col === 4 && rightGuard) return false;
     return true;
 }
 

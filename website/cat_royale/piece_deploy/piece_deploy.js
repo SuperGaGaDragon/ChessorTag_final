@@ -19,6 +19,7 @@ class PieceDeployment {
         if (type === 'king_tower') return window.KingTowerHP?.maxHP || 1800;
         if (type === 'shouter') return window.ShouterHP?.maxHP || 150;
         if (type === 'fighter') return window.FighterHP?.maxHP || 180;
+        if (type === 'ruler') return window.RulerHP?.maxHP || 400;
         if (type === 'squirmer') return window.SquirmerHP?.maxHP || 400;
         return 100;
     }
@@ -47,6 +48,7 @@ class PieceDeployment {
         else if (entry.type === 'king_tower') factory = window.KingTowerHP?.createHealthBar;
         else if (entry.type === 'shouter') factory = window.ShouterHP?.createHealthBar;
         else if (entry.type === 'fighter') factory = window.FighterHP?.createHealthBar;
+        else if (entry.type === 'ruler') factory = window.RulerHP?.createHealthBar;
         else if (entry.type === 'squirmer') factory = window.SquirmerHP?.createHealthBar;
         if (typeof factory === 'function') {
             entry.healthBar = factory(anchor);
@@ -164,6 +166,8 @@ class PieceDeployment {
         }
         if (entry.type === 'fighter') {
             entry.fighter_lived = false;
+        } else if (entry.type === 'ruler') {
+            entry.ruler_lived = false;
         }
         if (entry._beAttackedTimer) {
             clearTimeout(entry._beAttackedTimer);
@@ -177,6 +181,10 @@ class PieceDeployment {
         } else if (entry.type === 'fighter') {
             if (typeof window.handleFighterDeath === 'function') {
                 window.handleFighterDeath(entry, this.activeMovers[entry.id]);
+            }
+        } else if (entry.type === 'ruler') {
+            if (typeof window.handleRulerDeath === 'function') {
+                window.handleRulerDeath(entry, this.activeMovers[entry.id]);
             }
         } else if (entry.type === 'aggressive_tower') {
             if (typeof window.handleAggressiveTowerDeath === 'function') {
@@ -428,7 +436,8 @@ class PieceDeployment {
         piece.style.width = '100%';
         piece.style.height = '100%';
         piece.style.zIndex = '5';
-        piece.style.pointerEvents = 'none';
+        // Allow clicks for user-controlled movers (e.g., ruler); otherwise disable.
+        piece.style.pointerEvents = cardSlot.dataset.pieceType === 'ruler' ? 'auto' : 'none';
         piece.style.backgroundColor = '#FFFFFF';
         piece.style.border = '4px solid #5C4033';
         piece.style.boxSizing = 'border-box';
@@ -498,6 +507,13 @@ class PieceDeployment {
             pieceEntry._mover = mover;
         } else if (cardSlot.dataset.pieceType === 'fighter' && window.createFighterMover) {
             const mover = window.createFighterMover(pieceEntry, {
+                pieces: this.boardPieces,
+                movePiece: this.movePiece.bind(this)
+            });
+            this.activeMovers[pieceEntry.id] = mover;
+            pieceEntry._mover = mover;
+        } else if (cardSlot.dataset.pieceType === 'ruler' && window.createRulerMover) {
+            const mover = window.createRulerMover(pieceEntry, {
                 pieces: this.boardPieces,
                 movePiece: this.movePiece.bind(this)
             });
