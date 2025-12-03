@@ -165,6 +165,13 @@ class PieceDeployment {
 
     applyDamage(targetEntry, amount, attacker = null) {
         if (!targetEntry || typeof amount !== 'number') return;
+
+        // Only HOST executes damage calculation
+        if (window.IS_HOST !== true) {
+            console.warn('[piece_deploy] CLIENT should not call applyDamage directly');
+            return;
+        }
+
         // Apply any active damage reduction (e.g., tower abilities)
         const reduction = targetEntry.damageReduction || 0;
         const effectiveAmount = Math.max(0, amount * (1 - reduction));
@@ -183,16 +190,46 @@ class PieceDeployment {
             targetEntry.attackedByAllegiance = null;
             targetEntry._beAttackedTimer = null;
         }, 1200);
+
+        // Calculate new HP
+        let newHP;
         if (targetEntry.type === 'king_tower') {
             const shared = this.kingTowerShared[targetEntry.allegiance];
             const current = shared ? shared.hp : (targetEntry.hp ?? targetEntry.maxHP ?? 0);
-            this.updateKingHealth(targetEntry.allegiance, current - effectiveAmount);
+            newHP = current - effectiveAmount;
+            this.updateKingHealth(targetEntry.allegiance, newHP);
         } else {
-            this.updateHealth(targetEntry, (targetEntry.hp ?? targetEntry.maxHP ?? 0) - effectiveAmount);
+            const current = targetEntry.hp ?? targetEntry.maxHP ?? 0;
+            newHP = Math.max(0, Math.min(current - effectiveAmount, targetEntry.maxHP));
+            targetEntry.hp = newHP;
+            if (targetEntry.healthBar && typeof targetEntry.healthBar.update === 'function') {
+                targetEntry.healthBar.update(targetEntry.hp);
+            }
+        }
+
+        // Broadcast damage event
+        if (typeof window.postToParent === 'function') {
+            window.postToParent('state_update', {
+                type: 'state_update',
+                event: 'damage',
+                piece_id: targetEntry.id,
+                hp: newHP,
+                attacker_id: attacker?.id,
+                damage: effectiveAmount
+            });
+        }
+
+        // Check for death
+        if (newHP <= 0) {
+            this.handleDeath(targetEntry);
         }
     }
 
     handleDeath(entry) {
+        // Prevent duplicate death handling
+        if (entry._isDead) return;
+        entry._isDead = true;
+
         entry.attack = false;
         if (entry.type === 'shouter') {
             entry.shouter_lived = false;
@@ -209,6 +246,7 @@ class PieceDeployment {
             entry._beAttackedTimer = null;
         }
 
+        // Call local death handlers
         if (entry.type === 'shouter') {
             if (typeof window.handleShouterDeath === 'function') {
                 window.handleShouterDeath(entry, this.activeMovers[entry.id]);
@@ -229,6 +267,18 @@ class PieceDeployment {
         } else if (entry.type === 'king_tower') {
             window.gameOver = true;
             console.log('Game over: King tower destroyed');
+        }
+
+        // Broadcast death event if HOST
+        if (window.IS_HOST === true && typeof window.postToParent === 'function') {
+            window.postToParent('state_update', {
+                type: 'state_update',
+                event: 'death',
+                piece_id: entry.id,
+                piece_type: entry.type,
+                allegiance: entry.allegiance,
+                position: entry.position
+            });
         }
     }
 

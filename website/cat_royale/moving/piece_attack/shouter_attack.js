@@ -13,6 +13,12 @@ function isInShouterAttackRange(shouter, target) {
 }
 
 function startShouterAttack(shouter, target) {
+    // Only HOST executes attack logic
+    if (window.IS_HOST !== true) {
+        console.log('[shouter_attack] CLIENT mode: skip attack execution');
+        return;
+    }
+
     if (!shouter || !shouter.element) return;
     if (shouter.shouter_lived === false || (shouter.hp !== undefined && shouter.hp <= 0)) return;
     if (shouter._attackInterval) {

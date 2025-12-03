@@ -918,7 +918,27 @@
             function applyDamageFromServer(pieceId, hp) {
                 const entry = pieceDeployment.boardPieces.find(p => p.id === pieceId);
                 if (!entry) return;
-                pieceDeployment.updateHealth(entry, hp);
+                // Force sync HP regardless of local calculation
+                entry.hp = hp;
+                if (entry.healthBar && typeof entry.healthBar.update === 'function') {
+                    entry.healthBar.update(entry.hp);
+                }
+                // If HP <= 0, trigger death
+                if (hp <= 0 && !entry._isDead) {
+                    pieceDeployment.handleDeath(entry);
+                }
+            }
+
+            function handleDeathFromServer(pieceId) {
+                const entry = pieceDeployment.boardPieces.find(p => p.id === pieceId);
+                if (!entry) {
+                    console.warn('[death] Piece not found:', pieceId);
+                    return;
+                }
+                // Prevent duplicate handling
+                if (entry._isDead) return;
+                // Call handleDeath without broadcasting (already done by HOST)
+                pieceDeployment.handleDeath(entry);
             }
 
             function setElixir(side, value) {
@@ -963,6 +983,9 @@
                         break;
                     case 'damage':
                         applyDamageFromServer(msg.piece_id, msg.hp);
+                        break;
+                    case 'death':
+                        handleDeathFromServer(msg.piece_id);
                         break;
                     case 'elixir':
                         setElixir(msg.side, msg.elixir);
