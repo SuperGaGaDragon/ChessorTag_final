@@ -23,15 +23,10 @@
         }
         attacker.attack = true;
         attacker.currentTargetId = target?.id || null;
-        const attackerEl = getAnchorElement(attacker);
-        applyCircleMotion(attackerEl);
+        applyCircleMotion(getAnchorElement(attacker));
 
         // Clear any previous interval
         if (attacker._attackInterval) clearInterval(attacker._attackInterval);
-        if (attacker._firstAttackTimeout) {
-            clearTimeout(attacker._firstAttackTimeout);
-            attacker._firstAttackTimeout = null;
-        }
 
         const fire = () => {
             if (!attacker.attack || (attacker.hp !== undefined && attacker.hp <= 0) || attacker.aggressive_tower_lived === false) return false;
@@ -40,8 +35,13 @@
                 attacker.currentTargetId = null;
                 return false;
             }
+            if (!isAggressiveTowerInRange(attacker, target)) {
+                attacker.attack = false;
+                attacker.currentTargetId = null;
+                return false;
+            }
             const targetEl = getAnchorElement(target);
-            const anchor = attackerEl || getAnchorElement(attacker);
+            const anchor = getAnchorElement(attacker);
             if (!anchor || !targetEl) return false;
             spawnProjectile(anchor, targetEl, '🐔', SPEED_MS, () => {
                 if (window.pieceDeployment) window.pieceDeployment.applyDamage(target, DAMAGE, attacker);
@@ -49,16 +49,14 @@
             return true;
         };
 
-        // Delay first shot by 0.8s, then continue at interval
-        attacker._firstAttackTimeout = setTimeout(() => {
-            if (!fire()) return;
-            attacker._attackInterval = setInterval(() => {
-                if (!fire()) {
-                    clearInterval(attacker._attackInterval);
-                    attacker._attackInterval = null;
-                }
-            }, INTERVAL_MS);
-        }, 800);
+        // Fire immediately, then continue at interval
+        fire();
+        attacker._attackInterval = setInterval(() => {
+            if (!fire()) {
+                clearInterval(attacker._attackInterval);
+                attacker._attackInterval = null;
+            }
+        }, INTERVAL_MS);
     }
 
     function applyCircleMotion(el) {

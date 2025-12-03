@@ -9,13 +9,18 @@
     <script src="../moving/pieces_HP/aggressive_tower_hp.js"></script>
     <script src="../moving/pieces_HP/solid_tower_hp.js"></script>
     <script src="../moving/pieces_HP/shouter_hp.js"></script>
+    <script src="../moving/pieces_HP/squirmer_hp.js"></script>
     <script src="../moving/pieces_HP/king_tower_hp.js"></script>
     <script src="../moving/piece_attack/shouter_attack.js"></script>
+    <script src="../moving/piece_attack/squirmer_attack.js"></script>
     <script src="../moving/piece_attack/aggressive_tower_attack.js"></script>
     <script src="../moving/piece_attack/solid_tower_attack.js"></script>
     <script src="../moving/pieces_move/shouter_move.js"></script>
+    <script src="../moving/pieces_move/squirmer_move.js"></script>
     <script src="../moving/pieces_move/aggressive_tower_move.js"></script>
     <script src="../piece_deploy/piece_deploy.js"></script>
+    <script src="../pieces_ability/aggressive_tower_ability.js"></script>
+    <script src="game_ends.java"></script>
     <style>
         * {
             margin: 0;
@@ -707,58 +712,6 @@
                 }
             }
 
-            function getMaxHpForTower(type) {
-                if (type === 'solid') return window.SolidTowerHP?.maxHP || 1000;
-                if (type === 'aggressive') return window.AggressiveTowerHP?.maxHP || 600;
-                if (type === 'solid_tower') return window.SolidTowerHP?.maxHP || 1000;
-                if (type === 'aggressive_tower') return window.AggressiveTowerHP?.maxHP || 600;
-                return 1000;
-            }
-
-            function getTowersByAllegiance(allegiance = 'a') {
-                if (!window.pieceDeployment) return [];
-                return (pieceDeployment.boardPieces || []).filter(p =>
-                    p.allegiance === allegiance &&
-                    (p.type === 'solid_tower' || p.type === 'aggressive_tower')
-                );
-            }
-
-            function canSwitchTowers(allegiance = 'a') {
-                if (typeof elixirManager === 'undefined') return false;
-                if (elixirManager.currentElixir < 1) return false;
-                const towers = getTowersByAllegiance(allegiance);
-                if (towers.length === 0) return false;
-                // Only switch when none of the towers are currently under attack
-                return towers.every(t => !t.be_attacked);
-            }
-
-            function updateTowerToggleState() {
-                const towerToggle = document.getElementById('tower-toggle');
-                if (!towerToggle) return;
-                const canToggle = canSwitchTowers('a');
-                if (canToggle) {
-                    towerToggle.classList.remove('disabled');
-                } else {
-                    towerToggle.classList.add('disabled');
-                }
-            }
-
-            function rescaleTowerStats(towers, newType) {
-                const registryType = newType === 'solid' ? 'solid_tower' : 'aggressive_tower';
-                towers.forEach(tower => {
-                    const prevMax = tower.maxHP || getMaxHpForTower(tower.type);
-                    const prevHp = tower.hp ?? prevMax;
-                    const ratio = prevMax ? Math.max(0, Math.min(prevHp / prevMax, 1)) : 1;
-                    const nextMax = getMaxHpForTower(registryType);
-                    tower.type = registryType;
-                    tower.maxHP = nextMax;
-                    tower.hp = Math.round(nextMax * ratio);
-                    if (tower.healthBar && typeof tower.healthBar.update === 'function') {
-                        tower.healthBar.update(tower.hp);
-                    }
-                });
-            }
-
             function registerKingTowers() {
                 if (typeof pieceDeployment === 'undefined') return;
                 const boardGrid = document.querySelector('.board-grid');
@@ -873,43 +826,6 @@
                 return towerPiece;
             }
 
-            // Function to switch player's towers
-            function switchPlayerTowers() {
-                if (currentPlayerTowers.length === 0) return;
-                if (!canSwitchTowers('a')) {
-                    console.log('Cannot switch towers: either under attack or not enough elixir.');
-                    return;
-                }
-
-                // Determine new tower type
-                const currentType = currentPlayerTowers[0].dataset.towerType;
-                const newType = currentType === 'solid' ? 'aggressive' : 'solid';
-                const newImagePath = newType === 'solid'
-                    ? '../pieces/solid_tower/solid_tower.png'
-                    : '../pieces/agressive_tower/aggressive_tower.png';
-
-                // Switch all player towers
-                currentPlayerTowers.forEach(tower => {
-                    tower.querySelector('img').src = newImagePath;
-                    tower.dataset.towerType = newType;
-                });
-
-                // Rescale tower stats for both player and (future) opponent towers with matching allegiance
-                const playerTowers = getTowersByAllegiance('a');
-                rescaleTowerStats(playerTowers, newType);
-
-                playerTowerType = newType;
-
-                // Deduct elixir
-                elixirManager.currentElixir--;
-                elixirManager.updateElixirDisplay();
-                elixirManager.updateElixirBar();
-                // Ensure generation restarts if it had paused at max
-                elixirManager.startElixirGeneration();
-
-                console.log(`Switched towers to ${newType}. Elixir: ${elixirManager.currentElixir}`);
-            }
-
             // Tower selection logic
             const solidTowerOption = document.getElementById('solid-tower-option');
             const aggressiveTowerOption = document.getElementById('aggressive-tower-option');
@@ -997,6 +913,15 @@
                             'shouter',
                             '../pieces/shouter/shouter.png',
                             '../pieces/shouter/shouter_board.png',
+                            3
+                        );
+                        // Initialize Card 2 with Squirmer
+                        const card2 = document.querySelector('.card-slot:nth-child(2)');
+                        pieceDeployment.initializeCard(
+                            card2,
+                            'squirmer',
+                            '../pieces/squirmer/squirmer.png',
+                            '../pieces/squirmer/squirmer_board.png',
                             4
                         );
                     }
@@ -1043,28 +968,12 @@
 
             // Tower toggle 切换功能 (Ability Tower) - Now switches player towers
             const towerToggle = document.getElementById('tower-toggle');
-
-            if (towerToggle) {
-                towerToggle.addEventListener('click', function(e) {
-                    e.stopPropagation();
-
-                    // Switch player's towers and consume elixir
-                    switchPlayerTowers();
-
-                    // Update the button to show the opposite tower type
-                    if (playerTowerType) {
-                        const img1 = this.querySelector('.tower-img-1');
-                        const img2 = this.querySelector('.tower-img-2');
-                        const oppositeType = playerTowerType === 'solid' ? 'aggressive' : 'solid';
-
-                        if (oppositeType === 'solid') {
-                            img1.style.display = 'block';
-                            img2.style.display = 'none';
-                        } else {
-                            img1.style.display = 'none';
-                            img2.style.display = 'block';
-                        }
-                    }
+            if (towerToggle && window.AggressiveTowerAbility) {
+                window.AggressiveTowerAbility.init({
+                    toggleElement: towerToggle,
+                    getCurrentPlayerTowers: () => currentPlayerTowers.filter(Boolean),
+                    getPlayerTowerType: () => playerTowerType,
+                    setPlayerTowerType: (type) => { playerTowerType = type; }
                 });
             }
 
@@ -1095,9 +1004,6 @@
 
             if (kingTower1) setupKingTowerToggle(kingTower1);
             if (kingTower2) setupKingTowerToggle(kingTower2);
-
-            // Keep toggle button state in sync with conditions
-            setInterval(updateTowerToggleState, 300);
         });
     </script>
 </body>

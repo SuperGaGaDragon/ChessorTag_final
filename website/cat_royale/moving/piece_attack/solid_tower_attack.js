@@ -1,5 +1,5 @@
 // Solid tower attack: engages troops within 2 tiles (Chebyshev distance).
-// When attacking, it circles in place and fires a 📱 projectile toward the target every 1s.
+// When attacking, it bobs vertically and fires a 📱 projectile toward the target every 1s.
 
 (function() {
     const RANGE = 2;
@@ -7,7 +7,7 @@
     const SPEED_MS = 900;
     const DAMAGE = 40;
 
-    ensureCircleStyle();
+    ensureBobStyle();
 
     function isSolidTowerInRange(attacker, target) {
         if (!attacker || !target || target.role !== 'troop') return false;
@@ -24,13 +24,18 @@
         attacker.attack = true;
         attacker.currentTargetId = target?.id || null;
         const attackerEl = getAnchorElement(attacker);
-        applyCircleMotion(attackerEl);
+        applyBobMotion(attackerEl);
 
         if (attacker._attackInterval) clearInterval(attacker._attackInterval);
 
         const fire = () => {
             if (!attacker.attack || (attacker.hp !== undefined && attacker.hp <= 0)) return false;
             if (!target || target.role !== 'troop' || (target.hp !== undefined && target.hp <= 0)) {
+                attacker.attack = false;
+                attacker.currentTargetId = null;
+                return false;
+            }
+            if (!isSolidTowerInRange(attacker, target)) {
                 attacker.attack = false;
                 attacker.currentTargetId = null;
                 return false;
@@ -49,13 +54,14 @@
         attacker._attackInterval = setInterval(() => {
             if (!fire()) {
                 clearInterval(attacker._attackInterval);
+                attacker._attackInterval = null;
             }
         }, INTERVAL_MS);
     }
 
-    function applyCircleMotion(el) {
+    function applyBobMotion(el) {
         if (!el) return;
-        el.classList.add('tower-attack-circle');
+        el.classList.add('tower-attack-bob');
     }
 
     function getAnchorElement(piece) {
@@ -98,20 +104,18 @@
         };
     }
 
-    function ensureCircleStyle() {
-        if (document.getElementById('tower-attack-circle-style')) return;
+    function ensureBobStyle() {
+        if (document.getElementById('tower-attack-bob-style')) return;
         const style = document.createElement('style');
-        style.id = 'tower-attack-circle-style';
+        style.id = 'tower-attack-bob-style';
         style.textContent = `
-            @keyframes towerAttackCircle {
-                0% { transform: translate(-2px, 0); }
-                25% { transform: translate(0, -2px); }
-                50% { transform: translate(2px, 0); }
-                75% { transform: translate(0, 2px); }
-                100% { transform: translate(-2px, 0); }
+            @keyframes towerAttackBob {
+                0% { transform: translateY(-2px); }
+                50% { transform: translateY(2px); }
+                100% { transform: translateY(-2px); }
             }
-            .tower-attack-circle {
-                animation: towerAttackCircle 0.4s linear infinite;
+            .tower-attack-bob {
+                animation: towerAttackBob 0.35s linear infinite;
             }
         `;
         document.head.appendChild(style);

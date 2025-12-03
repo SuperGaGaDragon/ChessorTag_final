@@ -18,6 +18,7 @@ class PieceDeployment {
         if (type === 'solid_tower') return window.SolidTowerHP?.maxHP || 1000;
         if (type === 'king_tower') return window.KingTowerHP?.maxHP || 1800;
         if (type === 'shouter') return window.ShouterHP?.maxHP || 150;
+        if (type === 'squirmer') return window.SquirmerHP?.maxHP || 400;
         return 100;
     }
 
@@ -124,6 +125,9 @@ class PieceDeployment {
 
     applyDamage(targetEntry, amount, attacker = null) {
         if (!targetEntry || typeof amount !== 'number') return;
+        // Apply any active damage reduction (e.g., tower abilities)
+        const reduction = targetEntry.damageReduction || 0;
+        const effectiveAmount = Math.max(0, amount * (1 - reduction));
         targetEntry.be_attacked = true;
         targetEntry.attackedById = attacker?.id || null;
         targetEntry.attackedByType = attacker?.type || null;
@@ -142,9 +146,9 @@ class PieceDeployment {
         if (targetEntry.type === 'king_tower') {
             const shared = this.kingTowerShared[targetEntry.allegiance];
             const current = shared ? shared.hp : (targetEntry.hp ?? targetEntry.maxHP ?? 0);
-            this.updateKingHealth(targetEntry.allegiance, current - amount);
+            this.updateKingHealth(targetEntry.allegiance, current - effectiveAmount);
         } else {
-            this.updateHealth(targetEntry, (targetEntry.hp ?? targetEntry.maxHP ?? 0) - amount);
+            this.updateHealth(targetEntry, (targetEntry.hp ?? targetEntry.maxHP ?? 0) - effectiveAmount);
         }
     }
 
@@ -423,7 +427,11 @@ class PieceDeployment {
         piece.style.justifyContent = 'center';
 
         const img = document.createElement('img');
-        img.src = cardSlot.dataset.boardImagePath;
+        // Use board image; ensure squirmer uses its board variant
+        const boardImg = cardSlot.dataset.pieceType === 'squirmer'
+            ? (cardSlot.dataset.boardImagePath || '../pieces/squirmer/squirmer_board.png')
+            : cardSlot.dataset.boardImagePath;
+        img.src = boardImg;
         img.style.width = '90%';
         img.style.height = '90%';
         img.style.objectFit = 'contain';
@@ -467,6 +475,13 @@ class PieceDeployment {
                 pieces: this.boardPieces,
                 movePiece: this.movePiece.bind(this),
                 highlightPath: (coords) => this.highlightPath(pieceId, coords)
+            });
+            this.activeMovers[pieceEntry.id] = mover;
+            pieceEntry._mover = mover;
+        } else if (cardSlot.dataset.pieceType === 'squirmer' && window.createSquirmerMover) {
+            const mover = window.createSquirmerMover(pieceEntry, {
+                pieces: this.boardPieces,
+                movePiece: this.movePiece.bind(this)
             });
             this.activeMovers[pieceEntry.id] = mover;
             pieceEntry._mover = mover;

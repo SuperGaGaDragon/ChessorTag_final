@@ -6,6 +6,10 @@ const PieceRegistry = {
         role: 'troop',
         targets: ['building', 'troop'],
     },
+    squirmer: {
+        role: 'troop',
+        targets: ['building'],
+    },
     solid_tower: {
         role: 'building',
         targets: ['troop'],

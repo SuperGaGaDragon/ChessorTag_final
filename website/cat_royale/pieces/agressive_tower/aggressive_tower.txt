@@ -13,4 +13,4 @@ Tower troop不会出现在卡槽中，每次都会固定出现在b2 g2 （b7/g7�
 
 如果血量=0，则在格子上变成cooked_aggressive_tower.png，永久存在直到游戏结束
 
-技能：1费：aggressive tower往前移动2格，期间血量提升为2000持续5秒后返回正常。
+技能：1费：aggressive tower往前移动2格，期间收到的全部伤害减少25%，持续5秒后返回正常。
