@@ -898,6 +898,16 @@
                 if (Number.isNaN(row) || Number.isNaN(col)) return;
                 const type = pieceMsg.kind || pieceMsg.pieceType;
                 const allegiance = pieceMsg.owner || pieceMsg.allegiance || 'a';
+
+                // Check if piece already exists (prevent duplicate spawns)
+                if (pieceMsg.id) {
+                    const existing = pieceDeployment.boardPieces.find(p => p.id === pieceMsg.id);
+                    if (existing) {
+                        console.log(`[spawnPieceFromServer] Piece ${pieceMsg.id} already exists, skipping spawn`);
+                        return;
+                    }
+                }
+
                 const cell = document.querySelector(`.board-cell[data-row="${row}"][data-col="${col}"]`);
                 if (!cell) return;
                 const pieceEntry = pieceDeployment.deployPiece(cell, null, {
