@@ -410,12 +410,23 @@ class PieceDeployment {
     }
 
     isValidCell(row, col, pieceType = null, allegiance = 'a') {
+        // Coordinate system (ABSOLUTE, like chess):
+        // Row 0 = rank 8 (a8, b8, ..., h8) - top of board
+        // Row 7 = rank 1 (a1, b1, ..., h1) - bottom of board
+        // Col 0 = file 'a', Col 7 = file 'h'
+
         if (window.isCellBlocked && window.isCellBlocked(row, col)) return false;
         const isSideA = allegiance !== 'b';
-        // Each side can only deploy on its own half
+
+        // Each side can only deploy on its own half:
+        // Side A (allegiance='a'): can deploy on rows 4-7 (ranks 4-1, bottom half)
+        // Side B (allegiance='b'): can deploy on rows 0-3 (ranks 8-5, top half)
         if (isSideA && row >= 0 && row <= 3) return false;
         if (!isSideA && row >= 4 && row <= 7) return false;
-        // Only shouter cannot be placed on home-row corners (a1/c1/f1/h1 or mirrored for side b)
+
+        // Only shouter cannot be placed on home-row corners:
+        // For side A: row 7 (rank 1) at cols 0,2,5,7 (a1, c1, f1, h1)
+        // For side B: row 0 (rank 8) at cols 0,2,5,7 (a8, c8, f8, h8)
         const shouterHomeRow = isSideA ? 7 : 0;
         if (pieceType === 'shouter' && row === shouterHomeRow && (col === 0 || col === 2 || col === 5 || col === 7)) {
             return false;
@@ -521,10 +532,22 @@ class PieceDeployment {
         const rawCost = options.cost ?? parseInt(cardSlot?.dataset?.cost ?? this.getDefaultCost(pieceType));
         const cost = Number.isFinite(rawCost) ? rawCost : 0;
 
-        console.log('[piece_deploy] deployPiece called', { row, col, pieceType, allegiance, fromNetwork, IS_HOST: window.IS_HOST });
+        // Calculate chess square notation for better logging
+        const FILES = ['a','b','c','d','e','f','g','h'];
+        const square = `${FILES[col]}${8 - row}`;
+
+        console.log('[piece_deploy] deployPiece called', {
+            square,
+            row,
+            col,
+            pieceType,
+            allegiance,
+            fromNetwork,
+            IS_HOST: window.IS_HOST
+        });
 
         if (!this.isValidCell(row, col, pieceType, allegiance)) {
-            console.log('Invalid cell for deployment');
+            console.log(`[piece_deploy] Invalid cell for deployment: ${square} (row=${row}, col=${col}) for ${allegiance}`);
             return false;
         }
 
@@ -567,7 +590,8 @@ class PieceDeployment {
         piece.style.zIndex = '5';
         // Allow clicks for user-controlled movers (e.g., ruler) on local side only.
         piece.style.pointerEvents = pieceType === 'ruler' && isPlayerOwned ? 'auto' : 'none';
-        piece.style.backgroundColor = '#FFFFFF';
+        // Set background color based on allegiance: A端=淡粉色, B端=淡橙色
+        piece.style.backgroundColor = allegiance === 'a' ? '#FFE6F0' : '#FFE6CC';
         piece.style.border = '4px solid #5C4033';
         piece.style.boxSizing = 'border-box';
         piece.style.borderRadius = '5px';
@@ -680,7 +704,7 @@ class PieceDeployment {
             element: piece
         });
 
-        console.log(`Deployed ${pieceType} (${allegiance}) at row ${row}, col ${col}`);
+        console.log(`[piece_deploy] ✓ Deployed ${pieceType} (${allegiance}) at ${square} (row=${row}, col=${col})`);
         return pieceEntry;
     }
 

@@ -1036,19 +1036,28 @@
             }
             updateSideFlags(window.GAME_SIDE || window.PLAYER_SIDE || 'spectate');
 
+            // Coordinate system: data-row and data-col are ABSOLUTE (like chess coordinates)
+            // Row 0 = rank 8 (a8, b8, ..., h8), Row 7 = rank 1 (a1, b1, ..., h1)
+            // Col 0 = file 'a', Col 7 = file 'h'
+            // Regardless of board orientation, these coordinates stay the same.
+            // Only the visual grid position changes based on orientation.
+
             function logicalToGridRow(row) {
-                return boardOrientation === 'b' ? 8 - row : row + 1;
+                // For side A (viewing from bottom): row 0 should be at grid row 1, row 7 at grid row 8
+                // For side B (viewing from top): row 0 should be at grid row 8, row 7 at grid row 1
+                return boardOrientation === 'b' ? (8 - row) : (row + 1);
             }
 
             function logicalToGridCol(col) {
-                return boardOrientation === 'b' ? 8 - col : col + 1;
+                // For side A: col 0 (file 'a') at grid col 1, col 7 (file 'h') at grid col 8
+                // For side B: col 0 (file 'a') at grid col 8, col 7 (file 'h') at grid col 1
+                return boardOrientation === 'b' ? (8 - col) : (col + 1);
             }
 
-            function getDisplaySquare(row, col, fallbackSquare) {
-                if (boardOrientation === 'b') {
-                    return `${FILES[7 - col]}${row + 1}`;
-                }
-                return fallbackSquare || `${FILES[col]}${8 - row}`;
+            function getDisplaySquare(row, col) {
+                // Always display the absolute chess notation (e.g., "e4")
+                // This does NOT change based on orientation
+                return `${FILES[col]}${8 - row}`;
             }
 
             function createBoardGrid(orientation = boardOrientation) {
@@ -1058,33 +1067,43 @@
                 boardOrientation = orientation === 'b' ? 'b' : 'a';
                 boardGrid.innerHTML = '';
 
+                // Generate all cells with ABSOLUTE coordinates
+                // data-row and data-col are always the same regardless of orientation
                 for (let row = 0; row < 8; row++) {
                     for (let col = 0; col < 8; col++) {
                         const cell = document.createElement('div');
                         cell.className = 'board-cell';
+
+                        // ABSOLUTE coordinates (never change)
                         cell.dataset.row = row.toString();
                         cell.dataset.col = col.toString();
+
+                        // Visual grid position (changes based on orientation)
                         cell.style.gridRow = logicalToGridRow(row).toString();
                         cell.style.gridColumn = logicalToGridCol(col).toString();
+
+                        // Absolute chess notation (e.g., "a1", "e4", "h8")
                         const logicalSquare = `${FILES[col]}${8 - row}`;
-                        const displaySquare = getDisplaySquare(row, col, logicalSquare);
                         cell.dataset.square = logicalSquare;
 
                         const label = document.createElement('span');
                         label.className = 'cell-label';
-                        label.textContent = displaySquare;
+                        label.textContent = logicalSquare;
                         cell.appendChild(label);
 
                         boardGrid.appendChild(cell);
                     }
                 }
+
+                console.log(`[createBoardGrid] Created board with orientation: ${boardOrientation}`);
+                console.log('[createBoardGrid] data-row and data-col are ABSOLUTE coordinates (same for both sides)');
             }
 
             function bindBoardCellDebugLogs() {
                 const boardCells = document.querySelectorAll('.board-cell');
                 boardCells.forEach(cell => {
                     cell.addEventListener('click', function() {
-                        console.log(`Clicked cell: Row ${this.dataset.row}, Col ${this.dataset.col}`);
+                        console.log(`[BoardCell] Clicked: square=${this.dataset.square}, row=${this.dataset.row}, col=${this.dataset.col}, gridRow=${this.style.gridRow}, gridCol=${this.style.gridColumn}`);
                     });
                 });
             }
