@@ -1,0 +1,19 @@
+king_tower: 
+
+king_tower = building (建筑）
+
+用户点击king tower可以在king_tower_1.png和king_tower_2.png之中切换。
+玩家在主页选择他们想要携带solid_tower 或者 aggressive_tower。
+
+
+Tower troop不会出现在卡槽中，占据d1,e1,d2,d2四格子（d7,e7,d8,e8)
+
+血量：1800
+攻击：远程攻击，1秒3击，射程4格（横/竖/斜），伤害40，自动锁定第一个进入射程的部队。锁定对象后，该对象离开射程或死亡后才会转移目标。
+
+如果血量=0，所有全部定格，king tower慢慢淡化、消失。游戏结束
+
+
+国王塔的特殊攻击规则
+
+技能：4费：免伤5秒。在这五秒内不会被任何伤害。

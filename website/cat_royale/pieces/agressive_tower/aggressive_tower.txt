@@ -1,0 +1,16 @@
+solid_tower: 
+
+aggressive_tower = building (建筑）
+
+玩家在主页选择他们想要携带solid_tower 或者 aggressive_tower。
+比赛开始后，他们可以切换tower，但是要花 1 elixir。同时，切换后血量会和原血量保持相同比例。
+
+Tower troop不会出现在卡槽中，每次都会固定出现在b2 g2 （b7/g7）格。
+
+血量：600
+攻击：远程攻击，1秒3击，射程间隔1格（横/竖/斜），伤害40，自动锁定第一个进入射程的部队。锁定对象后，该对象离开射程或死亡后才会转移目标。
+攻击时，aggressive_tower.png上下震动，同时🐔图标飞出奔向目标。
+
+如果血量=0，则在格子上变成cooked_aggressive_tower.png，永久存在直到游戏结束
+
+技能：1费：aggressive tower往前移动2格，期间血量提升为2000持续5秒后返回正常。

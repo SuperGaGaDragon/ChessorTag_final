@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Royale - Game Page</title>
+    <script src="elixir.js"></script>
+    <script src="../moving/general.js"></script>
+    <script src="../moving/pieces_HP/aggressive_tower_hp.js"></script>
+    <script src="../moving/pieces_HP/solid_tower_hp.js"></script>
+    <script src="../moving/pieces_HP/shouter_hp.js"></script>
+    <script src="../moving/pieces_HP/king_tower_hp.js"></script>
+    <script src="../moving/piece_attack/shouter_attack.js"></script>
+    <script src="../moving/piece_attack/aggressive_tower_attack.js"></script>
+    <script src="../moving/piece_attack/solid_tower_attack.js"></script>
+    <script src="../moving/pieces_move/shouter_move.js"></script>
+    <script src="../moving/pieces_move/aggressive_tower_move.js"></script>
+    <script src="../piece_deploy/piece_deploy.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: #E8EAED;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .game-container {
+            width: 1000px;
+            height: 700px;
+            background-color: #D9DDE3;
+            border: 6px solid #000000;
+            border-radius: 15px;
+            padding: 18px;
+            display: grid;
+            grid-template-columns: 90px 60px 1fr 140px;
+            grid-template-rows: 55px 1fr 110px;
+            gap: 10px;
+            position: relative;
+        }
+
+        /* 左侧区域 */
+        .left-section {
+            grid-row: 1 / 4;
+            grid-column: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .elixer-count {
+            background-color: #F0E8E0;
+            border: 3px solid #2F5233;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+            color: #2F5233;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emoji-section {
+            flex: 1;
+            background-color: #E8D4CC;
+            border: 3px solid #2F5233;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 8px;
+        }
+
+        .emoji-section h3 {
+            font-size: 13px;
+            color: #2F5233;
+            margin-bottom: 5px;
+        }
+
+        /* Elixir bar 单独分离 */
+        .elixer-bar-section {
+            grid-row: 1 / 4;
+            grid-column: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .elixer-bar {
+            background-color: #F5EDD5;
+            border: 3px solid #2F5233;
+            border-radius: 8px;
+            width: 100%;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .elixer-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, #F0E4B8 0%, #E8D9A5 100%);
+            height: 70%;
+            transition: height 0.3s ease;
+        }
+
+        .elixer-segments {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            pointer-events: none;
+        }
+
+        .elixer-segment {
+            flex: 1;
+            border-bottom: 2px solid #2F5233;
+        }
+
+        .elixer-segment:last-child {
+            border-bottom: none;
+        }
+
+        /* 中间区域 */
+        .center-section {
+            grid-column: 3;
+            grid-row: 1 / 4;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow: visible;
+        }
+
+        .time-countdown {
+            background-color: #E8F0E8;
+            border: 3px solid #2F5233;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #DD2222;
+            height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+            position: relative;
+        }
+
+        .time-countdown span {
+            font-size: 42px;
+            font-weight: 900;
+            position: relative;
+            z-index: 10;
+            text-shadow:
+                -2px -2px 0 #8B0000,
+                -2px -1px 0 #8B0000,
+                -2px 0 0 #8B0000,
+                -2px 1px 0 #8B0000,
+                -2px 2px 0 #8B0000,
+                -1px -2px 0 #8B0000,
+                -1px 2px 0 #8B0000;
+        }
+
+        .game-board {
+            background-color: #F5EDD5;
+            border: 3px solid #2F5233;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .board-grid {
+            width: 100%;
+            max-width: 520px;
+            aspect-ratio: 1;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            gap: 3px;
+        }
+
+        .board-cell {
+            background-color: #F8F0DC;
+            border: 2px solid #2F5233;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            aspect-ratio: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cell-label {
+            position: absolute;
+            left: 4px;
+            bottom: 2px;
+            font-size: 10px;
+            font-weight: bold;
+            color: rgba(47, 82, 51, 0.55);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .invalid-flash {
+            background-color: #999999 !important;
+            transition: none;
+        }
+
+        .path-highlight {
+            outline: none;
+            box-shadow: none;
+        }
+
+        .board-cell:hover {
+            background-color: #F0E4C0;
+            transform: scale(1.05);
+        }
+
+        .board-grid {
+            position: relative;
+        }
+
+        .king-tower {
+            display: none; /* Legacy hidden */
+        }
+
+        .king-anchor {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9; /* ensure king towers render above cells */
+        }
+
+        .king-anchor img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .cards-section {
+            background-color: #E8D5E0;
+            border: 6px solid #000000;
+            border-radius: 10px;
+            padding: 12px;
+            height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .card-slot {
+            width: 70px;
+            height: 85px;
+            background-color: #F5E8F0;
+            border: 3px solid #2F5233;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #2F5233;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-slot:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(47, 82, 51, 0.2);
+        }
+
+        /* Deployed piece styling */
+        .deployed-piece {
+            animation: deployFadeIn 0.3s ease-out;
+        }
+
+        @keyframes deployFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* 右侧区域 */
+        .right-section {
+            grid-row: 1 / 4;
+            grid-column: 4;
+        }
+
+        .abilities-section {
+            background-color: #D5E0E8;
+            border: 3px solid #2F5233;
+            border-radius: 10px;
+            padding: 12px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+        }
+
+        .abilities-section::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(to left, rgba(80, 120, 160, 0.3), transparent);
+            border-radius: 0 10px 10px 0;
+            pointer-events: none;
+        }
+
+        .abilities-section h3 {
+            text-align: center;
+            font-size: 24px;
+            color: #FFFFFF;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 1;
+            font-weight: bold;
+            text-shadow:
+                -2px -2px 0 #000000,
+                2px -2px 0 #000000,
+                -2px 2px 0 #000000,
+                2px 2px 0 #000000,
+                -2px 0 0 #000000,
+                2px 0 0 #000000,
+                0 -2px 0 #000000,
+                0 2px 0 #000000;
+        }
+
+        .abilities-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .ability-button {
+            width: 70px;
+            height: 70px;
+            background-color: #FFFFFF; /* White base */
+            border: 6px solid #000000;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease; /* Keep motion smooth, color snaps */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #FFFFFF;
+            font-weight: bold;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset -2px -2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .ability-button::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.3) 25%, transparent 50%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .ability-button img {
+            width: 90%;
+            height: 90%;
+            object-fit: cover;
+            position: relative;
+            z-index: 1;
+            border-radius: 50%;
+        }
+
+        .ability-button:nth-child(3) img {
+            transform: translateY(8%);
+        }
+
+        .ability-button:hover {
+            background-color: #FFFFFF; /* Stay white on hover */
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(47, 82, 51, 0.25);
+        }
+
+        .ability-button:active {
+            transform: scale(0.95);
+        }
+
+        .ability-button.disabled {
+            filter: grayscale(1);
+            opacity: 0.55;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Game Start Dialog */
+        .game-start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .game-start-dialog {
+            background-color: #FFF9E6;
+            border: 6px solid #000000;
+            border-radius: 15px;
+            padding: 30px;
+            display: flex;
+            gap: 25px;
+            align-items: center;
+            max-width: 700px;
+        }
+
+        .dialog-cat-image {
+            width: 150px;
+            height: 150px;
+            flex-shrink: 0;
+        }
+
+        .dialog-cat-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .dialog-content {
+            flex: 1;
+        }
+
+        .dialog-message {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2F5233;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .tower-selection {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .tower-option {
+            width: 120px;
+            height: 120px;
+            background-color: #FFFFFF;
+            border: 4px solid #2F5233;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .tower-option:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .tower-option.selected {
+            border-color: #8B5CF6;
+            border-width: 6px;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+        }
+
+        .tower-option img {
+            width: 90%;
+            height: 90%;
+            object-fit: contain;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Tower Pieces on Board */
+        .tower-piece {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 8;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #5C4033;
+            border-radius: 5px;
+            background-color: #FFF5F8;
+        }
+
+        .tower-piece img {
+            width: 110%;
+            height: 110%;
+            object-fit: contain;
+        }
+
+        /* Shouter attack shake */
+        @keyframes shouterShake {
+            0% { transform: translateX(-3px); }
+            100% { transform: translateX(3px); }
+        }
+
+        .shouter-attack-shake {
+            animation: shouterShake 0.15s ease-in-out infinite alternate;
+        }
+
+        /* Aggressive tower specific sizing */
+        .tower-piece[data-tower-type="aggressive"] img {
+            width: 150%;
+            height: 150%;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+    <!-- Game Start Dialog Overlay -->
+    <div class="game-start-overlay" id="game-start-overlay">
+        <div class="game-start-dialog">
+            <div class="dialog-cat-image">
+                <img src="../other_photos/start.png" alt="Cat">
+            </div>
+            <div class="dialog-content">
+                <div class="dialog-message">
+                    Choose your tower<br>(double click to confirm and start)
+                </div>
+                <div class="tower-selection">
+                    <div class="tower-option" id="solid-tower-option" data-tower="solid">
+                        <img src="../pieces/solid_tower/solid_tower.png" alt="Solid Tower">
+                    </div>
+                    <div class="tower-option" id="aggressive-tower-option" data-tower="aggressive">
+                        <img src="../pieces/agressive_tower/aggressive_tower.png" alt="Aggressive Tower">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- 左侧区域 - Emoji 和 Elixer Count -->
+        <div class="left-section">
+            <div class="elixer-count">
+                <span>Elixer: <span id="elixer-value">0</span></span>
+            </div>
+            <div class="emoji-section">
+                <h3>Emoji</h3>
+            </div>
+        </div>
+
+        <!-- Elixir Bar 单独列 -->
+        <div class="elixer-bar-section">
+            <div class="elixer-bar">
+                <div class="elixer-fill"></div>
+                <div class="elixer-segments">
+                    <div class="elixer-segment"></div>
+                    <div class="elixer-segment"></div>
+                    <div class="elixer-segment"></div>
+                    <div class="elixer-segment"></div>
+                    <div class="elixer-segment"></div>
+                    <div class="elixer-segment"></div>
+                    <div class="elixer-segment"></div>
+                    <div class="elixer-segment"></div>
+                    <div class="elixer-segment"></div>
+                    <div class="elixer-segment"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 中间区域 -->
+        <div class="center-section">
+            <div class="time-countdown">
+                <span>Time - <span id="time-value">01:30</span></span>
+            </div>
+
+            <div class="game-board">
+                <div class="board-grid">
+                    <!-- Cells will be injected dynamically to guarantee 8x8 with chess coordinates -->
+                </div>
+            </div>
+
+            <div class="cards-section">
+                <div class="card-slot">Card 1</div>
+                <div class="card-slot">Card 2</div>
+                <div class="card-slot">Card 3</div>
+                <div class="card-slot">Card 4</div>
+            </div>
+        </div>
+
+        <!-- 右侧区域 -->
+        <div class="right-section">
+            <div class="abilities-section">
+                <h3>Abilities</h3>
+                <div class="abilities-container">
+                    <div class="ability-button">
+                        <img src="../pieces/shouter/shouter.png" alt="Shouter">
+                    </div>
+                    <div class="ability-button">
+                        <img src="../pieces/fighter/fighter.png" alt="Fighter">
+                    </div>
+                    <div class="ability-button">
+                        <img src="../pieces/squirmer/squirmer.png" alt="Squirmer">
+                    </div>
+                    <div class="ability-button">
+                        <img src="../pieces/ruler/Queen.png" alt="Ruler">
+                    </div>
+                    <div class="ability-button" id="tower-toggle">
+                        <img src="../pieces/solid_tower/solid_tower.png" alt="Solid Tower" class="tower-img-1">
+                        <img src="../pieces/agressive_tower/aggressive_tower.png" alt="Aggressive Tower" class="tower-img-2" style="display: none;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game Start Dialog Logic
+        let selectedTower = null;
+        let clickCount = 0;
+        let clickTimer = null;
+        let playerTowerType = null; // Track player's tower type
+        let currentPlayerTowers = []; // Track player's tower elements
+        let startGame = false;
+        let timerInterval = null;
+        let remainingSeconds = 90;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            function createBoardGrid() {
+                const boardGrid = document.querySelector('.board-grid');
+                if (!boardGrid) return;
+
+                boardGrid.innerHTML = '';
+                const files = ['a','b','c','d','e','f','g','h'];
+
+                for (let row = 0; row < 8; row++) {
+                    for (let col = 0; col < 8; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'board-cell';
+                        cell.dataset.row = row.toString();
+                        cell.dataset.col = col.toString();
+                        cell.style.gridRow = (row + 1).toString();
+                        cell.style.gridColumn = (col + 1).toString();
+                        const square = `${files[col]}${8 - row}`;
+                        cell.dataset.square = square;
+
+                        const label = document.createElement('span');
+                        label.className = 'cell-label';
+                        label.textContent = square;
+                        cell.appendChild(label);
+
+                        boardGrid.appendChild(cell);
+                    }
+                }
+            }
+
+            function getMaxHpForTower(type) {
+                if (type === 'solid') return window.SolidTowerHP?.maxHP || 1000;
+                if (type === 'aggressive') return window.AggressiveTowerHP?.maxHP || 600;
+                if (type === 'solid_tower') return window.SolidTowerHP?.maxHP || 1000;
+                if (type === 'aggressive_tower') return window.AggressiveTowerHP?.maxHP || 600;
+                return 1000;
+            }
+
+            function getTowersByAllegiance(allegiance = 'a') {
+                if (!window.pieceDeployment) return [];
+                return (pieceDeployment.boardPieces || []).filter(p =>
+                    p.allegiance === allegiance &&
+                    (p.type === 'solid_tower' || p.type === 'aggressive_tower')
+                );
+            }
+
+            function canSwitchTowers(allegiance = 'a') {
+                if (typeof elixirManager === 'undefined') return false;
+                if (elixirManager.currentElixir < 1) return false;
+                const towers = getTowersByAllegiance(allegiance);
+                if (towers.length === 0) return false;
+                // Only switch when none of the towers are currently under attack
+                return towers.every(t => !t.be_attacked);
+            }
+
+            function updateTowerToggleState() {
+                const towerToggle = document.getElementById('tower-toggle');
+                if (!towerToggle) return;
+                const canToggle = canSwitchTowers('a');
+                if (canToggle) {
+                    towerToggle.classList.remove('disabled');
+                } else {
+                    towerToggle.classList.add('disabled');
+                }
+            }
+
+            function rescaleTowerStats(towers, newType) {
+                const registryType = newType === 'solid' ? 'solid_tower' : 'aggressive_tower';
+                towers.forEach(tower => {
+                    const prevMax = tower.maxHP || getMaxHpForTower(tower.type);
+                    const prevHp = tower.hp ?? prevMax;
+                    const ratio = prevMax ? Math.max(0, Math.min(prevHp / prevMax, 1)) : 1;
+                    const nextMax = getMaxHpForTower(registryType);
+                    tower.type = registryType;
+                    tower.maxHP = nextMax;
+                    tower.hp = Math.round(nextMax * ratio);
+                    if (tower.healthBar && typeof tower.healthBar.update === 'function') {
+                        tower.healthBar.update(tower.hp);
+                    }
+                });
+            }
+
+            function registerKingTowers() {
+                if (typeof pieceDeployment === 'undefined') return;
+                const boardGrid = document.querySelector('.board-grid');
+                if (!boardGrid) return;
+
+                // Randomly assign king tower skins: one side gets 1, other gets 2
+                const swap = Math.random() >= 0.5;
+                const kingImgA = swap ? '../pieces/king_tower/king_tower_2.png' : '../pieces/king_tower/king_tower_1.png';
+                const kingImgB = swap ? '../pieces/king_tower/king_tower_1.png' : '../pieces/king_tower/king_tower_2.png';
+
+                const createKingAnchor = (allegiance, imgSrc, rowStart, colStart) => {
+                    const anchor = document.createElement('div');
+                    anchor.className = 'king-anchor';
+                    anchor.dataset.allegiance = allegiance;
+                    anchor.style.gridRow = `${rowStart} / ${rowStart + 2}`;
+                    anchor.style.gridColumn = `${colStart} / ${colStart + 2}`;
+                    anchor.innerHTML = `<img src="${imgSrc}" alt="King Tower">`;
+                    boardGrid.appendChild(anchor);
+                    const cells = [];
+                    for (let r = rowStart - 1; r <= rowStart; r++) {
+                        for (let c = colStart - 1; c <= colStart; c++) {
+                            cells.push({ r, c });
+                        }
+                    }
+                    cells.forEach(({ r, c }) => {
+                        pieceDeployment.registerStaticPiece('king_tower', r, c, allegiance, anchor);
+                    });
+                };
+
+                // Player rows: bottom rows 7/6 -> grid rows 8/7 => start 7 (1-based)
+                createKingAnchor('a', kingImgA, 7, 4); // rows 7-8, cols 4-5 (d1/e1/d2/e2)
+                // Top rows 0/1 -> grid rows 1/2 => start 1
+                createKingAnchor('b', kingImgB, 1, 4); // rows 1-2, cols 4-5 (d7/e7/d8/e8)
+            }
+
+            function startTimer() {
+                if (timerInterval) return;
+                const display = document.getElementById('time-value');
+                const updateDisplay = () => {
+                    const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+                    const s = (remainingSeconds % 60).toString().padStart(2, '0');
+                    if (display) display.textContent = `${m}:${s}`;
+                };
+                updateDisplay();
+                timerInterval = setInterval(() => {
+                    if (remainingSeconds > 0) {
+                        remainingSeconds--;
+                        updateDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                    }
+                }, 1000);
+            }
+            // Function to place tower on board
+            function placeTowerOnBoard(row, col, towerType, isPlayer = false) {
+                // Find the cell at the specified position
+                const cell = document.querySelector(`.board-cell[data-row="${row}"][data-col="${col}"]`);
+
+                if (!cell) {
+                    console.error(`Cell not found at row ${row}, col ${col}`);
+                    return null;
+                }
+
+                // Only allow fixed tower slots
+                const allowedPlayer = (row === 6 && (col === 1 || col === 6));
+                const allowedEnemy = (row === 1 && (col === 1 || col === 6));
+                if (isPlayer && !allowedPlayer) {
+                    console.warn('Blocked tower placement outside b2/g2 for player.');
+                    return null;
+                }
+                if (!isPlayer && !allowedEnemy) {
+                    console.warn('Blocked tower placement outside b7/g7 for enemy.');
+                    return null;
+                }
+
+                // Prevent duplicate placement in same cell
+                if (cell.querySelector('.tower-piece')) {
+                    return cell.querySelector('.tower-piece');
+                }
+
+                // Determine tower image path
+                let towerImagePath;
+                if (towerType === 'solid') {
+                    towerImagePath = '../pieces/solid_tower/solid_tower.png';
+                } else if (towerType === 'aggressive') {
+                    towerImagePath = '../pieces/agressive_tower/aggressive_tower.png';
+                } else {
+                    console.error(`Unknown tower type: ${towerType}`);
+                    return null;
+                }
+
+                // Create tower piece element
+                const towerPiece = document.createElement('div');
+                towerPiece.className = 'tower-piece';
+                towerPiece.innerHTML = `<img src="${towerImagePath}" alt="${towerType} tower">`;
+                towerPiece.dataset.towerType = towerType;
+
+                // Add tower to cell
+                cell.style.position = 'relative';
+                cell.appendChild(towerPiece);
+
+                // Register tower for targeting / pathing
+                if (typeof pieceDeployment !== 'undefined') {
+                    const registryType = towerType === 'solid' ? 'solid_tower'
+                        : towerType === 'aggressive' ? 'aggressive_tower'
+                        : 'king_tower';
+                    pieceDeployment.registerStaticPiece(registryType, row, col, isPlayer ? 'a' : 'b', towerPiece);
+                }
+
+                console.log(`Placed ${towerType} tower at row ${row}, col ${col}`);
+                return towerPiece;
+            }
+
+            // Function to switch player's towers
+            function switchPlayerTowers() {
+                if (currentPlayerTowers.length === 0) return;
+                if (!canSwitchTowers('a')) {
+                    console.log('Cannot switch towers: either under attack or not enough elixir.');
+                    return;
+                }
+
+                // Determine new tower type
+                const currentType = currentPlayerTowers[0].dataset.towerType;
+                const newType = currentType === 'solid' ? 'aggressive' : 'solid';
+                const newImagePath = newType === 'solid'
+                    ? '../pieces/solid_tower/solid_tower.png'
+                    : '../pieces/agressive_tower/aggressive_tower.png';
+
+                // Switch all player towers
+                currentPlayerTowers.forEach(tower => {
+                    tower.querySelector('img').src = newImagePath;
+                    tower.dataset.towerType = newType;
+                });
+
+                // Rescale tower stats for both player and (future) opponent towers with matching allegiance
+                const playerTowers = getTowersByAllegiance('a');
+                rescaleTowerStats(playerTowers, newType);
+
+                playerTowerType = newType;
+
+                // Deduct elixir
+                elixirManager.currentElixir--;
+                elixirManager.updateElixirDisplay();
+                elixirManager.updateElixirBar();
+                // Ensure generation restarts if it had paused at max
+                elixirManager.startElixirGeneration();
+
+                console.log(`Switched towers to ${newType}. Elixir: ${elixirManager.currentElixir}`);
+            }
+
+            // Tower selection logic
+            const solidTowerOption = document.getElementById('solid-tower-option');
+            const aggressiveTowerOption = document.getElementById('aggressive-tower-option');
+            const overlay = document.getElementById('game-start-overlay');
+
+            function selectTower(towerElement, towerType) {
+                // Remove selection from both
+                solidTowerOption.classList.remove('selected');
+                aggressiveTowerOption.classList.remove('selected');
+
+                // Add selection to clicked tower
+                towerElement.classList.add('selected');
+                selectedTower = towerType;
+
+                console.log(`Tower selected: ${towerType}`);
+            }
+
+            function handleDoubleClick(towerElement, towerType) {
+                clickCount++;
+
+                if (clickCount === 1) {
+                    // First click - select tower
+                    selectTower(towerElement, towerType);
+
+                    // Reset after 500ms if no second click
+                    clickTimer = setTimeout(() => {
+                        clickCount = 0;
+                    }, 500);
+                } else if (clickCount === 2) {
+                    // Second click - confirm and start game
+                    clearTimeout(clickTimer);
+                    clickCount = 0;
+
+                    if (selectedTower) {
+                        console.log(`Game starting with ${selectedTower} tower!`);
+
+                        // Hide overlay
+                        overlay.classList.add('hidden');
+
+                        // Set player tower type
+                        playerTowerType = selectedTower;
+                        startGame = true;
+
+                        // Coordinate system: a1 is bottom-left, rows go bottom-to-top (0-7 = 1-8), cols go left-to-right (0-7 = a-h)
+                        // b2 = col 1, row 1 (from bottom) = row 6 (from top in HTML)
+                        // g2 = col 6, row 1 (from bottom) = row 6 (from top in HTML)
+                        // b7 = col 1, row 6 (from bottom) = row 1 (from top in HTML)
+                        // g7 = col 6, row 6 (from bottom) = row 1 (from top in HTML)
+
+                        // Place player's selected towers at b2 and g2
+                        const tower1 = placeTowerOnBoard(6, 1, selectedTower, true); // b2
+                        const tower2 = placeTowerOnBoard(6, 6, selectedTower, true); // g2
+                        currentPlayerTowers = [tower1, tower2];
+
+                        // Place opponent's aggressive towers at b7 and g7 (ALWAYS aggressive)
+                        placeTowerOnBoard(1, 1, 'aggressive'); // b7
+                        placeTowerOnBoard(1, 6, 'aggressive'); // g7
+
+                        // Set ability bar bottom button to opposite tower type
+                        const towerToggle = document.getElementById('tower-toggle');
+                        const oppositeType = selectedTower === 'solid' ? 'aggressive' : 'solid';
+                        const img1 = towerToggle.querySelector('.tower-img-1');
+                        const img2 = towerToggle.querySelector('.tower-img-2');
+
+                        if (oppositeType === 'solid') {
+                            img1.style.display = 'block';
+                            img2.style.display = 'none';
+                        } else {
+                            img1.style.display = 'none';
+                            img2.style.display = 'block';
+                        }
+
+                        // Start elixir generation
+                        elixirManager.startElixirGeneration();
+
+                        // Initialize piece deployment system
+                        pieceDeployment.initialize();
+                        registerKingTowers();
+                        startTimer();
+
+                        // Initialize Card 1 with Shouter
+                        const card1 = document.querySelector('.card-slot:nth-child(1)');
+                        pieceDeployment.initializeCard(
+                            card1,
+                            'shouter',
+                            '../pieces/shouter/shouter.png',
+                            '../pieces/shouter/shouter_board.png',
+                            4
+                        );
+                    }
+                }
+            }
+
+            solidTowerOption.addEventListener('click', function() {
+                handleDoubleClick(this, 'solid');
+            });
+
+            aggressiveTowerOption.addEventListener('click', function() {
+                handleDoubleClick(this, 'aggressive');
+            });
+
+            // Build the 8x8 grid with algebraic labels before wiring interactions
+            createBoardGrid();
+
+            // 基础交互功能预留
+            // 棋盘格子点击事件
+            const boardCells = document.querySelectorAll('.board-cell');
+            boardCells.forEach(cell => {
+                cell.addEventListener('click', function() {
+                    const row = this.dataset.row;
+                    const col = this.dataset.col;
+                    console.log(`Clicked cell: Row ${row}, Col ${col}`);
+                });
+            });
+
+            // 卡牌点击事件
+            const cardSlots = document.querySelectorAll('.card-slot');
+            cardSlots.forEach(card => {
+                card.addEventListener('click', function() {
+                    console.log('Card clicked:', this.textContent);
+                });
+            });
+
+            // 技能按钮点击事件
+            const abilityButtons = document.querySelectorAll('.ability-button');
+            abilityButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    console.log('Ability clicked:', this.textContent);
+                });
+            });
+
+            // Tower toggle 切换功能 (Ability Tower) - Now switches player towers
+            const towerToggle = document.getElementById('tower-toggle');
+
+            if (towerToggle) {
+                towerToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+
+                    // Switch player's towers and consume elixir
+                    switchPlayerTowers();
+
+                    // Update the button to show the opposite tower type
+                    if (playerTowerType) {
+                        const img1 = this.querySelector('.tower-img-1');
+                        const img2 = this.querySelector('.tower-img-2');
+                        const oppositeType = playerTowerType === 'solid' ? 'aggressive' : 'solid';
+
+                        if (oppositeType === 'solid') {
+                            img1.style.display = 'block';
+                            img2.style.display = 'none';
+                        } else {
+                            img1.style.display = 'none';
+                            img2.style.display = 'block';
+                        }
+                    }
+                });
+            }
+
+            // King Tower 切换功能 (Player 1 和 Player 2)
+            const kingTower1 = document.getElementById('king-tower-player1');
+            const kingTower2 = document.getElementById('king-tower-player2');
+
+            function setupKingTowerToggle(towerElement) {
+                let isImage1 = true;
+
+                towerElement.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const img1 = this.querySelector('.tower-img-1');
+                    const img2 = this.querySelector('.tower-img-2');
+
+                    if (isImage1) {
+                        img1.style.display = 'none';
+                        img2.style.display = 'block';
+                    } else {
+                        img1.style.display = 'block';
+                        img2.style.display = 'none';
+                    }
+
+                    isImage1 = !isImage1;
+                    console.log('King Tower switched:', this.id);
+                });
+            }
+
+            if (kingTower1) setupKingTowerToggle(kingTower1);
+            if (kingTower2) setupKingTowerToggle(kingTower2);
+
+            // Keep toggle button state in sync with conditions
+            setInterval(updateTowerToggleState, 300);
+        });
+    </script>
+</body>
+</html>

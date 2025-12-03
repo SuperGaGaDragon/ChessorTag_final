@@ -1,0 +1,6 @@
+
+Step 1: make game page UI 
+Step 2: make/function home UI
+Step 3: function board
+Step 4: function pieces
+Step 5: Backend 
