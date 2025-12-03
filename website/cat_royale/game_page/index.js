@@ -68,24 +68,20 @@
         state.ui.startBtn.textContent = can ? 'Start' : 'Waiting';
     }
 
-    function computeWsHost() {
-        if (window.location.host.includes('chessortag.org')) {
-            return window.location.host.replace('chessortag.org', 'api.chessortag.org');
-        }
-        return window.location.host;
-    }
-
     function apiBase() {
-        if (window.location.host.includes('chessortag.org')) {
+        if (window.location.hostname === 'chessortag.org' || window.location.hostname === 'www.chessortag.org') {
             return 'https://api.chessortag.org';
         }
         return '';
     }
 
     function buildWsUrl(gameId) {
-        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-        const host = computeWsHost();
-        return `${protocol}${host}/ws/battle/${gameId}`;
+        const isProd = window.location.hostname === 'chessortag.org' || window.location.hostname === 'www.chessortag.org';
+        if (isProd) {
+            return `wss://api.chessortag.org/ws/battle/${gameId}`;
+        }
+        const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        return `${proto}://${window.location.host}/ws/battle/${gameId}`;
     }
 
     function cleanupSocket() {
@@ -160,23 +156,30 @@
     function connectWs(gameId) {
         cleanupSocket();
         const url = buildWsUrl(gameId);
+        console.log('[battle] connecting WS:', url);
         const ws = new WebSocket(url);
         state.ws = ws;
+        window.battleSocket = ws;
 
         ws.onopen = () => {
+            console.log('[battle] WS open');
             setStatus('WebSocket connected');
             updateStartButton();
         };
 
-        ws.onmessage = handleMessage;
+        ws.onmessage = (event) => {
+            console.log('[battle] WS message', event.data);
+            handleMessage(event);
+        };
 
-        ws.onclose = () => {
+        ws.onclose = (ev) => {
+            console.log('[battle] WS closed', ev.code, ev.reason);
             setStatus('WebSocket closed');
             updateStartButton();
         };
 
         ws.onerror = (err) => {
-            console.error('WS error', err);
+            console.error('[battle] WS error', err);
             setStatus('WebSocket error');
         };
     }
@@ -250,6 +253,7 @@
             boardImagePath: payload.boardImagePath,
         };
         state.ws.send(JSON.stringify(message));
+        console.log('[PAGE → WS] sending deploy_request', message);
         // Host should also process locally without waiting for echo
         if (state.side === 'a') {
             forwardToFrame('deploy_request', message);
@@ -266,6 +270,7 @@
             allegiance: payload.allegiance || state.side,
         };
         state.ws.send(JSON.stringify(message));
+        console.log('[PAGE → WS] sending ruler_move_request', message);
         if (state.side === 'a') {
             forwardToFrame('ruler_move_request', message);
         }
@@ -305,6 +310,7 @@
     function bindFrameMessages() {
         window.addEventListener('message', (event) => {
             const msg = event.data || {};
+            console.log('[PAGE message]', msg);
             switch (msg.type) {
                 case 'local_deploy':
                     sendDeployRequest(msg.payload || msg);
@@ -317,10 +323,12 @@
                     break;
                 case 'state_update':
                     if (state.ws && state.ws.readyState === WebSocket.OPEN) {
-                        state.ws.send(JSON.stringify({
+                        const payload = {
                             ...msg.payload,
                             type: 'state_update',
-                        }));
+                        };
+                        console.log('[PAGE → WS] sending state_update', payload);
+                        state.ws.send(JSON.stringify(payload));
                     }
                     break;
                 default:
