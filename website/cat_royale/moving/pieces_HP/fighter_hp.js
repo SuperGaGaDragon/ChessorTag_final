@@ -1,7 +1,7 @@
-// Squirmer HP definition and health bar helper.
-// Max HP: 400
+// Fighter HP definition and health bar helper.
+// Max HP: 180
 (function() {
-    const maxHP = 400;
+    const maxHP = 180;
     const barColor = '#DD2222';
 
     function createHealthBar(container) {
@@ -58,24 +58,11 @@
             barWrapper,
             barFill,
             barLabel,
-            faded: false,
             update(currentHP) {
                 state.current = Math.max(0, Math.min(currentHP, maxHP));
                 const ratio = state.current / maxHP;
                 barFill.style.width = `${ratio * 100}%`;
                 refreshLabel();
-                if (state.current <= 0 && !state.faded) {
-                    state.faded = true;
-                    if (container) {
-                        container.style.transition = 'opacity 1s ease';
-                        container.style.opacity = '0';
-                        setTimeout(() => {
-                            if (container && container.parentElement) {
-                                container.remove();
-                            }
-                        }, 1000);
-                    }
-                }
             }
         };
 
@@ -96,7 +83,7 @@
         return state;
     }
 
-    window.SquirmerHP = {
+    window.FighterHP = {
         maxHP,
         createHealthBar
     };

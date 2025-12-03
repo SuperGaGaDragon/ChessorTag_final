@@ -51,16 +51,7 @@
         img.style.borderRadius = '8px';
         img.style.background = '#fff';
         img.alt = 'Game End';
-        const fallbacks = [
-            '../other_photos/shouting_cat.png',
-            '../pieces/shouter/shouter.png'
-        ];
-        img.src = fallbacks[0];
-        img.onerror = function() {
-            if (img.src.endsWith(fallbacks[0])) {
-                img.src = fallbacks[1];
-            }
-        };
+        img.src = '../pieces/shouter/shouter_board.png';
 
         const bubble = document.createElement('div');
         bubble.textContent = 'Game Ends';

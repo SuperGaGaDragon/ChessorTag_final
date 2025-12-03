@@ -1,8 +1,8 @@
-shouter：
+ruler：
 
-squirmer = building （建筑）
+ruler = building （建筑）
 
-费用：4
+费用：2
 近程攻击，攻击距离：横/竖/ 1格内。
 
 血量：400

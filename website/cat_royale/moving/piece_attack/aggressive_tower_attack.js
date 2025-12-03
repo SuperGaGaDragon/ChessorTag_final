@@ -5,7 +5,7 @@
     const RANGE = 2;
     const INTERVAL_MS = 333;
     const SPEED_MS = 700;
-    const DAMAGE = 40;
+    const DAMAGE = 25;
 
     ensureCircleStyle();
 

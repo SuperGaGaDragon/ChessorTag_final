@@ -6,6 +6,10 @@ const PieceRegistry = {
         role: 'troop',
         targets: ['building', 'troop'],
     },
+    fighter: {
+        role: 'troop',
+        targets: ['building', 'troop'],
+    },
     squirmer: {
         role: 'troop',
         targets: ['building'],
@@ -21,6 +25,10 @@ const PieceRegistry = {
     king_tower: {
         role: 'building',
         targets: ['troop'],
+    },
+    ruler: {
+        role: 'troop',
+        targets: ['building', 'troop'],
     },
 };
 

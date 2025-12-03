@@ -18,6 +18,7 @@ class PieceDeployment {
         if (type === 'solid_tower') return window.SolidTowerHP?.maxHP || 1000;
         if (type === 'king_tower') return window.KingTowerHP?.maxHP || 1800;
         if (type === 'shouter') return window.ShouterHP?.maxHP || 150;
+        if (type === 'fighter') return window.FighterHP?.maxHP || 180;
         if (type === 'squirmer') return window.SquirmerHP?.maxHP || 400;
         return 100;
     }
@@ -45,6 +46,8 @@ class PieceDeployment {
         else if (entry.type === 'solid_tower') factory = window.SolidTowerHP?.createHealthBar;
         else if (entry.type === 'king_tower') factory = window.KingTowerHP?.createHealthBar;
         else if (entry.type === 'shouter') factory = window.ShouterHP?.createHealthBar;
+        else if (entry.type === 'fighter') factory = window.FighterHP?.createHealthBar;
+        else if (entry.type === 'squirmer') factory = window.SquirmerHP?.createHealthBar;
         if (typeof factory === 'function') {
             entry.healthBar = factory(anchor);
             if (entry.type === 'king_tower' && this.kingTowerShared[entry.allegiance]) {
@@ -159,6 +162,9 @@ class PieceDeployment {
         } else if (entry.type === 'aggressive_tower') {
             entry.aggressive_tower_lived = false;
         }
+        if (entry.type === 'fighter') {
+            entry.fighter_lived = false;
+        }
         if (entry._beAttackedTimer) {
             clearTimeout(entry._beAttackedTimer);
             entry._beAttackedTimer = null;
@@ -167,6 +173,10 @@ class PieceDeployment {
         if (entry.type === 'shouter') {
             if (typeof window.handleShouterDeath === 'function') {
                 window.handleShouterDeath(entry, this.activeMovers[entry.id]);
+            }
+        } else if (entry.type === 'fighter') {
+            if (typeof window.handleFighterDeath === 'function') {
+                window.handleFighterDeath(entry, this.activeMovers[entry.id]);
             }
         } else if (entry.type === 'aggressive_tower') {
             if (typeof window.handleAggressiveTowerDeath === 'function') {
@@ -306,13 +316,14 @@ class PieceDeployment {
         });
     }
 
-    isValidCell(row, col) {
-        const chessRow = 8 - row;
-        const chessCol = col;
+    isValidCell(row, col, pieceType = null) {
         if (window.isCellBlocked && window.isCellBlocked(row, col)) return false;
-        if (row === 7 && (col === 0 || col === 7)) return false;
+        // Front half (rows 0-3) still blocked for all
         if (row >= 0 && row <= 3) return false;
-        if (row === 7 && (col === 2 || col === 5)) return false;
+        // Only shouter cannot be placed on a1, c1, f1, h1
+        if (pieceType === 'shouter' && row === 7 && (col === 0 || col === 2 || col === 5 || col === 7)) {
+            return false;
+        }
         return true;
     }
 
@@ -399,7 +410,7 @@ class PieceDeployment {
         const row = parseInt(cell.dataset.row);
         const col = parseInt(cell.dataset.col);
 
-        if (!this.isValidCell(row, col)) {
+        if (!this.isValidCell(row, col, cardSlot?.dataset?.pieceType)) {
             console.log('Invalid cell for deployment');
             return false;
         }
@@ -485,6 +496,13 @@ class PieceDeployment {
             });
             this.activeMovers[pieceEntry.id] = mover;
             pieceEntry._mover = mover;
+        } else if (cardSlot.dataset.pieceType === 'fighter' && window.createFighterMover) {
+            const mover = window.createFighterMover(pieceEntry, {
+                pieces: this.boardPieces,
+                movePiece: this.movePiece.bind(this)
+            });
+            this.activeMovers[pieceEntry.id] = mover;
+            pieceEntry._mover = mover;
         }
 
         this.deployedPieces.push({
@@ -521,7 +539,7 @@ class PieceDeployment {
                 const row = parseInt(target.dataset.row);
                 const col = parseInt(target.dataset.col);
 
-                if (this.isValidCell(row, col)) {
+                if (this.isValidCell(row, col, this.draggedCard?.dataset?.pieceType)) {
                     this.deployPiece(target, this.draggedCard);
                 } else {
                     this.showInvalid(target);
@@ -540,7 +558,7 @@ class PieceDeployment {
                 const row = parseInt(cell.dataset.row);
                 const col = parseInt(cell.dataset.col);
 
-                if (this.isValidCell(row, col)) {
+                if (this.isValidCell(row, col, this.selectedCard?.dataset?.pieceType)) {
                     const success = this.deployPiece(cell, this.selectedCard);
                     if (success) {
                         this.selectedCard.style.transform = '';
@@ -558,7 +576,8 @@ class PieceDeployment {
                 const row = parseInt(cell.dataset.row);
                 const col = parseInt(cell.dataset.col);
 
-                if (!this.isValidCell(row, col)) {
+                const currentType = (this.selectedCard || this.draggedCard)?.dataset?.pieceType || null;
+                if (!this.isValidCell(row, col, currentType)) {
                     cell.dataset.originalBg = cell.style.backgroundColor;
                     cell.classList.add('invalid-flash');
                 }
@@ -570,7 +589,8 @@ class PieceDeployment {
                 const row = parseInt(cell.dataset.row);
                 const col = parseInt(cell.dataset.col);
 
-                if (!this.isValidCell(row, col)) {
+                const currentType = (this.selectedCard || this.draggedCard)?.dataset?.pieceType || null;
+                if (!this.isValidCell(row, col, currentType)) {
                     cell.classList.remove('invalid-flash');
                     cell.style.backgroundColor = cell.dataset.originalBg || '';
                     delete cell.dataset.originalBg;

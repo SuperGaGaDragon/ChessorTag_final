@@ -12,7 +12,7 @@
     }
 
     function startSquirmerAttack(attacker, target) {
-        if (!attacker || attacker.shouter_lived === false || (attacker.hp !== undefined && attacker.hp <= 0)) return;
+        if (!attacker || (attacker.hp !== undefined && attacker.hp <= 0)) return;
         if (attacker.attack && attacker._attackInterval && attacker.currentTargetId === (target && target.id)) {
             return;
         }
@@ -35,14 +35,14 @@
             }
 
             const attackerEl = attacker.element || document.querySelector(`.board-cell[data-row="${attacker.position?.row}"][data-col="${attacker.position?.col}"]`);
-            const targetEl = target.element || document.querySelector(`.board-cell[data-row="${target.position?.row}"][data.col="${target.position?.col}"]`) || document.querySelector(`.board-cell[data-row="${target.position?.row}"][data-col="${target.position?.col}"]`);
+            const targetEl = target.element || document.querySelector(`.board-cell[data-row="${target.position?.row}"][data-col="${target.position?.col}"]`);
             if (attackerEl && targetEl && attackerEl.animate) {
                 const aRect = attackerEl.getBoundingClientRect();
                 const tRect = targetEl.getBoundingClientRect();
                 const dx = (tRect.left + tRect.width / 2) - (aRect.left + aRect.width / 2);
                 const dy = (tRect.top + tRect.height / 2) - (aRect.top + aRect.height / 2);
-                const bumpX = dx * 0.25;
-                const bumpY = dy * 0.25;
+                const bumpX = dx * 0.35;
+                const bumpY = dy * 0.35;
                 attackerEl.animate([
                     { transform: 'translate(0,0)' },
                     { transform: `translate(${bumpX}px, ${bumpY}px)` },

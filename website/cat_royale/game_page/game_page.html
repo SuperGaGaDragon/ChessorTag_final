@@ -9,6 +9,7 @@
     <script src="../moving/pieces_HP/aggressive_tower_hp.js"></script>
     <script src="../moving/pieces_HP/solid_tower_hp.js"></script>
     <script src="../moving/pieces_HP/shouter_hp.js"></script>
+    <script src="../moving/pieces_HP/fighter_hp.js"></script>
     <script src="../moving/pieces_HP/squirmer_hp.js"></script>
     <script src="../moving/pieces_HP/king_tower_hp.js"></script>
     <script src="../moving/piece_attack/shouter_attack.js"></script>
@@ -17,9 +18,11 @@
     <script src="../moving/piece_attack/solid_tower_attack.js"></script>
     <script src="../moving/pieces_move/shouter_move.js"></script>
     <script src="../moving/pieces_move/squirmer_move.js"></script>
+    <script src="../moving/pieces_move/fighter_move.js"></script>
     <script src="../moving/pieces_move/aggressive_tower_move.js"></script>
     <script src="../piece_deploy/piece_deploy.js"></script>
     <script src="../pieces_ability/aggressive_tower_ability.js"></script>
+    <script src="../pieces_ability/solid_tower_ability.js"></script>
     <script src="game_ends.java"></script>
     <style>
         * {
@@ -658,10 +661,10 @@
                         <img src="../pieces/fighter/fighter.png" alt="Fighter">
                     </div>
                     <div class="ability-button">
-                        <img src="../pieces/squirmer/squirmer.png" alt="Squirmer">
+                        <img src="../pieces/ruler/ruler.png" alt="Ruler">
                     </div>
                     <div class="ability-button">
-                        <img src="../pieces/ruler/Queen.png" alt="Ruler">
+                        <img src="../pieces/ruler/ruler.png" alt="Ruler">
                     </div>
                     <div class="ability-button" id="tower-toggle">
                         <img src="../pieces/solid_tower/solid_tower.png" alt="Solid Tower" class="tower-img-1">
@@ -924,6 +927,24 @@
                             '../pieces/squirmer/squirmer_board.png',
                             4
                         );
+                        // Initialize Card 3 with Fighter
+                        const card3 = document.querySelector('.card-slot:nth-child(3)');
+                        pieceDeployment.initializeCard(
+                            card3,
+                            'fighter',
+                            '../pieces/fighter/fighter.png',
+                            '../pieces/fighter/fighter.png',
+                            3
+                        );
+                        // Initialize Card 4 with Ruler
+                        const card4 = document.querySelector('.card-slot:nth-child(4)');
+                        pieceDeployment.initializeCard(
+                            card4,
+                            'ruler',
+                            '../pieces/ruler/ruler.png',
+                            '../pieces/ruler/ruler.png',
+                            5
+                        );
                     }
                 }
             }
@@ -974,6 +995,11 @@
                     getCurrentPlayerTowers: () => currentPlayerTowers.filter(Boolean),
                     getPlayerTowerType: () => playerTowerType,
                     setPlayerTowerType: (type) => { playerTowerType = type; }
+                });
+            }
+            if (window.SolidTowerAbility) {
+                window.SolidTowerAbility.init({
+                    getPlayerTowerType: () => playerTowerType
                 });
             }
 

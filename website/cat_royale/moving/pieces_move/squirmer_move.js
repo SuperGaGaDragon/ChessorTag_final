@@ -17,7 +17,7 @@
                 if (this.unit.attack) return;
                 if (this.unit.hp !== undefined && this.unit.hp <= 0) return;
                 this.stepTowardTarget();
-            }, 700);
+            }, 1400);
         }
 
         stop() {
@@ -74,8 +74,6 @@
             if (rowStep !== 0) candidates.push(forwardStep);
             candidates.push(leftStep, rightStep);
 
-            const inLeftHalf = sc <= 3;
-
             const scored = candidates
                 .filter(pos => pos.row >= 0 && pos.row <= 7 && pos.col >= 0 && pos.col <= 7)
                 .filter(pos => !(window.isCellBlocked && window.isCellBlocked(pos.row, pos.col)))
@@ -85,13 +83,12 @@
                 })
                 .sort((a, b) => {
                     if (a.dist !== b.dist) return a.dist - b.dist;
-                    // tie-break: left half prefers right, right half prefers left
-                    const aRight = a.pos.col > sc;
-                    const bRight = b.pos.col > sc;
-                    if (aRight !== bRight) {
-                        return inLeftHalf ? (bRight ? -1 : 1) : (aRight ? -1 : 1);
-                    }
-                    return 0;
+                    const inLeftHalf = sc <= 3;
+                    const aDelta = a.pos.col - sc;
+                    const bDelta = b.pos.col - sc;
+                    const aPref = inLeftHalf ? (aDelta > 0 ? -1 : aDelta < 0 ? 1 : 0) : (aDelta < 0 ? -1 : aDelta > 0 ? 1 : 0);
+                    const bPref = inLeftHalf ? (bDelta > 0 ? -1 : bDelta < 0 ? 1 : 0) : (bDelta < 0 ? -1 : bDelta > 0 ? 1 : 0);
+                    return aPref - bPref;
                 });
 
             if (scored.length === 0) return;
