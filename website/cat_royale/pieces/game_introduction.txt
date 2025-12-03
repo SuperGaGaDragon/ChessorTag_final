@@ -1,0 +1,7 @@
+
+在这个游戏中，你的对方是攻破对手的主塔！
+你所拥有的所有部队分为三种：tower，troop，building。
+
+Tower只会永远呆在g2/b2或g7/b7格——除非在特殊状况下（之后会介绍）
+有的troop攻击tower，building和troop。有的troop只攻击tower和building。
+

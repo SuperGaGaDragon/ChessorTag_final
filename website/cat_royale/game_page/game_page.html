@@ -990,6 +990,9 @@
                 if (entry.healthBar && typeof entry.healthBar.update === 'function') {
                     entry.healthBar.update(entry.hp);
                 }
+                if (typeof pieceDeployment.refreshHealthTooltip === 'function') {
+                    pieceDeployment.refreshHealthTooltip(entry);
+                }
                 // If HP <= 0, trigger death
                 if (hp <= 0 && !entry._isDead) {
                     pieceDeployment.handleDeath(entry);
@@ -1060,6 +1063,46 @@
                     case 'timer':
                         updateTimerDisplay(msg.seconds_left);
                         break;
+                    case 'tower_switch': {
+                        const newType = msg.tower_type;
+                        const towers = msg.towers || [];
+                        towers.forEach(t => {
+                            const entry = pieceDeployment.boardPieces.find(p => p.id === t.id);
+                            if (!entry) return;
+                            entry.type = newType === 'solid' ? 'solid_tower' : 'aggressive_tower';
+                            entry.maxHP = t.max_hp ?? entry.maxHP;
+                            entry.hp = t.hp ?? entry.hp;
+                            const desiredPath = t.board_image_path || towerSpriteFor(newType, entry.allegiance || 'a');
+                            entry.boardImagePath = desiredPath;
+                            if (entry.healthBar && typeof entry.healthBar.update === 'function') {
+                                entry.healthBar.update(entry.hp);
+                            }
+                            const img = entry.element ? entry.element.querySelector('img') : null;
+                            if (img) {
+                                img.src = desiredPath;
+                            }
+                        });
+                        if (typeof window.AggressiveTowerAbility?.init === 'function') {
+                            updateTowerToggle();
+                        }
+                        break;
+                    }
+                    case 'tower_ability_solid': {
+                        const targets = msg.targets || [];
+                        targets.forEach(t => {
+                            const entry = pieceDeployment.boardPieces.find(p => p.id === t.id);
+                            if (!entry) return;
+                            const img = entry.element ? entry.element.querySelector('img') : null;
+                            if (img) {
+                                entry._originalImgSrc = entry._originalImgSrc || img.src;
+                                img.src = '../pieces/solid_tower/solid_tower_ability.png';
+                                setTimeout(() => {
+                                    if (entry._originalImgSrc) img.src = entry._originalImgSrc;
+                                }, msg.duration_ms || 3000);
+                            }
+                        });
+                        break;
+                    }
                     case 'ruler_move': {
                         const targetId = msg.id || msg.piece_id;
                         if (!targetId) break;
@@ -1094,6 +1137,7 @@
                     cost: msg.cost,
                     boardImagePath: msg.boardImagePath,
                     skipBroadcast: true,  // Prevent deployPiece from calling handleLocalDeploy
+                    fromNetwork: true
                 });
                 if (!pieceEntry || pieceEntry.requested) return;
                 const payload = {
@@ -1298,6 +1342,16 @@
                 }, 1000);
             }
 
+            function towerSpriteFor(type, allegiance = 'a') {
+                if (allegiance === 'a') {
+                    if (type === 'solid' || type === 'solid_tower') return '../pieces/solid_tower/solid_tower_a.png';
+                    if (type === 'aggressive' || type === 'aggressive_tower') return '../pieces/agressive_tower/aggressive_tower_a.png';
+                }
+                if (type === 'solid' || type === 'solid_tower') return '../pieces/solid_tower/solid_tower.png';
+                if (type === 'aggressive' || type === 'aggressive_tower') return '../pieces/agressive_tower/aggressive_tower.png';
+                return '';
+            }
+
             function placeTowerOnBoard(row, col, towerType, allegiance = 'a') {
                 const cell = document.querySelector(`.board-cell[data-row="${row}"][data-col="${col}"]`);
                 if (!cell) {
@@ -1314,12 +1368,8 @@
                     return cell.querySelector('.tower-piece');
                 }
 
-                let towerImagePath;
-                if (towerType === 'solid') {
-                    towerImagePath = '../pieces/solid_tower/solid_tower.png';
-                } else if (towerType === 'aggressive') {
-                    towerImagePath = '../pieces/agressive_tower/aggressive_tower.png';
-                } else {
+                const towerImagePath = towerSpriteFor(towerType, allegiance);
+                if (!towerImagePath) {
                     console.error(`Unknown tower type: ${towerType}`);
                     return null;
                 }
@@ -1336,7 +1386,7 @@
                     const registryType = towerType === 'solid' ? 'solid_tower'
                         : towerType === 'aggressive' ? 'aggressive_tower'
                         : 'king_tower';
-                    pieceDeployment.registerStaticPiece(registryType, row, col, allegiance, towerPiece);
+                    pieceDeployment.registerStaticPiece(registryType, row, col, allegiance, towerPiece, towerImagePath);
                 }
 
                 console.log(`Placed ${towerType} tower (${allegiance}) at row ${row}, col ${col}`);

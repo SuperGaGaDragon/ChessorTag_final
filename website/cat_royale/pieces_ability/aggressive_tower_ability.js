@@ -71,6 +71,16 @@
 
     function rescaleTowerStats(towers, newType) {
         const registryType = newType === 'solid' ? 'solid_tower' : 'aggressive_tower';
+        const spriteFor = (allegiance = 'a') => {
+            if (allegiance === 'a') {
+                return registryType === 'solid_tower'
+                    ? '../pieces/solid_tower/solid_tower_a.png'
+                    : '../pieces/agressive_tower/aggressive_tower_a.png';
+            }
+            return registryType === 'solid_tower'
+                ? '../pieces/solid_tower/solid_tower.png'
+                : '../pieces/agressive_tower/aggressive_tower.png';
+        };
         towers.forEach(tower => {
             const prevMax = tower.maxHP || getMaxHpForTower(tower.type);
             const prevHp = tower.hp ?? prevMax;
@@ -79,7 +89,10 @@
             tower.type = registryType;
             tower.maxHP = nextMax;
             tower.hp = Math.round(nextMax * ratio);
+            tower.boardImagePath = spriteFor(tower.allegiance || 'a');
             refreshHealthBar(tower);
+            const img = tower.element ? tower.element.querySelector('img') : null;
+            if (img) img.src = tower.boardImagePath;
         });
     }
 
@@ -99,6 +112,7 @@
     }
 
     function switchPlayerTowers(state) {
+        if (window.IS_HOST !== true) return state?.getPlayerTowerType?.();
         const currentPlayerTowers = (state?.getCurrentPlayerTowers?.() || []).filter(Boolean);
         if (currentPlayerTowers.length === 0) return state?.getPlayerTowerType?.();
 
@@ -130,16 +144,43 @@
         elixirManager.updateElixirDisplay();
         elixirManager.updateElixirBar();
         elixirManager.startElixirGeneration();
+        if (typeof window.postToParent === 'function') {
+            window.postToParent('state_update', {
+                type: 'state_update',
+                event: 'elixir',
+                side: 'a',
+                elixir: elixirManager.currentElixir
+            });
+        }
 
         console.log(`[AggressiveTowerAbility] Switched ${playerAllegiance} towers to ${newType}. Elixir: ${elixirManager.currentElixir}`);
         state?.setPlayerTowerType?.(newType);
         applyToggleVisual(state?.toggleElement, newType);
+        if (typeof window.postToParent === 'function') {
+            const serialized = playerTowers.map(t => ({
+                id: t.id,
+                row: t.position?.row,
+                col: t.position?.col,
+                type: t.type,
+                hp: t.hp,
+                max_hp: t.maxHP,
+                allegiance: t.allegiance,
+                board_image_path: t.boardImagePath
+            }));
+            window.postToParent('state_update', {
+                type: 'state_update',
+                event: 'tower_switch',
+                tower_type: newType,
+                towers: serialized
+            });
+        }
         return newType;
     }
 
     function init(options = {}) {
         const toggleElement = options.toggleElement;
         if (!toggleElement) return;
+        if (window.IS_HOST !== true) return;
 
         const getCurrentPlayerTowers = options.getCurrentPlayerTowers || (() => []);
         const getPlayerTowerType = options.getPlayerTowerType || (() => null);

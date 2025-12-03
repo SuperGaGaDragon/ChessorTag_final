@@ -19,7 +19,6 @@
     }
 
     function startRulerAttack(attacker, target) {
-        if (window.IS_HOST !== true) return;
         if (!attacker || (attacker.hp !== undefined && attacker.hp <= 0)) return;
         if (!target || target.role !== 'troop' || (target.hp !== undefined && target.hp <= 0)) return;
         if (!isRulerInRange(attacker, target)) return;

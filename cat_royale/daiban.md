@@ -1,286 +1,248 @@
+***总目标***
+
+整局游戏只有一份“真相”，存在 Host 浏览器里；所有 Client 只是看到这份真相的投影。❓（逻辑已收束到 Host，但客户端缺少移动/塔切换同步，画面仍可能漂移）
+
+具体要达到这些效果：
+
+任何数值变化（血量 / 位置 / 圣水 / 计时 / 游戏结束）都只在 Host 上被“算出来”。
+
+每一次变化，Host 都用 WS 明确告诉所有人：“某某东西现在的状态 = XXX”。
+
+Client 不做“推理”，只做“执行”：收到状态 → 直接覆盖本地 → 播放动画。
+
+不管网络延迟多少，两端看到的最终状态必然一样，差别只在于出现快半拍还是慢半拍。
+
+***目标 1：统一的“游戏真相”状态*** ❓（Host 维护唯一状态，但客户端未接收移动/塔切换广播，B 侧费用与状态未被 Host 严格约束）
+
+为整局对局定义一份清晰的“世界状态”，完全由 Host 控制：
+
+对于每一个棋子，你要能在 Host 这边随时回答：
+
+id / 类型（fighter / shouter / tower / ruler / king_tower…）
+
+所属阵营 a/b
+
+当前坐标（row, col）
+
+当前 HP 与 maxHP
+
+存活与否：isDead / _isDead
+
+正在干什么：是否在攻击、是否在移动、目标 id 等
+
+对整局游戏，还要有：
+
+当前计时器剩余秒数
+
+双方圣水值（a_elixir, b_elixir）
+
+这盘是否已经结束（gameOver + winner）
+
+要求：
+
+这套“真相状态”只存在于 Host。
+
+Client 的任何本地变量都只是“缓存副本”，随时可以被 Host 的广播覆盖。
+
+***目标 2：消息流的责任边界非常明确*** ❓（deploy/ruler 走 Host，但 Host 未做费用/合法性校验；塔切换与能力仍本地执行，无请求/响应链）
+
+把消息分两类，每一类的“谁说了算”要非常清晰：
+
+2.1 玩家 → Host：只包含“意图”，不直接改世界 ❓（deploy/ruler 有请求，但 Host 没有扣费/冷却校验，塔切换/ability 没有请求路径）
+
+客户端允许发送的内容，只是：
+
+“我想在 (row, col) 放一只 fighter” → deploy_request
+
+“我想让 ruler 走一步到 (row, col)” → ruler_move_request
+
+“我点了 ready” → ready
+
+（以后可以有：发表情、投降之类）
+
+要求：
+
+这些 request 本身不会改血、不会动棋子、不会扣圣水。
+
+Host 收到后决定：
+
+合法？（位置、冷却、费用）
+
+如果合法，再在自己的世界状态里做修改，然后再广播给所有人。
+
+2.2 Host → 所有人：只发送“已经发生的事实” ❓（spawn/damage/death/timer 有广播，但移动、塔切换、ability 状态未同步，表现层易漂移）
+
+Host 用 state_update 广播的内容，都是已经判定好的结果，例如：
+
+spawn：已经成功在 (row, col) 生成了一枚 id=xxx 的 fighter
+
+damage：id=xxx 的血量现在是 hp=120 了（之前是多少不重要）
+
+death：id=xxx 的棋子已经死亡
+
+ruler_move：ruler 从 (r1,c1) 移动到了 (r2,c2)
+
+elixir：阵营 a 的圣水现在是 7/10
+
+timer：剩余时间 53 秒
+
+game_over：游戏结束，获胜方是 side = 'a'
+
+要求：
+
+Client 收到这些消息只做一件事：把自己的 UI 改成这一事实，不再反推、再计算。
+
+不允许 Client 再发任何二次推断消息（比如再给服务器回一条 damage）。
+
+***目标 3：伤害 / 血量同步的具体行为*** ✅（applyDamage 仅 Host 执行，damage/death 广播，客户端按广播覆盖 HP）
+
+让你刚才那种“B 端永远不掉血”彻底消失。
+
+3.1 谁在算伤害？✅（攻击逻辑调用在 Host，客户端调用被 applyDamage 拦截）
+
+所有攻击判定、范围检测、塔扫描、子弹命中、近战碰撞等：
+只在 Host 上运行。
+
+Client 上的同样逻辑如果还存在：
+
+要么完全停掉（不再开定时器）
+
+要么虽然还跑，但任何尝试改 HP 的地方都被硬挡（你现在 warning 就是干这个）
+
+3.2 每一次伤害的生命周期 ✅（Host 计算→damage 广播→客户端覆盖 HP→HP<=0 调用 handleDeath）
+
+理想流程：
+
+Host 的攻击逻辑判断：某一刻，piece X 击中了 piece Y，期望造成 75 点伤害。
+
+Host 在自己的状态里：
+
+读出 Y 当前 HP
+
+算出新 HP（考虑减伤、上限、不能低于 0）
+
+更新 Y.hp、新 HP 如果 <=0 顺便标记死亡。
+
+更新完之后，Host 立刻广播一条 state_update：
+
+内容：event="damage", piece_id = Y.id, hp = 新 HP，可以附带 damage = 75 之类。
+
+所有 Client 收到这条消息：
+
+直接把本地那枚 Y 的 HP 设置为 新的 HP 值（不再自己计算差值）
+
+如果 HP <= 0 且之前没死，就播放一套死亡动画，移除等。
+
+目标可观测现象：
+
+你在 Host 把 A 塔打到 50 HP，B 很快也会看到 “50” —— 中途可能出现一点点延迟，但最终数字始终相同。
+
+即使 Client 中间误算过几次，只要下一条来自 Host 的 damage 到达，它就会被“打回现实”。
+
+***目标 4：死亡 & Game Over 的同步*** ✅（Host 广播 death/game_over，客户端 handleDeathFromServer 接收）
+4.1 单个棋子的死亡 ✅（Host 判定死亡并广播；客户端仅做动画/清理）
+
+要求：
+
+由 Host 决定“这枚棋子死亡的那一刻”：只有 Host 能把它从“活着”改成“死亡”。
+
+Host 做的事情：
+
+停止与它相关的 mover / attack loop
+
+从 Host 的棋盘状态中移除或标记 dead
+
+如果是 King Tower：立刻判输赢，设置 gameOver = true
+
+发出一次 death 的 state_update（或依赖 HP=0 的 damage 也可以）
+
+Client 行为：
+
+收到死亡信号/HP=0 后，最多只做 UI 动画和清理，不再额外做判断。
+
+4.2 Game Over ✅（Host 单次宣布 game_over，客户端弹窗并停交互）
+
+要求：
+
+永远只由 Host 宣布一次：
+
+Host 内部判断“满足胜负条件” → 设置 gameOver = true → 广播 game_over 事件。
+
+Client：
+
+收到 game_over 后，弹出 Game Ends modal，停用所有交互。
+
+不自己决定游戏是否结束。
+
+可视化效果：
+
+全天任何一方的 King Tower 爆掉，两边屏幕最多延迟几十毫秒，但一定都会收到 Game Ends，不会出现“我这边还能继续放子”。
+
+目标 5：圣水 & 计时器的一致性 ❓（计时器由 Host 驱动，但圣水仅维护 side A，B 侧费用未被 Host 记录/同步）
+5.1 圣水（Elixir）❓（elixir.js 仅 Host+A 递增并广播 side:'a'，B 侧部署/能力未扣费也未同步）
+
 目标：
-让本游戏A为Host，B为Client，是A的Host Authority。
 
-现在情况：这个迁移计划完成了一些，但是更多没完成，所以说现在这个一些地方比如说client被挡了，但是host又没有执行。你要扫描这些问题，然后进行解决。如下的计划书仅供参考！仅供参考！仅供参考！请你根据实际情况，现在已经改的情况，在最小化代码改动的情况下完成。
+圣水值只由 Host 生成和递增（每秒 +1 之类），并写在自己的状态里。
 
-完成后，请把本地的一些功能和云端的核对，确保本地的比如说ability，比如说功能，和a端b端都是一致的。
-
-Cat Royale 战斗系统：逻辑迁移计划书（Plan Document）
-🎯 目标（Goal）
-
-将当前分散在所有浏览器上的战斗逻辑，统一迁移到 Host 端（权威端, authoritative host） 执行，实现：
-
-战斗同步一致性 100%（no desync）
-
-客户端不再拥有任何逻辑权力（不能随便 deploy/attack/damage）
-
-所有攻击、移动、血量、死亡、游戏结束都由 Host 决定并同步
-
-B 客户端可以正常进攻 A（Host 代替 B 执行所有攻击）
-
-为未来**迁移到服务器（Headless Host 模式）**做好架构
-
-最终效果：
-
-A 端是唯一的「游戏模拟器」
-B 端只是纯展示（viewer）+ 输入（intent）
-服务器只负责“转发消息，不做逻辑”
-
-这是 Clash Royale、Brawl Stars 以及大部分实时 PvP 游戏的标准做法。
-
-📌 当前情况（Realistic Current State）
-
-下面是你当前系统的真实结构（基于你给的日志 + 我分析出的架构）：
-
-✔ 1. 服务器不参与计算
-
-battle_ws.py 只做转发，不做验证、不算 HP、不判断死亡、不判胜负
-
-✔ 2. A（Host）和 B（Client）都在执行自己的战斗逻辑
-
-表现为：
-
-每一端都在跑 tower scan attack
-
-每一端都在跑移动 movers
-
-每一端都在尝试调用 applyDamage
-
-你刚刚把 B 的 applyDamage 禁了，所以 B 打不了 A。
-
-✔ 3. B 的棋子有时由 B 自己生成（双 spawn）
-
-导致：
-
-B 的棋子没有注册到 host 的 tower_scan 或移动管理器
-
-host 根本不知道有这枚 B 的棋子
-
-B 看见自己有攻击，但 host 看不到 → B 打不动 host
-
-✔ 4. ruler_move_request 没有在 host 层验证
-
-所以：
-
-ruler 移动在 B 端自己跑 → 同步错误
-
-elixir 在 B 自己扣 → 不一致
-
-host 不知道 B 的 ruler 走到了哪里
-
-✔ 5. death/game_over 只在本地触发，无网络同步
-
-造成：
-
-A 看到 game over，但 B 继续玩自己那套 local 动画
-
-或 B 看到 A 死了但 host 不知道 → 永远不会结束
-
-✔ 总结：现在是「双模拟器」模式
-
-Host 和 Client 都在模拟游戏 → desync 是必然。
-
-我们要改成“只有 Host 模拟，Client 只显示”。
-
-🧭 大计划（Master Plan）
-
-目标是一句话：
-
-把所有游戏逻辑从浏览器的每个端 → 收拢到 Host 浏览器唯一运行。Client 只负责输入、展示，不准自己算逻辑。
-
-整个计划分 3 个阶段：
-
-Phase 1：Host 权威化（Authoritative Host）💎（当前阶段）
-
-让 Host 成为唯一“游戏引擎”，Client 完全不算逻辑。
-
-内容包括：
-
-所有棋子只由 Host deployPiece() 创建
-
-所有攻击只在 Host 执行
-
-所有 applyDamage 只在 Host 执行
-
-所有死亡只在 Host 触发
-
-所有 game_over 只在 Host 判断
-
-Client 端完全不执行任何 mover/tower/attack 逻辑
-
-Phase 2：Host → 所有人同步（State Replication）💠
-
-在 Host 执行完动作后：
-
-HP、死亡、spawn、移动、timer、elixir
-→ 全都用 state_update 广播出去
-→ 所有人根据 state_update 来刷新 UI
-
-这就是“client-side visual / host-side simulation architecture”的典型做法。
-
-Step 1：禁止 Client 在本地 deployPiece
-要实现：
-
-B 点击格子时，本地不能生成棋子
-
-只允许 Host 生成棋子（通过 state_update: spawn）
-
-方法：
-
-在 deployPiece() 顶部加：
-
-if (!opts.fromNetwork && window.IS_HOST !== true) {
-  console.warn("Client should not deploy locally");
-  return;
-}
-
-
-完成标志：
-
-B 点击不会本地下子
-
-Host 会收到 deploy_request
-
-Host 会下子
-
-B 端只会收到 spawn → fromNetwork:true → 创建棋子
-
-Step 2：禁止 Client 执行攻击/移动逻辑
-
-所有攻击循环加：
-
-if (!window.IS_HOST) return;
-
-
-包括：
-
-scanTowerAttacks
-
-startShouterAttack
-
-startFighterMove
-
-startRulerMove
-
-squirmer_attack
-
-aggressive_tower_attack
-
-solid_tower_attack
-
-完成标志：
-
-B 的 attack interval 不再运行
-
-B 的控制台不会出现 "CLIENT should not call applyDamage"
-
-Step 3：让 Host 执行所有棋子的攻击
-
-检查：
-
-B 的棋子是否真的在 Host 的 boardPieces 数组里
-
-Host 有注册 B 这枚棋子的 mover/tower attack timer
-
-Host 能检测到敌方棋子并打出伤害
-
-完成标志：
-
-B 的棋子可以打动 A 的塔（Host 模拟）
-
-A 的塔可以打击 B 的棋子（Host 模拟）
-
-Step 4：applyDamage → state_update
-
-Host 扣血后：
-
-postToParent('state_update', {
-  event: 'damage',
-  piece_id,
-  hp
-});
-
-
-完成标志：
-
-Client 端不会再调用 applyDamage
-
-Client 端用 applyDamageFromServer 同步血量
-
-Step 5：handleDeath → state_update
-
-Host 死亡后：
-
-postToParent('state_update', {
-  event: 'death',
-  piece_id
-});
-
+每一次变化，Host 发 state_update: { event: "elixir", side: 'a', elixir: 7 }
 
 Client：
 
-case 'death': handleDeathFromServer(...)
+不再本地计时加圣水。
+
+只根据每一条广播直接覆盖自己显示的数字。
+
+期望现象：
+
+即使 Client 暂时卡顿或 tab 后台，回来后也会很快“追上现在正确的圣水值”。
+
+5.2 计时器（Timer）✅（startTimer 仅 Host 跑，timer 事件按秒广播）
+
+目标：
+
+倒计时完全由 Host 驱动，每秒：
+
+内部秒数 -1
+
+发一条 state_update: { event: "timer", seconds_left: 52 }
+
+Client 的时间显示只根据这条消息更新，不再自己 setInterval() 倒数。
+
+期望现象：
+
+多个浏览器打开同一盘棋，时间显示始终同步，不会一个写 0:12 一个写 0:09。
+
+目标 6：B 端攻击 A 也能生效（当前你的痛点）❓（Host 已计算并广播伤害，但客户端未生成移动/攻击驱动，B 端画面静止且缺少位置同步）
+
+你现在最想解决的是这个：
+
+“我把逻辑都移到 Host 上之后，B 端放的兵能打到 A，但是 A 的血不掉 / B 看不到变化。”
+
+要达到的目标状态是：
+
+B 的点击只是“申请攻击”（放子、走 ruler），不直接动 HP；
+
+Host 收到 B 的请求后：
+
+把这枚 B 的兵放在自己的棋盘上
+
+让它进入 Host 的攻击循环 → 参与正常战斗
+
+当这个兵在 Host 上打到 A 的塔 / 子：
+
+A 的 HP 真正在 Host 上减少
+
+Host 广播 damage → 所有人（包括 B）看到 A 掉血
+
+B 的 console 不再出现一堆 [CLIENT should not call applyDamage] 的黄字，
+即使有，也只是说明“本地逻辑尝试算过，但没有真正生效”。
+
+换句话说：
+
+“B 能打 A”是因为 Host 替 B 出手了，而不是 B 在自己电脑上“打自己画的塔”。
 
 
-完成标志：
+***目标6*** ability的同步 ❓（塔切换/ability 仅 Host-A 本地执行，未走请求与 state_update，对端看不到切换/减伤）
 
-两端看到一致的死亡
-
-不存在一端死、一端活的问题
-
-Step 6：统一 Game Over
-
-Host 执行：
-
-postToParent('state_update', {event:'game_over', winner:'a'});
-battleSocket.close();
-
-
-Client：
-
-case 'game_over':
-  showGameOverScreen();
-  disableAllInput();
-
-
-完成标志：
-
-双端同步结束，游戏不再继续发 WS 消息
-
-不会出现“一端还在玩”的情况
-
-Step 7（可选）：统一 ruler_move_request 逻辑
-
-Host 接收 B 的路径请求
-
-Host 执行合法性校验
-
-Host 自己移动 ruler
-
-Host 发 state_update: ruler_move
-
-完成标志：
-
-双端的 ruler 完全一致
-
-elixir 消耗始终一致
-
-🧨 最终总结（一句话）
-
-你现在的问题就是：B 的攻击和 deploy 在自己的本地算了，但 Host 不知道 → Host 不帮 B 打伤害 → B 伤害无效。
-
-你需要的不是修 bug，而是：
-
-把所有战斗逻辑从 “多客户端执行” 合并到 “Host 端唯一执行”。
-
-## 行动清单（基于当前代码）
-
-- 阻断 Client 本地下子：`website/cat_royale/piece_deploy/piece_deploy.js` 的 `deployPiece` 顶部增加 `if (!fromNetwork && window.IS_HOST !== true) return { requested: true };`，只让 `handleLocalDeployRequest` 走网络；确保 `fromNetwork` 生成的棋子带 `skipElixir`。
-- 只在 Host 跑攻击/巡检：`scanTowerAttacks` 计时器创建前加 `if (window.IS_HOST !== true) return;`；`startAggressiveTowerAttack`、`startSolidTowerAttack`、`startShouterAttack`、其他攻击/移动计时函数都加 `if (window.IS_HOST !== true) return;`，防止 B 自己扣血。
-- 统一伤害广播：`applyDamage` 仍只允许运行在 Host，确认每次扣血必发送 `state_update damage`；客户端只用 `applyDamageFromServer` 更新血条。
-- 统一死亡广播：`handleDeath` 仅 Host 调用时发送 `state_update death`；客户端通过 `handleDeathFromServer` 落地，避免双侧不同步。
-- Ruler 移动权威：在 `website/cat_royale/game_page/index.js` 的 parent bridge 增加 `ruler_move_request` 处理，Host 验证后本地移动并广播 `state_update`（客户端忽略本地扣 elixir）；在 `ruler_move.js` 开头加 `if (window.IS_HOST !== true) return;` 防止 B 自己走。
-- 计时与资源：`startTimer`、`elixir` 只由 Host 变更并通过 `state_update timer/elixir` 下发，客户端不自增；必要时在 ElixirManager 启动前判断 `window.IS_HOST`。
-- Game Over 同步：Host 在王塔死亡后发送 `state_update game_over` 并关闭 WS；客户端收到后禁用输入/提示结果。
-- 核对资产与能力：对照本地与线上静态资源/ability 脚本，确保双方加载同一版本（`pieces_ability/*`, `moving/*`）；如有新增能力，Host 执行逻辑，Client 仅显示。
-
+请确保tower troop的ability，a端b端都同步。尤其是切换塔楼功能，当a端切换，b端也能看到显示；当b端切换，a端也能看到显示。

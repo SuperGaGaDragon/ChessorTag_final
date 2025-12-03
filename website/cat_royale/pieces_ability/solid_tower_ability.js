@@ -75,6 +75,7 @@
 
     function init(options = {}) {
         const getPlayerTowerType = options.getPlayerTowerType || (() => null);
+        if (window.IS_HOST !== true) return;
 
         document.addEventListener('click', (e) => {
             const cell = e.target.closest?.('.board-cell');
@@ -122,6 +123,25 @@
             setAbilityLock('solidActive', true);
             targets.forEach(applyAbility);
             cooldownUntil = Date.now() + COOLDOWN_MS;
+            if (typeof window.postToParent === 'function') {
+                window.postToParent('state_update', {
+                    type: 'state_update',
+                    event: 'tower_ability_solid',
+                    targets: targets.map(t => ({
+                        id: t.id,
+                        row: t.position?.row,
+                        col: t.position?.col,
+                        allegiance: t.allegiance
+                    })),
+                    duration_ms: DURATION_MS
+                });
+                window.postToParent('state_update', {
+                    type: 'state_update',
+                    event: 'elixir',
+                    side: 'a',
+                    elixir: elixirManager.currentElixir
+                });
+            }
 
             console.log(`[SolidTowerAbility] Activated ability for ${playerAllegiance} towers`);
 

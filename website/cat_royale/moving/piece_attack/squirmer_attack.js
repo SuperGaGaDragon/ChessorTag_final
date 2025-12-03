@@ -12,7 +12,6 @@
     }
 
     function startSquirmerAttack(attacker, target) {
-        if (window.IS_HOST !== true) return;
         if (!attacker || (attacker.hp !== undefined && attacker.hp <= 0)) return;
         if (attacker.attack && attacker._attackInterval && attacker.currentTargetId === (target && target.id)) {
             return;

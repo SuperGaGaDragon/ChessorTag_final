@@ -26,6 +26,13 @@ class PieceDeployment {
         return this.playerSide === 'a' || this.playerSide === 'b';
     }
 
+    refreshHealthTooltip(entry) {
+        if (!entry?.healthBar?.barWrapper) return;
+        const cur = typeof entry.hp === 'number' ? entry.hp : (entry.maxHP ?? 0);
+        const max = typeof entry.maxHP === 'number' ? entry.maxHP : cur;
+        entry.healthBar.barWrapper.title = `${cur}/${max}`;
+    }
+
     getMaxHPForType(type) {
         if (type === 'aggressive_tower') return window.AggressiveTowerHP?.maxHP || 600;
         if (type === 'solid_tower') return window.SolidTowerHP?.maxHP || 1000;
@@ -45,7 +52,18 @@ class PieceDeployment {
         return 0;
     }
 
-    getBoardImagePath(type, fallback = '') {
+    getBoardImagePath(type, fallback = '', allegiance = null) {
+        const aSideMap = {
+            shouter: '../pieces/shouter/shouter_a.png',
+            squirmer: '../pieces/squirmer/squirmer_a.png',
+            fighter: '../pieces/fighter/fighter_a.png',
+            ruler: '../pieces/ruler/ruler_a.png',
+            aggressive_tower: '../pieces/agressive_tower/aggressive_tower_a.png',
+            solid_tower: '../pieces/solid_tower/solid_tower_a.png',
+        };
+        if (allegiance === 'a' && aSideMap[type]) {
+            return aSideMap[type];
+        }
         const map = {
             shouter: '../pieces/shouter/shouter_board.png',
             fighter: '../pieces/fighter/fighter.png',
@@ -91,6 +109,7 @@ class PieceDeployment {
                 this.kingTowerShared[entry.allegiance].healthBar = entry.healthBar;
             }
             this.attachHealthTooltip(entry);
+            this.refreshHealthTooltip(entry);
         }
     }
 
@@ -141,6 +160,7 @@ class PieceDeployment {
         if (entry.healthBar && typeof entry.healthBar.update === 'function') {
             entry.healthBar.update(entry.hp);
         }
+        this.refreshHealthTooltip(entry);
         if (entry.hp <= 0) {
             this.handleDeath(entry);
         }
@@ -156,6 +176,9 @@ class PieceDeployment {
         if (shared.healthBar && typeof shared.healthBar.update === 'function') {
             shared.healthBar.update(shared.hp);
         }
+        this.boardPieces
+            .filter(p => p.type === 'king_tower' && p.allegiance === allegiance)
+            .forEach(p => this.refreshHealthTooltip(p));
         if (shared.hp <= 0) {
             this.boardPieces
                 .filter(p => p.type === 'king_tower' && p.allegiance === allegiance)
@@ -300,7 +323,7 @@ class PieceDeployment {
         this.activePaths = {};
     }
 
-    registerStaticPiece(type, row, col, allegiance = 'a', element = null) {
+    registerStaticPiece(type, row, col, allegiance = 'a', element = null, boardImagePath = null) {
         const maxHP = this.getMaxHPForType(type);
         if (type === 'king_tower' && !this.kingTowerShared[allegiance]) {
             this.kingTowerShared[allegiance] = { hp: maxHP, maxHP, healthBar: null };
@@ -314,6 +337,7 @@ class PieceDeployment {
             element,
             maxHP,
             hp: type === 'king_tower' ? this.kingTowerShared[allegiance].hp : maxHP,
+            boardImagePath,
             be_attacked: false,
             attackedById: null,
             attackedByType: null,
@@ -382,7 +406,6 @@ class PieceDeployment {
     }
 
     scanTowerAttacks() {
-        if (window.IS_HOST !== true) return;
         const towers = this.boardPieces.filter(p => p.role === 'building' && (p.type === 'aggressive_tower' || p.type === 'solid_tower') && (p.hp ?? 1) > 0 && p.aggressive_tower_lived !== false);
         const troops = this.boardPieces.filter(p => p.role === 'troop' && (p.hp ?? 1) > 0 && p.shouter_lived !== false);
 
@@ -609,11 +632,9 @@ class PieceDeployment {
         piece.style.justifyContent = 'center';
 
         const img = document.createElement('img');
-        // Use board image; ensure squirmer uses its board variant
+        // Use allegiance-specific board image for side A, otherwise fallback to dataset/defaults
         const boardImg = options.boardImagePath
-            || (pieceType === 'squirmer'
-                ? (cardSlot?.dataset?.boardImagePath || '../pieces/squirmer/squirmer_board.png')
-                : (cardSlot?.dataset?.boardImagePath || this.getBoardImagePath(pieceType, cardSlot?.dataset?.imagePath)));
+            || this.getBoardImagePath(pieceType, cardSlot?.dataset?.boardImagePath || cardSlot?.dataset?.imagePath, allegiance);
         img.src = boardImg;
         img.style.width = '90%';
         img.style.height = '90%';
@@ -657,6 +678,38 @@ class PieceDeployment {
         }
 
         if (window.IS_HOST === true) {
+            if (pieceType === 'shouter' && window.createShouterMover) {
+                const mover = window.createShouterMover(pieceEntry, {
+                    pieces: this.boardPieces,
+                    movePiece: this.movePiece.bind(this),
+                    highlightPath: (coords) => this.highlightPath(pieceId, coords)
+                });
+                this.activeMovers[pieceEntry.id] = mover;
+                pieceEntry._mover = mover;
+            } else if (pieceType === 'squirmer' && window.createSquirmerMover) {
+                const mover = window.createSquirmerMover(pieceEntry, {
+                    pieces: this.boardPieces,
+                    movePiece: this.movePiece.bind(this)
+                });
+                this.activeMovers[pieceEntry.id] = mover;
+                pieceEntry._mover = mover;
+            } else if (pieceType === 'fighter' && window.createFighterMover) {
+                const mover = window.createFighterMover(pieceEntry, {
+                    pieces: this.boardPieces,
+                    movePiece: this.movePiece.bind(this)
+                });
+                this.activeMovers[pieceEntry.id] = mover;
+                pieceEntry._mover = mover;
+            } else if (pieceType === 'ruler' && window.createRulerMover) {
+                const mover = window.createRulerMover(pieceEntry, {
+                    pieces: this.boardPieces,
+                    movePiece: this.movePiece.bind(this)
+                });
+                this.activeMovers[pieceEntry.id] = mover;
+                pieceEntry._mover = mover;
+            }
+        } else if (fromNetwork) {
+            // Client-side visual movers for remote pieces (logic remains on HOST)
             if (pieceType === 'shouter' && window.createShouterMover) {
                 const mover = window.createShouterMover(pieceEntry, {
                     pieces: this.boardPieces,
@@ -803,7 +856,7 @@ class PieceDeployment {
 
         console.log('Piece deployment system initialized');
 
-        if (!this.attackScanTimer && window.IS_HOST === true) {
+        if (!this.attackScanTimer) {
             this.attackScanTimer = setInterval(() => this.scanTowerAttacks(), 250);
         }
     }

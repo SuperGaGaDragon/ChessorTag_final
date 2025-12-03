@@ -13,7 +13,6 @@ function isInShouterAttackRange(shouter, target) {
 }
 
 function startShouterAttack(shouter, target) {
-    if (window.IS_HOST !== true) return;
     if (!shouter || !shouter.element) return;
     if (shouter.shouter_lived === false || (shouter.hp !== undefined && shouter.hp <= 0)) return;
     if (shouter._attackInterval) {

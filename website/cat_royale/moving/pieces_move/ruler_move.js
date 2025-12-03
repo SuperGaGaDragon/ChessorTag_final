@@ -183,6 +183,7 @@
     }
 
     function createRulerMover(state, board) {
+        if (window.IS_HOST !== true) return null;
         return new RulerMover(state, board);
     }
 
