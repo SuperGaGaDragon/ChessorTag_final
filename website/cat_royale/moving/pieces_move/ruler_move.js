@@ -161,6 +161,14 @@
             }
             this.unit.position = { row, col };
             this.lastMoveAt = Date.now();
+            if (typeof window.handleLocalRulerMove === 'function') {
+                window.handleLocalRulerMove({
+                    id: this.unit.id,
+                    row,
+                    col,
+                    allegiance: this.unit.allegiance,
+                });
+            }
             this.setCooldownVisual(true);
             if (this.cooldownTimer) clearTimeout(this.cooldownTimer);
             this.cooldownTimer = setTimeout(() => {

@@ -11,6 +11,19 @@ class PieceDeployment {
         this.activePaths = {};
         this.attackScanTimer = null;
         this.kingTowerShared = { a: null, b: null };
+        this.playerSide = 'a';
+    }
+
+    setPlayerSide(side) {
+        if (side === 'a' || side === 'b') {
+            this.playerSide = side;
+        } else {
+            this.playerSide = 'spectate';
+        }
+    }
+
+    isLocalPlayerActive() {
+        return this.playerSide === 'a' || this.playerSide === 'b';
     }
 
     getMaxHPForType(type) {
@@ -22,6 +35,28 @@ class PieceDeployment {
         if (type === 'ruler') return window.RulerHP?.maxHP || 400;
         if (type === 'squirmer') return window.SquirmerHP?.maxHP || 400;
         return 100;
+    }
+
+    getDefaultCost(type) {
+        if (type === 'shouter') return 3;
+        if (type === 'squirmer') return 4;
+        if (type === 'fighter') return 3;
+        if (type === 'ruler') return 5;
+        return 0;
+    }
+
+    getBoardImagePath(type, fallback = '') {
+        const map = {
+            shouter: '../pieces/shouter/shouter_board.png',
+            fighter: '../pieces/fighter/fighter.png',
+            ruler: '../pieces/ruler/ruler.png',
+            squirmer: '../pieces/squirmer/squirmer_board.png',
+            aggressive_tower: '../pieces/agressive_tower/aggressive_tower.png',
+            solid_tower: '../pieces/solid_tower/solid_tower.png',
+        };
+        if (map[type]) return map[type];
+        if (fallback) return fallback;
+        return `../pieces/${type}/${type}.png`;
     }
 
     attachHealthBar(entry) {
@@ -324,12 +359,15 @@ class PieceDeployment {
         });
     }
 
-    isValidCell(row, col, pieceType = null) {
+    isValidCell(row, col, pieceType = null, allegiance = 'a') {
         if (window.isCellBlocked && window.isCellBlocked(row, col)) return false;
-        // Front half (rows 0-3) still blocked for all
-        if (row >= 0 && row <= 3) return false;
-        // Only shouter cannot be placed on a1, c1, f1, h1
-        if (pieceType === 'shouter' && row === 7 && (col === 0 || col === 2 || col === 5 || col === 7)) {
+        const isSideA = allegiance !== 'b';
+        // Each side can only deploy on its own half
+        if (isSideA && row >= 0 && row <= 3) return false;
+        if (!isSideA && row >= 4 && row <= 7) return false;
+        // Only shouter cannot be placed on home-row corners (a1/c1/f1/h1 or mirrored for side b)
+        const shouterHomeRow = isSideA ? 7 : 0;
+        if (pieceType === 'shouter' && row === shouterHomeRow && (col === 0 || col === 2 || col === 5 || col === 7)) {
             return false;
         }
         return true;
@@ -356,6 +394,7 @@ class PieceDeployment {
 
     setupCardEvents(cardSlot) {
         cardSlot.addEventListener('mousedown', (e) => {
+            if (!this.isLocalPlayerActive()) return;
             if (!cardSlot.dataset.pieceType) return;
 
             const cost = parseInt(cardSlot.dataset.cost);
@@ -389,6 +428,7 @@ class PieceDeployment {
         });
 
         cardSlot.addEventListener('click', (e) => {
+            if (!this.isLocalPlayerActive()) return;
             if (!cardSlot.dataset.pieceType) return;
             if (this.isDragging) return;
 
@@ -414,30 +454,43 @@ class PieceDeployment {
         });
     }
 
-    deployPiece(cell, cardSlot) {
+    deployPiece(cell, cardSlot, options = {}) {
         const row = parseInt(cell.dataset.row);
         const col = parseInt(cell.dataset.col);
 
-        if (!this.isValidCell(row, col, cardSlot?.dataset?.pieceType)) {
+        const pieceType = options.pieceType || cardSlot?.dataset?.pieceType;
+        if (!pieceType) {
+            console.warn('No piece type provided for deployment');
             console.log('Invalid cell for deployment');
             return false;
         }
 
-        const cost = parseInt(cardSlot.dataset.cost);
-        if (elixirManager.currentElixir < cost) {
+        const allegiance = options.allegiance || this.playerSide || 'a';
+        const fromNetwork = options.fromNetwork || false;
+        const isPlayerOwned = allegiance === this.playerSide;
+        const rawCost = options.cost ?? parseInt(cardSlot?.dataset?.cost ?? this.getDefaultCost(pieceType));
+        const cost = Number.isFinite(rawCost) ? rawCost : 0;
+
+        if (!this.isValidCell(row, col, pieceType, allegiance)) {
+            console.log('Invalid cell for deployment');
+            return false;
+        }
+
+        const shouldSpendElixir = !fromNetwork && isPlayerOwned && !options.skipElixir;
+        if (shouldSpendElixir && elixirManager.currentElixir < cost) {
             console.log('Not enough elixir!');
             return false;
         }
 
         const piece = document.createElement('div');
         piece.className = 'deployed-piece';
-        piece.dataset.pieceType = cardSlot.dataset.pieceType;
+        piece.dataset.pieceType = pieceType;
         piece.style.position = 'absolute';
         piece.style.width = '100%';
         piece.style.height = '100%';
         piece.style.zIndex = '5';
-        // Allow clicks for user-controlled movers (e.g., ruler); otherwise disable.
-        piece.style.pointerEvents = cardSlot.dataset.pieceType === 'ruler' ? 'auto' : 'none';
+        // Allow clicks for user-controlled movers (e.g., ruler) on local side only.
+        piece.style.pointerEvents = pieceType === 'ruler' && isPlayerOwned ? 'auto' : 'none';
         piece.style.backgroundColor = '#FFFFFF';
         piece.style.border = '4px solid #5C4033';
         piece.style.boxSizing = 'border-box';
@@ -448,9 +501,10 @@ class PieceDeployment {
 
         const img = document.createElement('img');
         // Use board image; ensure squirmer uses its board variant
-        const boardImg = cardSlot.dataset.pieceType === 'squirmer'
-            ? (cardSlot.dataset.boardImagePath || '../pieces/squirmer/squirmer_board.png')
-            : cardSlot.dataset.boardImagePath;
+        const boardImg = options.boardImagePath
+            || (pieceType === 'squirmer'
+                ? (cardSlot?.dataset?.boardImagePath || '../pieces/squirmer/squirmer_board.png')
+                : (cardSlot?.dataset?.boardImagePath || this.getBoardImagePath(pieceType, cardSlot?.dataset?.imagePath)));
         img.src = boardImg;
         img.style.width = '90%';
         img.style.height = '90%';
@@ -460,37 +514,39 @@ class PieceDeployment {
         cell.style.position = 'relative';
         cell.appendChild(piece);
 
-        const pieceId = `piece-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-        const role = (window.PieceRegistry && window.PieceRegistry[cardSlot.dataset.pieceType]?.role) || 'troop';
-        const maxHP = this.getMaxHPForType(cardSlot.dataset.pieceType);
+        const pieceId = options.id || `piece-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        const role = (window.PieceRegistry && window.PieceRegistry[pieceType]?.role) || 'troop';
+        const maxHP = this.getMaxHPForType(pieceType);
         const pieceEntry = {
             id: pieceId,
-            type: cardSlot.dataset.pieceType,
+            type: pieceType,
             role,
             position: { row, col },
             element: piece,
-            allegiance: 'a',
+            allegiance,
             maxHP,
             hp: maxHP,
-            shouter_on_board: cardSlot.dataset.pieceType === 'shouter',
+            shouter_on_board: pieceType === 'shouter',
             be_attacked: false,
             attackedById: null,
             attackedByType: null,
             attackedByAllegiance: null,
             lastAttackedAt: null,
             _beAttackedTimer: null,
-            shouter_lived: cardSlot.dataset.pieceType === 'shouter' ? true : undefined,
-            aggressive_tower_lived: cardSlot.dataset.pieceType === 'aggressive_tower'
+            shouter_lived: pieceType === 'shouter' ? true : undefined,
+            aggressive_tower_lived: pieceType === 'aggressive_tower'
         };
         this.boardPieces.push(pieceEntry);
         this.attachHealthBar(pieceEntry);
 
-        elixirManager.currentElixir -= cost;
-        elixirManager.updateElixirDisplay();
-        elixirManager.updateElixirBar();
-        elixirManager.startElixirGeneration();
+        if (shouldSpendElixir) {
+            elixirManager.currentElixir -= cost;
+            elixirManager.updateElixirDisplay();
+            elixirManager.updateElixirBar();
+            elixirManager.startElixirGeneration();
+        }
 
-        if (cardSlot.dataset.pieceType === 'shouter' && window.createShouterMover) {
+        if (pieceType === 'shouter' && window.createShouterMover) {
             const mover = window.createShouterMover(pieceEntry, {
                 pieces: this.boardPieces,
                 movePiece: this.movePiece.bind(this),
@@ -498,21 +554,21 @@ class PieceDeployment {
             });
             this.activeMovers[pieceEntry.id] = mover;
             pieceEntry._mover = mover;
-        } else if (cardSlot.dataset.pieceType === 'squirmer' && window.createSquirmerMover) {
+        } else if (pieceType === 'squirmer' && window.createSquirmerMover) {
             const mover = window.createSquirmerMover(pieceEntry, {
                 pieces: this.boardPieces,
                 movePiece: this.movePiece.bind(this)
             });
             this.activeMovers[pieceEntry.id] = mover;
             pieceEntry._mover = mover;
-        } else if (cardSlot.dataset.pieceType === 'fighter' && window.createFighterMover) {
+        } else if (pieceType === 'fighter' && window.createFighterMover) {
             const mover = window.createFighterMover(pieceEntry, {
                 pieces: this.boardPieces,
                 movePiece: this.movePiece.bind(this)
             });
             this.activeMovers[pieceEntry.id] = mover;
             pieceEntry._mover = mover;
-        } else if (cardSlot.dataset.pieceType === 'ruler' && window.createRulerMover) {
+        } else if (pieceType === 'ruler' && window.createRulerMover) {
             const mover = window.createRulerMover(pieceEntry, {
                 pieces: this.boardPieces,
                 movePiece: this.movePiece.bind(this)
@@ -521,15 +577,28 @@ class PieceDeployment {
             pieceEntry._mover = mover;
         }
 
+        if (!fromNetwork && typeof window.handleLocalDeploy === 'function') {
+            window.handleLocalDeploy({
+                id: pieceId,
+                row,
+                col,
+                pieceType,
+                allegiance,
+                cost,
+                boardImagePath: boardImg,
+            });
+        }
+
         this.deployedPieces.push({
             row: row,
             col: col,
-            type: cardSlot.dataset.pieceType,
+            type: pieceType,
+            allegiance,
             element: piece
         });
 
-        console.log(`Deployed ${cardSlot.dataset.pieceType} at row ${row}, col ${col}`);
-        return true;
+        console.log(`Deployed ${pieceType} (${allegiance}) at row ${row}, col ${col}`);
+        return pieceEntry;
     }
 
     initialize() {
@@ -555,7 +624,7 @@ class PieceDeployment {
                 const row = parseInt(target.dataset.row);
                 const col = parseInt(target.dataset.col);
 
-                if (this.isValidCell(row, col, this.draggedCard?.dataset?.pieceType)) {
+                if (this.isValidCell(row, col, this.draggedCard?.dataset?.pieceType, this.playerSide)) {
                     this.deployPiece(target, this.draggedCard);
                 } else {
                     this.showInvalid(target);
@@ -574,7 +643,7 @@ class PieceDeployment {
                 const row = parseInt(cell.dataset.row);
                 const col = parseInt(cell.dataset.col);
 
-                if (this.isValidCell(row, col, this.selectedCard?.dataset?.pieceType)) {
+                if (this.isValidCell(row, col, this.selectedCard?.dataset?.pieceType, this.playerSide)) {
                     const success = this.deployPiece(cell, this.selectedCard);
                     if (success) {
                         this.selectedCard.style.transform = '';
@@ -593,7 +662,7 @@ class PieceDeployment {
                 const col = parseInt(cell.dataset.col);
 
                 const currentType = (this.selectedCard || this.draggedCard)?.dataset?.pieceType || null;
-                if (!this.isValidCell(row, col, currentType)) {
+                if (!this.isValidCell(row, col, currentType, this.playerSide)) {
                     cell.dataset.originalBg = cell.style.backgroundColor;
                     cell.classList.add('invalid-flash');
                 }
@@ -606,7 +675,7 @@ class PieceDeployment {
                 const col = parseInt(cell.dataset.col);
 
                 const currentType = (this.selectedCard || this.draggedCard)?.dataset?.pieceType || null;
-                if (!this.isValidCell(row, col, currentType)) {
+                if (!this.isValidCell(row, col, currentType, this.playerSide)) {
                     cell.classList.remove('invalid-flash');
                     cell.style.backgroundColor = cell.dataset.originalBg || '';
                     delete cell.dataset.originalBg;

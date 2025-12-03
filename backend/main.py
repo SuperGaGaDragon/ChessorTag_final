@@ -9,6 +9,8 @@ from . import models
 from .auth_api import router as auth_router
 from .study_api import router as study_router
 from .workspace_api import router as workspace_router
+from .battle_api import router as battle_router
+from .battle_ws import ws_router as battle_ws_router
 
 # 自动创建数据库表
 Base.metadata.create_all(bind=engine)
@@ -45,6 +47,8 @@ if STYLE_REPORT_DIR.exists():
 app.include_router(auth_router)
 app.include_router(study_router)
 app.include_router(workspace_router)
+app.include_router(battle_router)
+app.include_router(battle_ws_router)
 
 
 @app.get("/")

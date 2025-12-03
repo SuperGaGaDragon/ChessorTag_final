@@ -59,6 +59,7 @@
             position: relative;
         }
 
+
         /* 左侧区域 */
         .left-section {
             grid-row: 1 / 4;
@@ -589,7 +590,7 @@
             </div>
             <div class="dialog-content">
                 <div class="dialog-message">
-                    Choose your tower<br>(double click to confirm and start)
+                    Choose your tower<br>(double click to confirm, then Ready)
                 </div>
                 <div class="tower-selection">
                     <div class="tower-option" id="solid-tower-option" data-tower="solid">
@@ -680,17 +681,42 @@
     </div>
 
     <script>
-        // Game Start Dialog Logic
         let selectedTower = null;
-        let clickCount = 0;
-        let clickTimer = null;
-        let playerTowerType = null; // Track player's tower type
-        let currentPlayerTowers = []; // Track player's tower elements
-        let startGame = false;
+        let playerTowerType = null;
+        let opponentTowerType = 'aggressive';
+        let currentPlayerTowers = [];
         let timerInterval = null;
         let remainingSeconds = 90;
+        let battleStarted = false;
+        window.PLAYER_SIDE = window.PLAYER_SIDE || null;
+        let OPPONENT_SIDE = null;
+        let IS_SPECTATOR = false;
+
+        function postToParent(type, payload = {}) {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type, payload }, '*');
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
+            const overlay = document.getElementById('game-start-overlay');
+            const solidTowerOption = document.getElementById('solid-tower-option');
+            const aggressiveTowerOption = document.getElementById('aggressive-tower-option');
+            const towerToggle = document.getElementById('tower-toggle');
+            const CARD_CONFIG = [
+                { type: 'shouter', cost: 3, card: '../pieces/shouter/shouter.png', board: '../pieces/shouter/shouter_board.png' },
+                { type: 'squirmer', cost: 4, card: '../pieces/squirmer/squirmer.png', board: '../pieces/squirmer/squirmer_board.png' },
+                { type: 'fighter', cost: 3, card: '../pieces/fighter/fighter.png', board: '../pieces/fighter/fighter.png' },
+                { type: 'ruler', cost: 5, card: '../pieces/ruler/ruler.png', board: '../pieces/ruler/ruler.png' },
+            ];
+            const cardAssetMap = CARD_CONFIG.reduce((map, card) => {
+                map[card.type] = card;
+                return map;
+            }, {});
+
+            let clickCount = 0;
+            let clickTimer = null;
+
             function createBoardGrid() {
                 const boardGrid = document.querySelector('.board-grid');
                 if (!boardGrid) return;
@@ -724,7 +750,6 @@
                 const boardGrid = document.querySelector('.board-grid');
                 if (!boardGrid) return;
 
-                // Randomly assign king tower skins: one side gets 1, other gets 2
                 const swap = Math.random() >= 0.5;
                 const kingImgA = swap ? '../pieces/king_tower/king_tower_2.png' : '../pieces/king_tower/king_tower_1.png';
                 const kingImgB = swap ? '../pieces/king_tower/king_tower_1.png' : '../pieces/king_tower/king_tower_2.png';
@@ -748,14 +773,13 @@
                     });
                 };
 
-                // Player rows: bottom rows 7/6 -> grid rows 8/7 => start 7 (1-based)
-                createKingAnchor('a', kingImgA, 7, 4); // rows 7-8, cols 4-5 (d1/e1/d2/e2)
-                // Top rows 0/1 -> grid rows 1/2 => start 1
-                createKingAnchor('b', kingImgB, 1, 4); // rows 1-2, cols 4-5 (d7/e7/d8/e8)
+                createKingAnchor('a', kingImgA, 7, 4);
+                createKingAnchor('b', kingImgB, 1, 4);
             }
 
             function startTimer() {
                 if (timerInterval) return;
+                remainingSeconds = 90;
                 const display = document.getElementById('time-value');
                 const updateDisplay = () => {
                     const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
@@ -773,34 +797,23 @@
                     }
                 }, 1000);
             }
-            // Function to place tower on board
-            function placeTowerOnBoard(row, col, towerType, isPlayer = false) {
-                // Find the cell at the specified position
-                const cell = document.querySelector(`.board-cell[data-row="${row}"][data-col="${col}"]`);
 
+            function placeTowerOnBoard(row, col, towerType, allegiance = 'a') {
+                const cell = document.querySelector(`.board-cell[data-row="${row}"][data-col="${col}"]`);
                 if (!cell) {
                     console.error(`Cell not found at row ${row}, col ${col}`);
                     return null;
                 }
-
-                // Only allow fixed tower slots
-                const allowedPlayer = (row === 6 && (col === 1 || col === 6));
-                const allowedEnemy = (row === 1 && (col === 1 || col === 6));
-                if (isPlayer && !allowedPlayer) {
-                    console.warn('Blocked tower placement outside b2/g2 for player.');
-                    return null;
-                }
-                if (!isPlayer && !allowedEnemy) {
-                    console.warn('Blocked tower placement outside b7/g7 for enemy.');
+                const allowedRow = allegiance === 'b' ? 1 : 6;
+                if (row !== allowedRow || (col !== 1 && col !== 6)) {
+                    console.warn('Blocked tower placement outside allowed slots.');
                     return null;
                 }
 
-                // Prevent duplicate placement in same cell
                 if (cell.querySelector('.tower-piece')) {
                     return cell.querySelector('.tower-piece');
                 }
 
-                // Determine tower image path
                 let towerImagePath;
                 if (towerType === 'solid') {
                     towerImagePath = '../pieces/solid_tower/solid_tower.png';
@@ -811,42 +824,155 @@
                     return null;
                 }
 
-                // Create tower piece element
                 const towerPiece = document.createElement('div');
                 towerPiece.className = 'tower-piece';
                 towerPiece.innerHTML = `<img src="${towerImagePath}" alt="${towerType} tower">`;
                 towerPiece.dataset.towerType = towerType;
 
-                // Add tower to cell
                 cell.style.position = 'relative';
                 cell.appendChild(towerPiece);
 
-                // Register tower for targeting / pathing
                 if (typeof pieceDeployment !== 'undefined') {
                     const registryType = towerType === 'solid' ? 'solid_tower'
                         : towerType === 'aggressive' ? 'aggressive_tower'
                         : 'king_tower';
-                    pieceDeployment.registerStaticPiece(registryType, row, col, isPlayer ? 'a' : 'b', towerPiece);
+                    pieceDeployment.registerStaticPiece(registryType, row, col, allegiance, towerPiece);
                 }
 
-                console.log(`Placed ${towerType} tower at row ${row}, col ${col}`);
+                console.log(`Placed ${towerType} tower (${allegiance}) at row ${row}, col ${col}`);
                 return towerPiece;
             }
 
-            // Tower selection logic
-            const solidTowerOption = document.getElementById('solid-tower-option');
-            const aggressiveTowerOption = document.getElementById('aggressive-tower-option');
-            const overlay = document.getElementById('game-start-overlay');
+            function initializeCards() {
+                const cardSlots = document.querySelectorAll('.card-slot');
+                CARD_CONFIG.forEach((card, idx) => {
+                    const slot = cardSlots[idx];
+                    if (!slot) return;
+                    pieceDeployment.initializeCard(
+                        slot,
+                        card.type,
+                        card.card,
+                        card.board,
+                        card.cost
+                    );
+                });
+            }
+
+            function initAbilities() {
+                if (towerToggle && window.AggressiveTowerAbility) {
+                    window.AggressiveTowerAbility.init({
+                        toggleElement: towerToggle,
+                        getCurrentPlayerTowers: () => currentPlayerTowers.filter(Boolean),
+                        getPlayerTowerType: () => playerTowerType,
+                        setPlayerTowerType: (type) => { playerTowerType = type; }
+                    });
+                }
+                if (window.SolidTowerAbility) {
+                    window.SolidTowerAbility.init({
+                        getPlayerTowerType: () => playerTowerType
+                    });
+                }
+            }
+
+            function updateTowerToggle() {
+                if (!towerToggle) return;
+                const img1 = towerToggle.querySelector('.tower-img-1');
+                const img2 = towerToggle.querySelector('.tower-img-2');
+                const oppositeType = playerTowerType === 'solid' ? 'aggressive' : 'solid';
+                if (oppositeType === 'solid') {
+                    img1.style.display = 'block';
+                    img2.style.display = 'none';
+                } else {
+                    img1.style.display = 'none';
+                    img2.style.display = 'block';
+                }
+            }
+
+            function beginMatch(startPayload = {}) {
+                if (battleStarted) return;
+                battleStarted = true;
+                overlay.classList.add('hidden');
+
+                const effectiveSide = (startPayload.side && startPayload.side !== 'spectate')
+                    ? startPayload.side
+                    : (window.PLAYER_SIDE || 'a');
+                window.PLAYER_SIDE = effectiveSide;
+                IS_SPECTATOR = startPayload.side === 'spectate';
+                pieceDeployment.setPlayerSide(IS_SPECTATOR ? 'spectate' : window.PLAYER_SIDE);
+                OPPONENT_SIDE = window.PLAYER_SIDE === 'a' ? 'b' : 'a';
+
+                const towersFromServer = startPayload.towers || {};
+                playerTowerType = selectedTower || towersFromServer[window.PLAYER_SIDE] || 'solid';
+                opponentTowerType = towersFromServer[OPPONENT_SIDE] || opponentTowerType || 'aggressive';
+
+                const playerRow = window.PLAYER_SIDE === 'a' ? 6 : 1;
+                const oppRow = window.PLAYER_SIDE === 'a' ? 1 : 6;
+
+                const tower1 = placeTowerOnBoard(playerRow, 1, playerTowerType, window.PLAYER_SIDE);
+                const tower2 = placeTowerOnBoard(playerRow, 6, playerTowerType, window.PLAYER_SIDE);
+                currentPlayerTowers = [tower1, tower2].filter(Boolean);
+
+                placeTowerOnBoard(oppRow, 1, opponentTowerType, OPPONENT_SIDE);
+                placeTowerOnBoard(oppRow, 6, opponentTowerType, OPPONENT_SIDE);
+
+                updateTowerToggle();
+
+                if (elixirManager && typeof elixirManager.reset === 'function') {
+                    elixirManager.reset();
+                }
+                elixirManager.startElixirGeneration();
+
+                pieceDeployment.initialize();
+                registerKingTowers();
+                startTimer();
+                initializeCards();
+                initAbilities();
+            }
+
+            function handleRemoteDeploy(msg) {
+                const row = parseInt(msg.row);
+                const col = parseInt(msg.col);
+                if (Number.isNaN(row) || Number.isNaN(col)) return;
+
+                const cell = document.querySelector(`.board-cell[data-row="${row}"][data-col="${col}"]`);
+                if (!cell) return;
+
+                const type = msg.pieceType || msg.piece_type;
+                const allegiance = msg.allegiance || OPPONENT_SIDE || 'b';
+                pieceDeployment.deployPiece(cell, null, {
+                    fromNetwork: true,
+                    allegiance,
+                    id: msg.id,
+                    pieceType: type,
+                    cost: msg.cost ?? cardAssetMap[type]?.cost,
+                    boardImagePath: msg.boardImagePath || cardAssetMap[type]?.board,
+                });
+            }
+
+            function handleRemoteRulerMove(msg) {
+                const targetId = msg.id;
+                if (!targetId) return;
+                const row = parseInt(msg.row);
+                const col = parseInt(msg.col);
+                pieceDeployment.movePiece(targetId, { row, col });
+                const entry = pieceDeployment.boardPieces.find(p => p.id === targetId);
+                if (entry) {
+                    entry.position = { row, col };
+                    if (entry._mover) {
+                        entry._mover.lastMoveAt = Date.now();
+                        entry._mover.setCooldownVisual?.(true);
+                        setTimeout(() => entry._mover && entry._mover.setCooldownVisual?.(false), 5000);
+                    }
+                }
+            }
 
             function selectTower(towerElement, towerType) {
-                // Remove selection from both
                 solidTowerOption.classList.remove('selected');
                 aggressiveTowerOption.classList.remove('selected');
 
-                // Add selection to clicked tower
                 towerElement.classList.add('selected');
                 selectedTower = towerType;
-
+                playerTowerType = towerType;
                 console.log(`Tower selected: ${towerType}`);
             }
 
@@ -854,101 +980,17 @@
                 clickCount++;
 
                 if (clickCount === 1) {
-                    // First click - select tower
                     selectTower(towerElement, towerType);
-
-                    // Reset after 500ms if no second click
                     clickTimer = setTimeout(() => {
                         clickCount = 0;
                     }, 500);
                 } else if (clickCount === 2) {
-                    // Second click - confirm and start game
                     clearTimeout(clickTimer);
                     clickCount = 0;
 
                     if (selectedTower) {
-                        console.log(`Game starting with ${selectedTower} tower!`);
-
-                        // Hide overlay
-                        overlay.classList.add('hidden');
-
-                        // Set player tower type
-                        playerTowerType = selectedTower;
-                        startGame = true;
-
-                        // Coordinate system: a1 is bottom-left, rows go bottom-to-top (0-7 = 1-8), cols go left-to-right (0-7 = a-h)
-                        // b2 = col 1, row 1 (from bottom) = row 6 (from top in HTML)
-                        // g2 = col 6, row 1 (from bottom) = row 6 (from top in HTML)
-                        // b7 = col 1, row 6 (from bottom) = row 1 (from top in HTML)
-                        // g7 = col 6, row 6 (from bottom) = row 1 (from top in HTML)
-
-                        // Place player's selected towers at b2 and g2
-                        const tower1 = placeTowerOnBoard(6, 1, selectedTower, true); // b2
-                        const tower2 = placeTowerOnBoard(6, 6, selectedTower, true); // g2
-                        currentPlayerTowers = [tower1, tower2];
-
-                        // Place opponent's aggressive towers at b7 and g7 (ALWAYS aggressive)
-                        placeTowerOnBoard(1, 1, 'aggressive'); // b7
-                        placeTowerOnBoard(1, 6, 'aggressive'); // g7
-
-                        // Set ability bar bottom button to opposite tower type
-                        const towerToggle = document.getElementById('tower-toggle');
-                        const oppositeType = selectedTower === 'solid' ? 'aggressive' : 'solid';
-                        const img1 = towerToggle.querySelector('.tower-img-1');
-                        const img2 = towerToggle.querySelector('.tower-img-2');
-
-                        if (oppositeType === 'solid') {
-                            img1.style.display = 'block';
-                            img2.style.display = 'none';
-                        } else {
-                            img1.style.display = 'none';
-                            img2.style.display = 'block';
-                        }
-
-                        // Start elixir generation
-                        elixirManager.startElixirGeneration();
-
-                        // Initialize piece deployment system
-                        pieceDeployment.initialize();
-                        registerKingTowers();
-                        startTimer();
-
-                        // Initialize Card 1 with Shouter
-                        const card1 = document.querySelector('.card-slot:nth-child(1)');
-                        pieceDeployment.initializeCard(
-                            card1,
-                            'shouter',
-                            '../pieces/shouter/shouter.png',
-                            '../pieces/shouter/shouter_board.png',
-                            3
-                        );
-                        // Initialize Card 2 with Squirmer
-                        const card2 = document.querySelector('.card-slot:nth-child(2)');
-                        pieceDeployment.initializeCard(
-                            card2,
-                            'squirmer',
-                            '../pieces/squirmer/squirmer.png',
-                            '../pieces/squirmer/squirmer_board.png',
-                            4
-                        );
-                        // Initialize Card 3 with Fighter
-                        const card3 = document.querySelector('.card-slot:nth-child(3)');
-                        pieceDeployment.initializeCard(
-                            card3,
-                            'fighter',
-                            '../pieces/fighter/fighter.png',
-                            '../pieces/fighter/fighter.png',
-                            3
-                        );
-                        // Initialize Card 4 with Ruler
-                        const card4 = document.querySelector('.card-slot:nth-child(4)');
-                        pieceDeployment.initializeCard(
-                            card4,
-                            'ruler',
-                            '../pieces/ruler/ruler.png',
-                            '../pieces/ruler/ruler.png',
-                            5
-                        );
+                        console.log(`Tower confirmed: ${selectedTower}`);
+                        beginMatch();
                     }
                 }
             }
@@ -961,85 +1003,68 @@
                 handleDoubleClick(this, 'aggressive');
             });
 
-            // Build the 8x8 grid with algebraic labels before wiring interactions
             createBoardGrid();
 
-            // 基础交互功能预留
-            // 棋盘格子点击事件
             const boardCells = document.querySelectorAll('.board-cell');
             boardCells.forEach(cell => {
                 cell.addEventListener('click', function() {
-                    const row = this.dataset.row;
-                    const col = this.dataset.col;
-                    console.log(`Clicked cell: Row ${row}, Col ${col}`);
+                    console.log(`Clicked cell: Row ${this.dataset.row}, Col ${this.dataset.col}`);
                 });
             });
 
-            // 卡牌点击事件
-            const cardSlots = document.querySelectorAll('.card-slot');
-            cardSlots.forEach(card => {
-                card.addEventListener('click', function() {
-                    console.log('Card clicked:', this.textContent);
-                });
-            });
-
-            // 技能按钮点击事件
             const abilityButtons = document.querySelectorAll('.ability-button');
             abilityButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     console.log('Ability clicked:', this.textContent);
                 });
             });
-            // Ruler ability: second from bottom circle
             if (window.RulerAbility && abilityButtons.length >= 2) {
                 const rulerAbilityBtn = abilityButtons[abilityButtons.length - 2];
                 window.RulerAbility.init({ button: rulerAbilityBtn });
             }
 
-            // Tower toggle 切换功能 (Ability Tower) - Now switches player towers
-            const towerToggle = document.getElementById('tower-toggle');
-            if (towerToggle && window.AggressiveTowerAbility) {
-                window.AggressiveTowerAbility.init({
-                    toggleElement: towerToggle,
-                    getCurrentPlayerTowers: () => currentPlayerTowers.filter(Boolean),
-                    getPlayerTowerType: () => playerTowerType,
-                    setPlayerTowerType: (type) => { playerTowerType = type; }
-                });
-            }
-            if (window.SolidTowerAbility) {
-                window.SolidTowerAbility.init({
-                    getPlayerTowerType: () => playerTowerType
-                });
-            }
-
-            // King Tower 切换功能 (Player 1 和 Player 2)
-            const kingTower1 = document.getElementById('king-tower-player1');
-            const kingTower2 = document.getElementById('king-tower-player2');
-
-            function setupKingTowerToggle(towerElement) {
-                let isImage1 = true;
-
-                towerElement.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const img1 = this.querySelector('.tower-img-1');
-                    const img2 = this.querySelector('.tower-img-2');
-
-                    if (isImage1) {
-                        img1.style.display = 'none';
-                        img2.style.display = 'block';
-                    } else {
-                        img1.style.display = 'block';
-                        img2.style.display = 'none';
-                    }
-
-                    isImage1 = !isImage1;
-                    console.log('King Tower switched:', this.id);
-                });
-            }
-
-            if (kingTower1) setupKingTowerToggle(kingTower1);
-            if (kingTower2) setupKingTowerToggle(kingTower2);
+            window.addEventListener('message', (event) => {
+                const msg = event.data || {};
+                switch (msg.type) {
+                    case 'battle_start':
+                        beginMatch(msg.payload || {});
+                        break;
+                    case 'remote_deploy':
+                        handleRemoteDeploy(msg.payload || msg);
+                        break;
+                    case 'remote_ruler_move':
+                        handleRemoteRulerMove(msg.payload || msg);
+                        break;
+                    case 'opponent_disconnected':
+                        alert('Opponent disconnected.');
+                        break;
+                    default:
+                        break;
+                }
+            });
         });
+
+        window.handleLocalDeploy = function(payload) {
+            postToParent('local_deploy', {
+                id: payload.id,
+                row: payload.row,
+                col: payload.col,
+                pieceType: payload.pieceType,
+                allegiance: payload.allegiance || window.PLAYER_SIDE,
+                cost: payload.cost,
+                boardImagePath: payload.boardImagePath,
+            });
+        };
+
+        window.handleLocalRulerMove = function(payload) {
+            postToParent('local_ruler_move', {
+                id: payload.id,
+                row: payload.row,
+                col: payload.col,
+                allegiance: payload.allegiance || window.PLAYER_SIDE,
+            });
+        };
     </script>
+
 </body>
 </html>

@@ -5,10 +5,11 @@
     const ABILITY_COOLDOWN_MS = 5000;
 
     function getPlayerRuler() {
+        const playerSide = window.PLAYER_SIDE || 'a';
         if (!window.pieceDeployment) return null;
         return (pieceDeployment.boardPieces || []).find(p =>
             p.type === 'ruler' &&
-            p.allegiance === 'a' &&
+            p.allegiance === playerSide &&
             (p.hp ?? p.maxHP ?? 0) > 0
         );
     }
