@@ -31,3 +31,13 @@
 - VSCode 报 `WebSocket is not defined` 指向 battle_rooms.py 行 17。原因：rooms 管理层不应类型标注/引用 WebSocket，WS 只应在 battle_ws.py 处理。
 - 已修正：去掉 WebSocket 前向声明，将 `sockets` 类型标注改为 `Dict[str, Any]`，并注释说明仅存放不透明引用，收发逻辑仍在 battle_ws.py。文件：backend/battle_rooms.py。
 - 需要重启后端加载该修复；本次修改不影响 API 路由前缀。***
+
+## 最新现象：无任何 WS 请求（2024-XX-XX）
+
+- 复现：直接打开 `https://chessortag.org/cat_royale/game_page/?game=B531BB`，Network 面板的 Socket 为空，没有 `/ws/battle/...` 记录；Console 也没有 `[battle] connecting WS:` / `[battle] WS open`。
+- game_page 的单页模式按理会在 DOMContentLoaded 时调用 `directJoin`（POST `/api/battle/join`）成功后再 `connectDirectWs`。如果 join 返回 404/失败，WS 不会被创建。
+- 截图中没有 WS 流量，说明前置的 create/join 仍未成功（大概率生产后端仍未加载 `/api/battle/*` 前缀），导致单页逻辑短路为本地假开局。
+- 验证建议：
+  - 直接请求 `https://api.chessortag.org/api/battle/join`/`create` 检查是否仍 404；若是，需确认生产后端已重启并加载新前缀 `/api/battle`。
+  - 本地启动后端确认 `/api/battle/join` 200 正常，再确保生产镜像/容器与本地代码一致。
+  - 前端调试：在 Console 搜索 `[battle] connecting WS`，如果没有，说明 join 没成功；找到 join fetch 的错误信息进一步定位。***

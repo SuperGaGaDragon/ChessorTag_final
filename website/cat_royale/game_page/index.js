@@ -162,23 +162,27 @@
         window.battleSocket = ws;
 
         ws.onopen = () => {
+            if (ws !== state.ws) return;
             console.log('[battle] WS open');
             setStatus('WebSocket connected');
             updateStartButton();
         };
 
         ws.onmessage = (event) => {
+            if (ws !== state.ws) return;
             console.log('[battle] WS message', event.data);
             handleMessage(event);
         };
 
         ws.onclose = (ev) => {
+            if (ws !== state.ws) return;
             console.log('[battle] WS closed', ev.code, ev.reason);
             setStatus('WebSocket closed');
             updateStartButton();
         };
 
         ws.onerror = (err) => {
+            if (ws !== state.ws) return;
             console.error('[battle] WS error', err);
             setStatus('WebSocket error');
         };

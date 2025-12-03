@@ -1303,6 +1303,25 @@
                 console.log(`Tower selected: ${towerType}`);
             }
 
+            function finalizeSelectionAndStart() {
+                if (!selectedTower) return;
+                // 默认把自己定为 A 侧以便本地单页也能开始；如果父级/WS 已经分配了 side 会被 startPayload 复用。
+                const mySide = (window.PLAYER_SIDE && window.PLAYER_SIDE !== 'spectate') ? window.PLAYER_SIDE : 'a';
+                const oppSide = mySide === 'a' ? 'b' : 'a';
+                const payload = {
+                    side: mySide,
+                    towers: {
+                        [mySide]: selectedTower,
+                        [oppSide]: opponentTowerType || 'aggressive',
+                    },
+                };
+                beginMatch(payload);
+                if (!hasParentBridge) {
+                    // 单页模式也通知后端 ready，避免卡住。
+                    sendReadyDirect(selectedTower);
+                }
+            }
+
             function handleDoubleClick(towerElement, towerType) {
                 clickCount++;
 
@@ -1317,11 +1336,7 @@
 
                     if (selectedTower) {
                         console.log(`Tower confirmed: ${selectedTower}`);
-                        if (hasParentBridge) {
-                            beginMatch();
-                        } else {
-                            sendReadyDirect(selectedTower);
-                        }
+                        finalizeSelectionAndStart();
                     }
                 }
             }
