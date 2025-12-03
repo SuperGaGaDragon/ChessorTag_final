@@ -16,9 +16,9 @@ async def battle_ws(websocket: WebSocket, game_id: str):
         return
 
     side: str
-    if "a" not in room.sockets:
+    if "a" not in room.sockets and room.player_a:
         side = "a"
-    elif "b" not in room.sockets:
+    elif "b" not in room.sockets and room.player_b:
         side = "b"
     else:
         room.spectator_counter += 1

@@ -15,13 +15,13 @@ class CreateGameResponse(BaseModel):
 
 @router.post("/create", response_model=CreateGameResponse)
 def create_game():
-    # TODO: integrate with auth and pass user_id from JWT/session
+    # TODO: 以后接 auth 的时候把 user_id 填进来
     user_id = None
-    room = create_room(user_id)
+    room, side = create_room(user_id)
     return CreateGameResponse(
         game_id=room.game_id,
         url=f"https://chessortag.org/battle/?game={room.game_id}",
-        side="a",
+        side=side,  # 这里一定是 "a"
     )
 
 
@@ -36,18 +36,10 @@ class JoinGameResponse(BaseModel):
 
 @router.post("/join", response_model=JoinGameResponse)
 def join_game(req: JoinGameRequest):
-    user_id = None  # TODO: wire to auth
-    room = join_room(req.game_id, user_id)
-    if not room:
-        raise HTTPException(status_code=404, detail="Game not found or full")
-
-    # Determine assigned side based on occupancy (overflow joins become spectators)
-    if room.player_a and room.player_b:
-        side = "spectate"
-    elif room.player_a and not room.player_b:
-        side = "b"
-    else:
-        side = "a"
+    user_id = None  # TODO: 以后接 auth
+    room, side = join_room(req.game_id, user_id)
+    if not room or not side:
+        raise HTTPException(status_code=404, detail="Game not found")
 
     return JoinGameResponse(game_id=req.game_id, side=side)
 
