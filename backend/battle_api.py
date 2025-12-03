@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from .battle_rooms import create_room, join_room, rooms
 
 
-router = APIRouter(prefix="/api/battle", tags=["battle"])
+router = APIRouter(prefix="/battle", tags=["battle"])
 
 
 # ---------- 创建游戏 ----------
