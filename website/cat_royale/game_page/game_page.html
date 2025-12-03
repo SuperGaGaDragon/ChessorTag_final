@@ -909,6 +909,9 @@
                             case 'ruler_move':
                                 handleRemoteRulerMove(msg);
                                 break;
+                            case 'ruler_move_request':
+                                handleRulerMoveRequest(msg);
+                                break;
                             case 'opponent_disconnected':
                                 alert('Opponent disconnected.');
                                 break;
@@ -1057,6 +1060,22 @@
                     case 'timer':
                         updateTimerDisplay(msg.seconds_left);
                         break;
+                    case 'ruler_move': {
+                        const targetId = msg.id || msg.piece_id;
+                        if (!targetId) break;
+                        const row = parseInt(msg.row);
+                        const col = parseInt(msg.col);
+                        pieceDeployment.movePiece(targetId, { row, col });
+                        const entry = pieceDeployment.boardPieces.find(p => p.id === targetId);
+                        if (entry) {
+                            entry.position = { row, col };
+                        }
+                        break;
+                    }
+                    case 'game_over':
+                        battleStarted = false;
+                        alert(`Game over! Winner: ${msg.winner || '-'}`);
+                        break;
                     default:
                         break;
                 }
@@ -1083,6 +1102,52 @@
                     piece: serializePiece(pieceEntry),
                 };
                 postToParent('state_update', payload);
+            }
+
+            function handleRulerMoveRequest(msg) {
+                if (!isHost) return;
+                const targetId = msg.id || msg.piece_id;
+                if (!targetId) return;
+                const row = parseInt(msg.row);
+                const col = parseInt(msg.col);
+                if (Number.isNaN(row) || Number.isNaN(col)) return;
+
+                const entry = pieceDeployment.boardPieces.find(p => p.id === targetId);
+                if (!entry) return;
+                if (msg.allegiance && entry.allegiance && msg.allegiance !== entry.allegiance) {
+                    return;
+                }
+
+                const mover = entry._mover;
+                if (mover && typeof mover.canMove === 'function' && !mover.canMove()) {
+                    return;
+                }
+                const MOVE_COST = 1;
+                const COOLDOWN_MS = 5000;
+                if (elixirManager.currentElixir < MOVE_COST) return;
+                elixirManager.currentElixir -= MOVE_COST;
+                elixirManager.updateElixirDisplay();
+                elixirManager.updateElixirBar();
+                elixirManager.startElixirGeneration();
+
+                pieceDeployment.movePiece(targetId, { row, col });
+                entry.position = { row, col };
+                const now = Date.now();
+                if (mover) {
+                    mover.lastMoveAt = now;
+                    mover.setCooldownVisual?.(true);
+                    if (mover.cooldownTimer) clearTimeout(mover.cooldownTimer);
+                    mover.cooldownTimer = setTimeout(() => mover.setCooldownVisual?.(false), COOLDOWN_MS);
+                }
+
+                postToParent('state_update', {
+                    type: 'state_update',
+                    event: 'ruler_move',
+                    id: targetId,
+                    row,
+                    col,
+                    allegiance: entry.allegiance
+                });
             }
 
             function updateSideFlags(side) {
@@ -1496,6 +1561,9 @@
                     case 'remote_ruler_move':
                         handleRemoteRulerMove(msg.payload || msg);
                         break;
+                    case 'ruler_move_request':
+                        handleRulerMoveRequest(msg.payload || msg);
+                        break;
                     case 'opponent_disconnected':
                         alert('Opponent disconnected.');
                         break;
@@ -1544,12 +1612,21 @@
 
         window.handleLocalRulerMove = function(payload) {
             console.log('[game_page] handleLocalRulerMove called', payload);
-            postToParent('local_ruler_move', {
+            const message = {
                 id: payload.id,
                 row: payload.row,
                 col: payload.col,
                 allegiance: payload.allegiance || window.PLAYER_SIDE,
-            });
+            };
+            if (window.IS_HOST === true) {
+                postToParent('state_update', {
+                    type: 'state_update',
+                    event: 'ruler_move',
+                    ...message
+                });
+            } else {
+                postToParent('local_ruler_move', message);
+            }
         };
     </script>
 

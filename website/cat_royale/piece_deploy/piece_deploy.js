@@ -279,6 +279,14 @@ class PieceDeployment {
                 allegiance: entry.allegiance,
                 position: entry.position
             });
+            if (entry.type === 'king_tower') {
+                const winner = entry.allegiance === 'a' ? 'b' : 'a';
+                window.postToParent('state_update', {
+                    type: 'state_update',
+                    event: 'game_over',
+                    winner
+                });
+            }
         }
     }
 
@@ -374,6 +382,7 @@ class PieceDeployment {
     }
 
     scanTowerAttacks() {
+        if (window.IS_HOST !== true) return;
         const towers = this.boardPieces.filter(p => p.role === 'building' && (p.type === 'aggressive_tower' || p.type === 'solid_tower') && (p.hp ?? 1) > 0 && p.aggressive_tower_lived !== false);
         const troops = this.boardPieces.filter(p => p.role === 'troop' && (p.hp ?? 1) > 0 && p.shouter_lived !== false);
 
@@ -647,35 +656,37 @@ class PieceDeployment {
             elixirManager.startElixirGeneration();
         }
 
-        if (pieceType === 'shouter' && window.createShouterMover) {
-            const mover = window.createShouterMover(pieceEntry, {
-                pieces: this.boardPieces,
-                movePiece: this.movePiece.bind(this),
-                highlightPath: (coords) => this.highlightPath(pieceId, coords)
-            });
-            this.activeMovers[pieceEntry.id] = mover;
-            pieceEntry._mover = mover;
-        } else if (pieceType === 'squirmer' && window.createSquirmerMover) {
-            const mover = window.createSquirmerMover(pieceEntry, {
-                pieces: this.boardPieces,
-                movePiece: this.movePiece.bind(this)
-            });
-            this.activeMovers[pieceEntry.id] = mover;
-            pieceEntry._mover = mover;
-        } else if (pieceType === 'fighter' && window.createFighterMover) {
-            const mover = window.createFighterMover(pieceEntry, {
-                pieces: this.boardPieces,
-                movePiece: this.movePiece.bind(this)
-            });
-            this.activeMovers[pieceEntry.id] = mover;
-            pieceEntry._mover = mover;
-        } else if (pieceType === 'ruler' && window.createRulerMover) {
-            const mover = window.createRulerMover(pieceEntry, {
-                pieces: this.boardPieces,
-                movePiece: this.movePiece.bind(this)
-            });
-            this.activeMovers[pieceEntry.id] = mover;
-            pieceEntry._mover = mover;
+        if (window.IS_HOST === true) {
+            if (pieceType === 'shouter' && window.createShouterMover) {
+                const mover = window.createShouterMover(pieceEntry, {
+                    pieces: this.boardPieces,
+                    movePiece: this.movePiece.bind(this),
+                    highlightPath: (coords) => this.highlightPath(pieceId, coords)
+                });
+                this.activeMovers[pieceEntry.id] = mover;
+                pieceEntry._mover = mover;
+            } else if (pieceType === 'squirmer' && window.createSquirmerMover) {
+                const mover = window.createSquirmerMover(pieceEntry, {
+                    pieces: this.boardPieces,
+                    movePiece: this.movePiece.bind(this)
+                });
+                this.activeMovers[pieceEntry.id] = mover;
+                pieceEntry._mover = mover;
+            } else if (pieceType === 'fighter' && window.createFighterMover) {
+                const mover = window.createFighterMover(pieceEntry, {
+                    pieces: this.boardPieces,
+                    movePiece: this.movePiece.bind(this)
+                });
+                this.activeMovers[pieceEntry.id] = mover;
+                pieceEntry._mover = mover;
+            } else if (pieceType === 'ruler' && window.createRulerMover) {
+                const mover = window.createRulerMover(pieceEntry, {
+                    pieces: this.boardPieces,
+                    movePiece: this.movePiece.bind(this)
+                });
+                this.activeMovers[pieceEntry.id] = mover;
+                pieceEntry._mover = mover;
+            }
         }
 
         // Only call handleLocalDeploy if HOST mode and not skipping broadcast
@@ -792,7 +803,7 @@ class PieceDeployment {
 
         console.log('Piece deployment system initialized');
 
-        if (!this.attackScanTimer) {
+        if (!this.attackScanTimer && window.IS_HOST === true) {
             this.attackScanTimer = setInterval(() => this.scanTowerAttacks(), 250);
         }
     }

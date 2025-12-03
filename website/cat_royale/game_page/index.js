@@ -136,6 +136,9 @@
                 case 'ruler_move':
                     forwardToFrame('remote_ruler_move', msg);
                     break;
+                case 'ruler_move_request':
+                    forwardToFrame('ruler_move_request', msg);
+                    break;
                 case 'opponent_disconnected':
                     setStatus('Opponent disconnected');
                     state.playersConnected = false;

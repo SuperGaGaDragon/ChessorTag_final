@@ -10,6 +10,10 @@ class ElixirManager {
     // Start the elixir generation
     startElixirGeneration() {
         if (this.elixirInterval) return; // Already running
+        if (typeof window !== 'undefined' && window.IS_HOST !== true) {
+            console.log('[elixir] Client not host; skipping generation loop');
+            return;
+        }
 
         this.gameStart = true;
         console.log('Game started! Elixir generation begins...');
@@ -21,6 +25,14 @@ class ElixirManager {
                 this.updateElixirDisplay();
                 this.updateElixirBar();
                 console.log(`Elixir: ${this.currentElixir}/${this.maxElixir}`);
+                if (typeof window !== 'undefined' && window.IS_HOST === true && typeof window.postToParent === 'function') {
+                    window.postToParent('state_update', {
+                        type: 'state_update',
+                        event: 'elixir',
+                        side: 'a',
+                        elixir: this.currentElixir
+                    });
+                }
 
                 if (this.currentElixir >= this.maxElixir) {
                     this.stopElixirGeneration();

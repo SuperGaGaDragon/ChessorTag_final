@@ -1,490 +1,286 @@
-改动点1: 
+目标：
+让本游戏A为Host，B为Client，是A的Host Authority。
 
-1. 为什么 B 端每个棋子 spawn 会打印两次？
+现在情况：这个迁移计划完成了一些，但是更多没完成，所以说现在这个一些地方比如说client被挡了，但是host又没有执行。你要扫描这些问题，然后进行解决。如下的计划书仅供参考！仅供参考！仅供参考！请你根据实际情况，现在已经改的情况，在最小化代码改动的情况下完成。
 
-看 B 端这一段（CLIENT）：
+完成后，请把本地的一些功能和云端的核对，确保本地的比如说ability，比如说功能，和a端b端都是一致的。
 
-[piece_deploy] deployPiece called {... fromNetwork: false}
-[piece_deploy] CLIENT mode: calling handleLocalDeployRequest
-[game_page] postToParent called {type: 'deploy_request' ...}
-[PAGE → WS] sending deploy_request {...}
+Cat Royale 战斗系统：逻辑迁移计划书（Plan Document）
+🎯 目标（Goal）
 
-# 之后从 WS 收到服务器广播：
-[battle] WS message {"type":"state_update","event":"spawn","piece":{...}}
-[piece_deploy] deployPiece called {... fromNetwork: true}
-Deployed shouter (b) at row 0, col 6
+将当前分散在所有浏览器上的战斗逻辑，统一迁移到 Host 端（权威端, authoritative host） 执行，实现：
 
-# 马上又来一条一模一样的：
-[battle] WS message {"type":"state_update","event":"spawn","piece":{...}}
-[piece_deploy] deployPiece called {... fromNetwork: true}
-Deployed shouter (b) at row 0, col 6
+战斗同步一致性 100%（no desync）
 
+客户端不再拥有任何逻辑权力（不能随便 deploy/attack/damage）
 
-说明什么？
-服务器对同一次部署收到了两次几乎完全一样的 state_update: spawn，所以它忠实地转发了两次。
+所有攻击、移动、血量、死亡、游戏结束都由 Host 决定并同步
 
-回头看 A 端（HOST）的 log，恰好印证了这一点：
+B 客户端可以正常进攻 A（Host 代替 B 执行所有攻击）
 
-[battle] WS message {"type":"deploy_request", ...}
+为未来**迁移到服务器（Headless Host 模式）**做好架构
 
-piece_deploy.js:474 deployPiece called {... fromNetwork: false}
-piece_deploy.js:491 HOST mode: will deploy and broadcast
-piece_deploy.js:610 HOST mode: calling handleLocalDeploy
-game_page:1406 handleLocalDeploy called {...} IS_HOST: true
+最终效果：
 
-game_page:1418 [game_page] sending state_update
-game_page:710 postToParent called {type: 'state_update', ...}   ← 第一次
-game_page:712 sending postMessage to parent
+A 端是唯一的「游戏模拟器」
+B 端只是纯展示（viewer）+ 输入（intent）
+服务器只负责“转发消息，不做逻辑”
 
-piece_deploy.js:633 Deployed shouter (b) at row 0, col 6
+这是 Clash Royale、Brawl Stars 以及大部分实时 PvP 游戏的标准做法。
 
-game_page:710 postToParent called {type: 'state_update', ...}   ← 第二次
-game_page:712 sending postMessage to parent
+📌 当前情况（Realistic Current State）
 
+下面是你当前系统的真实结构（基于你给的日志 + 我分析出的架构）：
 
-也就是说：
+✔ 1. 服务器不参与计算
 
-handleLocalDeploy() 里 先 postToParent 一次（比如“spawn 某个 piece”）。
+battle_ws.py 只做转发，不做验证、不算 HP、不判断死亡、不判胜负
 
-部署完（Deployed shouter）后，又再调用了一次 postToParent(...)，再次发同一个 state_update。
+✔ 2. A（Host）和 B（Client）都在执行自己的战斗逻辑
 
-所以：服务器 → B 端 = 两条完全一样的 spawn。
+表现为：
 
-建议改法（思路）
+每一端都在跑 tower scan attack
 
-在 game_page.js 里找到 handleLocalDeploy 这一段，大概长这样：
+每一端都在跑移动 movers
 
-function handleLocalDeploy(entry) {
-    // ...
-    postToParent({
-        type: 'state_update',
-        payload: { event: 'spawn', piece: entry }
-    });
+每一端都在尝试调用 applyDamage
 
-    // some code that eventually again calls postToParent(...) with the SAME payload
+你刚刚把 B 的 applyDamage 禁了，所以 B 打不了 A。
+
+✔ 3. B 的棋子有时由 B 自己生成（双 spawn）
+
+导致：
+
+B 的棋子没有注册到 host 的 tower_scan 或移动管理器
+
+host 根本不知道有这枚 B 的棋子
+
+B 看见自己有攻击，但 host 看不到 → B 打不动 host
+
+✔ 4. ruler_move_request 没有在 host 层验证
+
+所以：
+
+ruler 移动在 B 端自己跑 → 同步错误
+
+elixir 在 B 自己扣 → 不一致
+
+host 不知道 B 的 ruler 走到了哪里
+
+✔ 5. death/game_over 只在本地触发，无网络同步
+
+造成：
+
+A 看到 game over，但 B 继续玩自己那套 local 动画
+
+或 B 看到 A 死了但 host 不知道 → 永远不会结束
+
+✔ 总结：现在是「双模拟器」模式
+
+Host 和 Client 都在模拟游戏 → desync 是必然。
+
+我们要改成“只有 Host 模拟，Client 只显示”。
+
+🧭 大计划（Master Plan）
+
+目标是一句话：
+
+把所有游戏逻辑从浏览器的每个端 → 收拢到 Host 浏览器唯一运行。Client 只负责输入、展示，不准自己算逻辑。
+
+整个计划分 3 个阶段：
+
+Phase 1：Host 权威化（Authoritative Host）💎（当前阶段）
+
+让 Host 成为唯一“游戏引擎”，Client 完全不算逻辑。
+
+内容包括：
+
+所有棋子只由 Host deployPiece() 创建
+
+所有攻击只在 Host 执行
+
+所有 applyDamage 只在 Host 执行
+
+所有死亡只在 Host 触发
+
+所有 game_over 只在 Host 判断
+
+Client 端完全不执行任何 mover/tower/attack 逻辑
+
+Phase 2：Host → 所有人同步（State Replication）💠
+
+在 Host 执行完动作后：
+
+HP、死亡、spawn、移动、timer、elixir
+→ 全都用 state_update 广播出去
+→ 所有人根据 state_update 来刷新 UI
+
+这就是“client-side visual / host-side simulation architecture”的典型做法。
+
+Step 1：禁止 Client 在本地 deployPiece
+要实现：
+
+B 点击格子时，本地不能生成棋子
+
+只允许 Host 生成棋子（通过 state_update: spawn）
+
+方法：
+
+在 deployPiece() 顶部加：
+
+if (!opts.fromNetwork && window.IS_HOST !== true) {
+  console.warn("Client should not deploy locally");
+  return;
 }
 
 
-你需要保证：每次“真正的落子”只发一次 spawn 的 state_update。
+完成标志：
 
-比较安全的做法：
+B 点击不会本地下子
 
-在 handleLocalDeploy 里发 一次 完整的 spawn update；
+Host 会收到 deploy_request
 
-不要再在其他地方（比如 deployPiece 或 onPieceDeployed）对同一落子重复调用 postToParent。
+Host 会下子
 
-伪代码参考（改成“只在这里广播一次”）：
+B 端只会收到 spawn → fromNetwork:true → 创建棋子
 
-function handleLocalDeploy(entry) {
-    console.log('[game_page] handleLocalDeploy called', entry, 'IS_HOST:', IS_HOST);
+Step 2：禁止 Client 执行攻击/移动逻辑
 
-    // 真正更新本地棋盘状态
-    placePieceOnBoard(entry);
+所有攻击循环加：
 
-    // 只在这里广播一次
-    if (IS_HOST && hasParentBridge) {
-        postToParent({
-            type: 'state_update',
-            payload: {
-                event: 'spawn',
-                piece: {
-                    id: entry.id,
-                    owner: entry.allegiance,
-                    kind: entry.pieceType,
-                    row: entry.position.row,
-                    col: entry.position.col,
-                    hp: entry.hp,
-                    max_hp: entry.maxHp,
-                    boardImagePath: entry.boardImagePath,
-                }
-            }
-        });
-    }
-}
+if (!window.IS_HOST) return;
 
 
-同时检查：
+包括：
 
-在 deployPiece({ fromNetwork: true }) 的路径里 不要再调用 postToParent，只做本地落子即可。
+scanTowerAttacks
 
+startShouterAttack
 
-改动点2： 
+startFighterMove
 
-为什么 Game over: King tower destroyed 会刷到 252 次？
+startRulerMove
 
-你在 console 里看到的是这种东西：
+squirmer_attack
 
-4piece_deploy.js:231 Game over: King tower destroyed
-16piece_deploy.js:231 Game over: King tower destroyed
-76piece_deploy.js:231 Game over: King tower destroyed
-252piece_deploy.js:231 Game over: King tower destroyed
+aggressive_tower_attack
 
+solid_tower_attack
 
-Chrome 的意思是：同一行 log 已经重复输出了 4 / 16 / 76 / 252 次。
+完成标志：
 
-说明你的 “检测游戏是否结束”的逻辑在不停地被触发，而且每次都没有被“终止”。
+B 的 attack interval 不再运行
 
-最可能的结构是类似这样：
+B 的控制台不会出现 "CLIENT should not call applyDamage"
 
-checkForGameOver() {
-    if (kingTower.hp <= 0) {
-        console.log('Game over: King tower destroyed');
-        this.handleGameOver(...);
-    }
-}
+Step 3：让 Host 执行所有棋子的攻击
 
+检查：
 
-这段函数被谁调用？
+B 的棋子是否真的在 Host 的 boardPieces 数组里
 
-很可能是 每一帧移动 / 每一次攻击 / 每个定时器 tick 都会调用一次 checkForGameOver()。
+Host 有注册 B 这枚棋子的 mover/tower attack timer
 
-塔一旦爆了，hp 就一直 ≤0，所以之后每个 tick 都命中条件，于是无穷打印。
+Host 能检测到敌方棋子并打出伤害
 
-建议改法：加一个 gameOver flag
+完成标志：
 
-在 PieceDeployment 里加一个标记：
+B 的棋子可以打动 A 的塔（Host 模拟）
 
-class PieceDeployment {
-    constructor() {
-        // ...
-        this.gameOver = false;
-    }
+A 的塔可以打击 B 的棋子（Host 模拟）
 
-    checkForGameOver() {
-        if (this.gameOver) return;  // 已经结束了就直接返回
+Step 4：applyDamage → state_update
 
-        if (kingTower.hp <= 0) {
-            this.gameOver = true;
-            console.log('Game over: King tower destroyed');
-            this.handleGameOver(/* winner or loser info */);
-        }
-    }
-}
+Host 扣血后：
 
-
-同样在任何可能再次触发 game over 的入口（比如定时器、碰撞检测）开头也可以加：
-
-if (this.gameOver) return;
-
-
-这样就会：
-
-只打印一次 Game over；
-
-不会重复弹出 overlay / 重复 reset 之类的奇怪效果。
-
-3. 为什么 Game Over 了计时器还在走到 0？
-
-看 HOST 端的 log，King tower 已经 destroyed 了，但还在疯狂：
-
-76piece_deploy.js:231 Game over: King tower destroyed
-...
-[state_update, event: 'timer', seconds_left: 19]
-[state_update, event: 'timer', seconds_left: 18]
-...
-直到 0
-
-
-这说明现在的架构是：
-
-计时器完全由 HOST 驱动：
-game_page 每秒 postToParent({ type: 'state_update', event: 'timer', seconds_left: ... })。
-
-服务器只是把 timer 的 state_update 按原样广播给双方。
-
-但在 Game over 的时候，你没有停止 host 这边的计时器 / 游戏循环。
-
-建议改法（最小修改版本）
-
-在 HOST 的 handleGameOver 里：
-
-清掉本地定时器（elixir + timer），比如：
-
-function handleGameOver(result) {
-    if (this.gameOver) return;
-    this.gameOver = true;
-
-    // 1) 停止本地计时器和 elixir
-    stopTimerLoop();
-    stopElixirGeneration();
-
-    // 2) 通知服务器
-    if (IS_HOST && window.battleSocket && battleSocket.readyState === WebSocket.OPEN) {
-        battleSocket.send(JSON.stringify({
-            type: 'state_update',
-            event: 'game_over',
-            result, // winner / loser / scores
-        }));
-    }
-
-    // 3) 本地 UI 处理
-    showGameOverOverlay(result);
-}
-
-
-在服务器那边的 battle 逻辑里：
-
-收到 event: 'game_over' 后，把当前 game 状态打成 finished；
-
-停止继续处理 timer（如果服务器有 timer loop，就停掉；如果完全是 host 驱动，那至少不要再把 host 传上来的 timer 往其他人广播）。
-
-在 CLIENT 端的 onMessage 里加一个 case：
-
-case 'state_update':
-    if (data.event === 'game_over') {
-        pieceDeployment.handleGameOverFromNetwork(data.result);
-        break;
-    }
-    // 其他 event 正常处理
-    break;
-
-
-这样效果就是：
-
-一旦 game over，host 停止发送 timer，server 停止广播。
-
-双方页面都会收到一次 game_over，本地各自处理 UI，不再有计时 spam。
-
-改动点3：
-
-把本地的一些 function 也挂到 socket 上（比如 ability 等）
-
-现状问题：
-
-目前很多游戏逻辑（比如释放技能、攻击判定等）可能分散在 HOST 和 CLIENT 两端，或者完全依赖 HOST 端执行后再广播结果。这导致：
-
-- 代码重复，维护困难
-- CLIENT 端可能需要等待网络延迟才能看到效果
-- 不同端的逻辑容易不一致
-
-改进思路：
-
-将关键的游戏逻辑函数统一挂载到 WebSocket 消息处理流程上，让：
-
-1. HOST 端执行逻辑 + 广播结果
-2. CLIENT 端直接根据广播消息同步状态
-
-主要需要处理的功能模块：
-
-### 1. 技能系统（Abilities）
-
-当前可能的结构：
-```javascript
-// 在 piece_deploy.js 或 abilities.js 里
-function useAbility(pieceId, abilityType, target) {
-    // 本地执行技能效果
-    applyAbilityEffect(pieceId, abilityType, target);
-
-    // 如果是 HOST，可能会发送一个 state_update
-    if (IS_HOST) {
-        postToParent({
-            type: 'state_update',
-            event: 'ability_used',
-            payload: { pieceId, abilityType, target, result: ... }
-        });
-    }
-}
-```
-
-建议改为统一的消息驱动：
-
-```javascript
-// HOST 端：
-function handleAbilityRequest(pieceId, abilityType, target) {
-    // 1) 验证合法性（是否有足够资源、CD 等）
-    if (!canUseAbility(pieceId, abilityType)) {
-        return;
-    }
-
-    // 2) 执行本地效果
-    const result = applyAbilityEffect(pieceId, abilityType, target);
-
-    // 3) 广播给所有人（包括自己）
-    if (IS_HOST && hasParentBridge) {
-        postToParent({
-            type: 'state_update',
-            event: 'ability_used',
-            payload: {
-                pieceId,
-                abilityType,
-                target,
-                result,
-                timestamp: Date.now()
-            }
-        });
-    }
-}
-
-// CLIENT 端：
-function handleAbilityFromNetwork(data) {
-    const { pieceId, abilityType, target, result } = data.payload;
-
-    // 只根据 HOST 传来的结果同步本地状态
-    applyAbilityEffect(pieceId, abilityType, target, result);
-}
-```
-
-### 2. 攻击系统（Attack/Damage）
-
-类似地，攻击判定也应该统一：
-
-```javascript
-// HOST 端在每次攻击触发时：
-function handlePieceAttack(attackerId, targetId) {
-    const damage = calculateDamage(attackerId, targetId);
-    const target = getPieceById(targetId);
-    target.hp -= damage;
-
-    // 广播攻击事件
-    postToParent({
-        type: 'state_update',
-        event: 'attack',
-        payload: {
-            attackerId,
-            targetId,
-            damage,
-            targetHp: target.hp
-        }
-    });
-
-    // 如果目标死亡，同时发送 death 事件
-    if (target.hp <= 0) {
-        handlePieceDeath(targetId);
-    }
-}
-
-// CLIENT 端：
-case 'attack':
-    const attacker = getPieceById(data.payload.attackerId);
-    const target = getPieceById(data.payload.targetId);
-
-    // 播放攻击动画
-    playAttackAnimation(attacker, target);
-
-    // 同步 HP
-    target.hp = data.payload.targetHp;
-    updateHealthBar(target);
-    break;
-```
-
-### 3. 移动系统（Movement）
-
-如果棋子有自动移动逻辑：
-
-```javascript
-// HOST 端：
-function updatePieceMovement(piece) {
-    const newPos = calculateNewPosition(piece);
-    piece.position = newPos;
-
-    postToParent({
-        type: 'state_update',
-        event: 'move',
-        payload: {
-            pieceId: piece.id,
-            fromRow: piece.position.row,
-            fromCol: piece.position.col,
-            toRow: newPos.row,
-            toCol: newPos.col
-        }
-    });
-}
-
-// CLIENT 端：
-case 'move':
-    const piece = getPieceById(data.payload.pieceId);
-    movePieceWithAnimation(piece, data.payload.toRow, data.payload.toCol);
-    break;
-```
-
-### 4. 资源系统（Elixir）
-
-```javascript
-// HOST 端定时生成：
-function generateElixir() {
-    playerAElixir += ELIXIR_PER_TICK;
-    playerBElixir += ELIXIR_PER_TICK;
-
-    postToParent({
-        type: 'state_update',
-        event: 'elixir_update',
-        payload: {
-            playerA: playerAElixir,
-            playerB: playerBElixir
-        }
-    });
-}
-
-// CLIENT 端：
-case 'elixir_update':
-    updateElixirDisplay(data.payload.playerA, data.payload.playerB);
-    break;
-```
-
-### 统一的消息处理架构
-
-在 `game_page.js` 里建立统一的消息分发机制：
-
-```javascript
-// 接收来自 parent 的 WebSocket 消息
-window.addEventListener('message', (e) => {
-    if (e.data.type === 'state_update') {
-        handleStateUpdate(e.data.event, e.data.payload);
-    }
+postToParent('state_update', {
+  event: 'damage',
+  piece_id,
+  hp
 });
 
-function handleStateUpdate(event, payload) {
-    switch (event) {
-        case 'spawn':
-            pieceDeployment.deployPiece({ ...payload, fromNetwork: true });
-            break;
-        case 'ability_used':
-            pieceDeployment.handleAbilityFromNetwork(payload);
-            break;
-        case 'attack':
-            pieceDeployment.handleAttackFromNetwork(payload);
-            break;
-        case 'move':
-            pieceDeployment.handleMoveFromNetwork(payload);
-            break;
-        case 'elixir_update':
-            updateElixirDisplay(payload.playerA, payload.playerB);
-            break;
-        case 'timer':
-            updateTimerDisplay(payload.seconds_left);
-            break;
-        case 'game_over':
-            pieceDeployment.handleGameOverFromNetwork(payload);
-            break;
-        default:
-            console.warn('[game_page] Unknown state_update event:', event);
-    }
-}
-```
 
-### 好处：
+完成标志：
 
-1. **单一数据源**：所有状态变更都由 HOST 发起并广播，CLIENT 只负责渲染
-2. **易于调试**：所有网络消息都有明确的 event 类型，方便追踪
-3. **减少重复代码**：不需要在 HOST 和 CLIENT 分别写两套逻辑
-4. **状态一致性**：CLIENT 永远跟随 HOST 的状态，不会出现不同步
+Client 端不会再调用 applyDamage
 
-### 注意事项：
+Client 端用 applyDamageFromServer 同步血量
 
-- 所有游戏逻辑判定（伤害计算、CD 检查、资源消耗等）只在 HOST 端执行
-- CLIENT 端只做"表现层"工作：播放动画、更新 UI、响应玩家输入（输入后通过 WebSocket 发给 HOST 处理）
-- 确保每个 state_update 都有唯一的 event 名称，避免混淆
-- 在 HOST 端加上防作弊检查（比如玩家是否真的有足够 elixir 来部署棋子）
+Step 5：handleDeath → state_update
 
----
+Host 死亡后：
 
-总结：
+postToParent('state_update', {
+  event: 'death',
+  piece_id
+});
 
-以上三个改动点的核心思路都是：
 
-1. **避免重复逻辑**：在 HOST 和 CLIENT 之间明确分工
-2. **统一消息格式**：所有状态变更都通过 `state_update` + `event` 的形式广播
-3. **防止重复触发**：加 flag（如 `gameOver`）或合并重复的 postToParent 调用
-4. **及时清理资源**：游戏结束时停止定时器、清空事件监听等
+Client：
 
-这样才能保证双端状态一致、log 清晰、没有奇怪的重复或竞争问题。
+case 'death': handleDeathFromServer(...)
+
+
+完成标志：
+
+两端看到一致的死亡
+
+不存在一端死、一端活的问题
+
+Step 6：统一 Game Over
+
+Host 执行：
+
+postToParent('state_update', {event:'game_over', winner:'a'});
+battleSocket.close();
+
+
+Client：
+
+case 'game_over':
+  showGameOverScreen();
+  disableAllInput();
+
+
+完成标志：
+
+双端同步结束，游戏不再继续发 WS 消息
+
+不会出现“一端还在玩”的情况
+
+Step 7（可选）：统一 ruler_move_request 逻辑
+
+Host 接收 B 的路径请求
+
+Host 执行合法性校验
+
+Host 自己移动 ruler
+
+Host 发 state_update: ruler_move
+
+完成标志：
+
+双端的 ruler 完全一致
+
+elixir 消耗始终一致
+
+🧨 最终总结（一句话）
+
+你现在的问题就是：B 的攻击和 deploy 在自己的本地算了，但 Host 不知道 → Host 不帮 B 打伤害 → B 伤害无效。
+
+你需要的不是修 bug，而是：
+
+把所有战斗逻辑从 “多客户端执行” 合并到 “Host 端唯一执行”。
+
+## 行动清单（基于当前代码）
+
+- 阻断 Client 本地下子：`website/cat_royale/piece_deploy/piece_deploy.js` 的 `deployPiece` 顶部增加 `if (!fromNetwork && window.IS_HOST !== true) return { requested: true };`，只让 `handleLocalDeployRequest` 走网络；确保 `fromNetwork` 生成的棋子带 `skipElixir`。
+- 只在 Host 跑攻击/巡检：`scanTowerAttacks` 计时器创建前加 `if (window.IS_HOST !== true) return;`；`startAggressiveTowerAttack`、`startSolidTowerAttack`、`startShouterAttack`、其他攻击/移动计时函数都加 `if (window.IS_HOST !== true) return;`，防止 B 自己扣血。
+- 统一伤害广播：`applyDamage` 仍只允许运行在 Host，确认每次扣血必发送 `state_update damage`；客户端只用 `applyDamageFromServer` 更新血条。
+- 统一死亡广播：`handleDeath` 仅 Host 调用时发送 `state_update death`；客户端通过 `handleDeathFromServer` 落地，避免双侧不同步。
+- Ruler 移动权威：在 `website/cat_royale/game_page/index.js` 的 parent bridge 增加 `ruler_move_request` 处理，Host 验证后本地移动并广播 `state_update`（客户端忽略本地扣 elixir）；在 `ruler_move.js` 开头加 `if (window.IS_HOST !== true) return;` 防止 B 自己走。
+- 计时与资源：`startTimer`、`elixir` 只由 Host 变更并通过 `state_update timer/elixir` 下发，客户端不自增；必要时在 ElixirManager 启动前判断 `window.IS_HOST`。
+- Game Over 同步：Host 在王塔死亡后发送 `state_update game_over` 并关闭 WS；客户端收到后禁用输入/提示结果。
+- 核对资产与能力：对照本地与线上静态资源/ability 脚本，确保双方加载同一版本（`pieces_ability/*`, `moving/*`）；如有新增能力，Host 执行逻辑，Client 仅显示。
+
