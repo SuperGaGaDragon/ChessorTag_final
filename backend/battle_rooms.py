@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 import secrets
 
 
@@ -14,7 +14,8 @@ class BattleRoom:
     game_id: str
     player_a: Optional[BattlePlayer] = None
     player_b: Optional[BattlePlayer] = None
-    sockets: Dict[str, "WebSocket"] = field(default_factory=dict)
+    # WebSocket objects are managed in battle_ws.py; here we just hold opaque refs.
+    sockets: Dict[str, Any] = field(default_factory=dict)
     ready: Dict[str, bool] = field(default_factory=lambda: {"a": False, "b": False})
     tower_types: Dict[str, Optional[str]] = field(default_factory=lambda: {"a": None, "b": None})
     spectator_counter: int = 0

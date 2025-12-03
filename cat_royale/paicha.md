@@ -9,3 +9,25 @@
 2. 保持后端 `/battle`，同步修改前端所有 API 调用路径（index.js 和 game_page.html 的 standalone networking）为 `/battle/...`。
 
 备注：无论选哪种，需要重启后端使路由生效。***
+
+---
+
+## 继续排查（2024-XX-XX）
+
+现象：在浏览器 Network 面板看不到 `/ws/battle/...`，Console 报 `https://api.chessortag.org/api/battle/create` 404，WS 未建立。
+
+分析：
+- battle_api.py 已改回前缀 `/api/battle`，但生产请求仍然 404，说明部署侧未加载最新代码或服务未重启。
+- 前端 index.js / game_page.html 的 fetch 仍指向 `/api/battle/...`，只要后端生效就会调用 `connectWs(...)` 并打印 `[battle] connecting WS:`。
+
+确认步骤（无需改代码）：
+- 在后端环境 `curl -i https://api.chessortag.org/api/battle/create`，检查是否仍 404；若是，需重启/重新部署以加载新前缀。
+- 本地启动后端验证 `/api/battle/create` 200，确认代码本身无误；再确保生产版本与之同步部署。
+
+结论：当前 404 的直接原因是生产后端仍跑着旧路由，导致 create/join 阶段失败，WS 初始化未触发。等待后端重启/发布后，再次创建房间应能看到 WS 请求和 `[battle] WS open` 日志。***
+
+## 新发现：battle_rooms.py 不应引用 WebSocket
+
+- VSCode 报 `WebSocket is not defined` 指向 battle_rooms.py 行 17。原因：rooms 管理层不应类型标注/引用 WebSocket，WS 只应在 battle_ws.py 处理。
+- 已修正：去掉 WebSocket 前向声明，将 `sockets` 类型标注改为 `Dict[str, Any]`，并注释说明仅存放不透明引用，收发逻辑仍在 battle_ws.py。文件：backend/battle_rooms.py。
+- 需要重启后端加载该修复；本次修改不影响 API 路由前缀。***
