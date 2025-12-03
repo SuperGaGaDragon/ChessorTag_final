@@ -1,6 +1,6 @@
 已完成：
 - 客户端画面保持更新：fromNetwork 部署也创建移动器，tower 扫描/攻击动画在客户端开启；攻击函数去掉 HOST 限制，客户端运行动画但伤害仍仅由 Host 计算与广播。
-- 血条悬浮提示修复：health bar 统一写入 title，并在 HP 变化后刷新，客户端悬浮可看到 “当前/最大”。
+- 血条悬浮提示修复：health bar 统一写入 title，并在 HP 变化后刷新，客户端悬浮可看到 “当前/最大”。//
 
 未完成 / 风险：
 - Elixir 仍仅维护 side a，Host 未对 deploy/ruler/ability 做扣费/冷却校验，B 侧可能免费操作且不广播 elixir。
