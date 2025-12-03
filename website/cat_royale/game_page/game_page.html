@@ -707,10 +707,15 @@
         let directGameId = null;
 
         function postToParent(type, payload = {}) {
+            console.log('[game_page] postToParent called', { type, hasParentBridge, payload });
             if (hasParentBridge) {
+                console.log('[game_page] sending postMessage to parent');
                 window.parent.postMessage({ type, payload }, '*');
             } else if (typeof directBridgeHandler === 'function') {
+                console.log('[game_page] using directBridgeHandler');
                 directBridgeHandler(type, payload);
+            } else {
+                console.warn('[game_page] no parent bridge and no directBridgeHandler!');
             }
         }
 
@@ -1398,6 +1403,7 @@
         });
 
         window.handleLocalDeploy = function(payload) {
+            console.log('[game_page] handleLocalDeploy called', payload, 'IS_HOST:', window.IS_HOST);
             const entry = pieceDeployment.boardPieces.find(p => p.id === payload.id);
             const serialized = serializePiece(entry || {
                 id: payload.id,
@@ -1409,12 +1415,14 @@
                 boardImagePath: payload.boardImagePath
             });
             if (window.IS_HOST) {
+                console.log('[game_page] HOST mode: sending state_update');
                 postToParent('state_update', {
                     type: 'state_update',
                     event: 'spawn',
                     piece: serialized
                 });
             } else {
+                console.log('[game_page] CLIENT mode: sending deploy_request');
                 postToParent('deploy_request', {
                     row: payload.row,
                     col: payload.col,
@@ -1427,6 +1435,7 @@
         };
 
         window.handleLocalDeployRequest = function(payload) {
+            console.log('[game_page] handleLocalDeployRequest called', payload);
             postToParent('deploy_request', {
                 row: payload.row,
                 col: payload.col,
@@ -1438,6 +1447,7 @@
         };
 
         window.handleLocalRulerMove = function(payload) {
+            console.log('[game_page] handleLocalRulerMove called', payload);
             postToParent('local_ruler_move', {
                 id: payload.id,
                 row: payload.row,

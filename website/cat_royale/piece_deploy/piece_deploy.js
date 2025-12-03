@@ -471,6 +471,8 @@ class PieceDeployment {
         const rawCost = options.cost ?? parseInt(cardSlot?.dataset?.cost ?? this.getDefaultCost(pieceType));
         const cost = Number.isFinite(rawCost) ? rawCost : 0;
 
+        console.log('[piece_deploy] deployPiece called', { row, col, pieceType, allegiance, fromNetwork, IS_HOST: window.IS_HOST });
+
         if (!this.isValidCell(row, col, pieceType, allegiance)) {
             console.log('Invalid cell for deployment');
             return false;
@@ -484,6 +486,7 @@ class PieceDeployment {
 
         // If this client is not host, just emit a request and let host handle placement.
         if (!fromNetwork && window.IS_HOST !== true) {
+            console.log('[piece_deploy] CLIENT mode: calling handleLocalDeployRequest');
             if (typeof window.handleLocalDeployRequest === 'function') {
                 window.handleLocalDeployRequest({
                     row,
@@ -493,6 +496,8 @@ class PieceDeployment {
                     cost,
                     boardImagePath: options.boardImagePath || this.getBoardImagePath(pieceType, cardSlot?.dataset?.imagePath),
                 });
+            } else {
+                console.error('[piece_deploy] handleLocalDeployRequest is not defined!');
             }
             return { requested: true };
         }
@@ -594,6 +599,7 @@ class PieceDeployment {
         }
 
         if (!fromNetwork && typeof window.handleLocalDeploy === 'function') {
+            console.log('[piece_deploy] HOST mode: calling handleLocalDeploy');
             window.handleLocalDeploy({
                 id: pieceId,
                 row,
@@ -603,6 +609,8 @@ class PieceDeployment {
                 cost,
                 boardImagePath: boardImg,
             });
+        } else if (!fromNetwork) {
+            console.error('[piece_deploy] handleLocalDeploy is not defined!');
         }
 
         this.deployedPieces.push({

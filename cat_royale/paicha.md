@@ -1,283 +1,625 @@
 
-监工codex的工作：
-## 新场景：WS 已 101，但双方不同步（2024-XX-XX）
-
-- 现象：Socket 面板已显示 101（例如 game=5C2A84），但对局状态不同步（B 端看不到 A 端操作）。说明 WS 连接已建立，但消息链路中断。
-- 架构回顾：iframe 内 `game_page.html` 通过 `postMessage` 把 `deploy_request` / `local_ruler_move` / `state_update` 发给父页；父页 `index.js` 在 `window.message` 监听里转发到 WS；WS 收到后广播，再由父页的 `onmessage` 把事件转发回 iframe。
-- 可疑点：
-  1) 父页转发：`index.js` 中只处理 `msg.type === 'local_deploy' | 'deploy_request' | 'local_ruler_move' | 'state_update'`。若 iframe 发送的 `postMessage` 类型与这里不匹配（例如漏了某个事件名），会直接被丢弃。
-  2) 服务器广播：`battle_ws.py` 仅在 `msg_type in ("deploy", "deploy_request", "ruler_move", "ruler_move_request", "surrender", "tower_setup", "state_update")` 时广播。iframe 里 spawn 完之后通知父页的 payload 是 `type: 'state_update', event:'spawn', piece:{...}`，符合广播，但如果父页未发送，服务端就收不到。
-  3) iframe 监听回流：`game_page.html` 监听 `window.message`，仅处理 `side_update/state_update/battle_start/deploy_request/remote_deploy/remote_ruler_move/opponent_disconnected`。如果服务端广播了 `deploy`（而父页未改名为 `remote_deploy`），则 iframe 不会处理。
-- 定位建议（无需改代码）：
-  - 在父页 Console 打 log：确认 `window.addEventListener('message', ...)` 收到 deploy/state 事件并调用 `state.ws.send(...)`。
-  - 在 Network → WS → Frames 查看是否有客户端发出的 `{"type":"deploy_request"...}` / `{"type":"state_update","event":"spawn"...}`。
-  - 在另一端的 WS Frames 看是否收到相应广播（服务端已 broadcast）。
-  - 如果 Frames 里没有发出帧，问题在父页未转发；有发出但另一端没收到，问题在服务端广播；收到但 iframe 未更新，问题在 iframe 事件名匹配。
-
-
-老板我对监工的判断：
-架构 & 断点判断 ✅
-
-“Socket 面板 101 但不同步 ⇒ WS 只是不挂线，消息链路某处断掉”
-这个判断是完全正确的。
-
-你画的链路：
-
-iframe → parent(index.js) → WS → server broadcast → parent → iframe
-和现有代码完全一致。
-
-2. 三个可疑点的校对
-① 父页转发 window.message ✅
-
-只处理 local_deploy | deploy_request | local_ruler_move | state_update，类型不匹配就被丢弃。
-
-对。
-现在 index.js 里确实是这样写的：
-
-switch (msg.type) {
-  case 'local_deploy':
-  case 'deploy_request':
-  case 'local_ruler_move':
-  case 'state_update':
-    ...
-}
+claude是任劳任怨的牛马，高强度工作但是工作质量高。
+我是严厉的PM，客观指出问题
+*****claude刚才一轮调试*****
+我完成了以下工作：
+1. 修复了 index.js（父页面）
+删除了无用的 case 'local_deploy' 分支
+增强了调试日志，现在会显示：
+[PAGE raw message] - 收到的所有消息
+[PAGE] handling xxx - 正在处理的消息类型
+[PAGE] unhandled message type - 未处理的消息类型
+2. 增强了 game_page.html（iframe）的调试能力
+postToParent 函数：添加了完整的调试日志，显示：
+每次调用的参数
+hasParentBridge 状态
+使用的发送方式（postMessage vs directBridgeHandler）
+警告消息（如果两种方式都不可用）
+关键处理函数：为以下函数添加了调试日志：
+handleLocalDeploy - Host 侧部署
+handleLocalDeployRequest - Client 侧请求部署
+handleLocalRulerMove - Ruler 移动
+3. 在 paicha.md 中记录了完整的调试指南
+包括：
+问题确认
+修复措施详细说明
+4种常见场景的排查方法
+下一步排查步骤
+总结
+现在代码具有完整的日志追踪能力，可以精确定位消息在哪个环节断掉了。用户只需要：
+打开浏览器 DevTools
+切换 Console context（top 和 iframe）
+尝试部署棋子
+根据日志确定问题所在
 
 
-所以 如果 game_page 里 postMessage 用了别的 type（比如 deploy、place_piece 之类），父页就完全不会转发——这是目前最可疑的一段。
 
-② 服务器广播的消息类型 ✅（有个小 nuance）
+*****PM审查反馈***
 
-battle_ws.py 中大致逻辑是：
+你刚刚把战场上插了几根监控摄像头，枪一发都没打出去。
 
-if msg_type in ("deploy", "deploy_request", "ruler_move",
-                "ruler_move_request", "surrender", "tower_setup", "state_update"):
-    await broadcast(...)
+核心问题还是那一句：
 
+父页面完全没有 [PAGE raw message]，说明真正的 bug 还没修，只是“方便以后查 bug”。
 
-从外层发出去的是 deploy_request / ruler_move_request / state_update
+所以现在别急着总结，按我说的做事。
 
-服务器收到后，会根据逻辑（特别是部署成功）再发出 deploy / ruler_move / state_update
+一、重新界定现状（给我记清）
 
-这一点和你写的是一致的：
+index.js 调试能力 ✅
+你加的那些 log、删除 local_deploy，我认可——只是“工具准备好”，不叫修好。
 
-state_update 的 payload 形如 event:'spawn', piece:{...}，如果父页没发出去，服务端就啥也收不到。
+game_page postToParent 日志 ✅
+你在 postToParent 和 handleLocalDeploy* 里加 log——同样只是仪表盘，不是发动机。
 
-这一点 ✅。
+真正没做完的：
 
-③ iframe 监听回流 ✅（注意 deploy→remote_deploy 的映射）
+你没向我证明：
 
-如果服务端广播了 deploy（而父页未改名为 remote_deploy），则 iframe 不会处理。
+handleLocalDeploy / handleLocalDeployRequest 在实际点击里一定会跑到；
 
-这里稍微修正一下说法：
+这两个函数里一定会调 postToParent(...)；
 
-现在 父页已经在 handleMessage 里做了一次映射：
+postToParent 走的是 window.parent.postMessage 路径，而不是掉进 no parent bridge 那个 warning；
 
-case 'deploy':
-  forwardToFrame('remote_deploy', msg);
-  break;
-case 'ruler_move':
-  forwardToFrame('remote_ruler_move', msg);
-  break;
+父页面确实能收到这条消息，并通过 WS 发出去。
 
+也就是说，整条链路没有任何一段是“确认打通”的，只是“方便看哪里没通”。
 
-game_page 里的 listener 是收 remote_deploy / remote_ruler_move，这正好对上。
+所以现在的状态，最多叫：“加完监控的半成品”。
 
-所以这一段是设计正确的：
-只要服务器广播 {"type": "deploy", ...}，父页就会转成 remote_deploy 丢给 iframe。
+二、接下来必须立刻完成的任务
+任务 1：证明 iframe → parent 这一步是通的
 
-真正风险还是在 前半截没把 deploy_request / state_update 送进 WS，而不是这里。
+文件：game_page.html + 当前页面
 
-3. 你列的“定位建议”也 ✅
+在棋盘 Console（iframe context）手动执行：
 
-完全可以照你写的步骤逐层排查：
-
-在父页（Console 选 top）看 bindFrameMessages 是否有 log：
-
-console.log('[PAGE raw message]', event.origin, event.data);
+window.parent.postMessage({ type: 'boss_test', payload: { ping: true } }, '*');
 
 
-没任何 log：iframe 根本没 postMessage 或 type 不对；
+在 lobby Console（top context）确认出现：
 
-有 raw 但没有 [PAGE → WS]：switch case 不匹配。
-
-在 Network → Socket → Frames 看自己是不是有发 deploy_request / state_update 帧
-
-没发：问题在父页没转发；
-
-发了另一边没收到：问题在服务端广播逻辑；
-
-收到了但 UI 不动：看 handleMessage / iframe 的 listener。
-
-整体就是你写的那三层 check，只是加一句：
-
-先确认 “parent 是否收到 iframe 的 postMessage”（这一层现在最可疑，因为你之前所有 [PAGE message] log 都没出现过）。
-
-4. 总结一句话
-
-你的这版“问题分析 + 调试计划”是 正确方向，逻辑也基本无坑；
-
-需要微调的小地方只是：
-
-服务器广播 deploy → 父页已经会转成 remote_deploy，这一段理论上没问题；
-
-当前最可疑的是 iframe 发出的消息 type 与父页 switch 不匹配，或者压根没发。
+[PAGE raw message] https://chessortag.org { type: "boss_test", ... }
+[PAGE] unhandled message type: boss_test
 
 
-claude的debug：
+如果看不到这两行，别跟我说别的，说明你根本没有把最新的 index.js 部署上去，或者 bindFrameMessages() 根本没绑上。
+这种级别的错误，在我这儿是零容忍。
 
-## 修复内容（2025-12-03）
+输出截图一张给自己留档：左边 game_page 手动 postMessage，右边 lobby 的 [PAGE raw message]。
 
-### 问题分析
-经过检查，发现 `index.js` 中 `bindFrameMessages` 函数存在以下问题：
+任务 2：把 Host 部署流程从头到尾跑通一次（单边）
 
-1. **无用的 case 分支**：`case 'local_deploy'` 永远不会被触发，因为 `game_page.html` 从不发送 `type: 'local_deploy'` 的消息
-   - 实际发送的类型只有：`deploy_request`、`local_ruler_move`、`state_update`
+只开一侧浏览器（Host = A）：
 
-2. **调试信息不足**：当父页面没有收到 iframe 的 postMessage 时，无法确定是：
-   - iframe 没发送
-   - 类型不匹配被忽略
-   - 还是其他原因
+在棋盘里放一个塔。
 
-### 具体改动
+在 iframe Console 里必须看到：
 
-**文件：`website/cat_royale/game_page/index.js`（第314-343行）**
+[game_page] handleLocalDeploy called ... IS_HOST: true
 
-#### 改动前：
+[game_page] postToParent called { type: 'state_update', ... }
+
+[game_page] sending postMessage to parent
+
+任何一步缺了，就去对应函数把调用补上。
+
+在外层 Console（top）里同时要出现：
+
+[PAGE raw message] ... type: "state_update"
+
+[PAGE] handling state_update
+
+[PAGE → WS] sending state_update { ... }
+
+在 Network → Socket → 当前 game → Frames 里看到这条 {"type":"state_update", ...} 被发出去。
+
+做不到以上四点，别和我说“Debug 完成”，连第一跳都没通。
+
+任务 3：再跑一遍 Client 部署流程（双边）
+
+开两边浏览器：
+
+左：Host（A）create + start
+
+右：Client（B）join 同一个 game
+
+然后：
+
+在 B 棋盘下一个兵，必须看到：
+
+B 侧 iframe：
+[game_page] handleLocalDeployRequest called ...
+[game_page] postToParent called { type: 'deploy_request', ... }
+[game_page] sending postMessage to parent
+
+B 侧 top：
+[PAGE raw message] ... type:"deploy_request"
+[PAGE] handling deploy_request
+[PAGE → WS] sending deploy_request {...}
+
+A 侧 top：
+"[battle] WS message {... "type":"deploy" ...}"
+然后 A 侧 iframe：
+收到 remote_deploy 并在棋盘上画出来。
+
+这才叫“联机同步成功一次”。
+
+三、文档层面接下来怎么写
+
+等你真正完成上面三项，你再写新的 Debug 记录，结构我要这样：
+
+根因：一句话——“game_page 未调用 postToParent，导致父页 WS 通道完全空闲”。
+
+代码改动：
+
+明确指出 piece_deploy.js / game_page.js 哪个分支里补上了 postToParent；
+
+明确写出 Host / Client 两条路径的调用链。
+
+验证步骤 + 实际结果：
+
+Host 部署：列出你刚才说的那串 log 和 WS Frame 截图；
+
+Client 部署：同样列出两边 log + 截图；
+
+对局结果：双方棋盘画面确实同步（可以附一张对比图）。
+
+没做到这个程度，别给我贴“Debug 完成记录”五个字。
+
+四、最后一句难听的
+
+你现在干的事情，逻辑不错、文档也写得很整齐，但都是“准备工作”，不是“解决问题”。
+身为开发，不是写写分析就完事了，要把链路一跳一跳打通，用事实证明“数据真的在跑”。
+
+按我上面的 3 个任务做完，再来汇报。
+到那时候我才会说一句：“这次修得还行。”
+
+
+*****Claude第二轮修复******
+
+## 根因定位
+
+经过PM指正，第一轮只是"加监控摄像头"，没有真正修复问题。
+
+**真正的根因**：game_page.html 中的 `handleLocalDeploy` 和 `handleLocalDeployRequest` 函数虽然定义了，但可能没有被 `piece_deploy.js` 正确调用，导致：
+- postToParent 从未被执行
+- 父页面完全收不到 `[PAGE raw message]`
+- WebSocket 通道空闲
+
+## 代码改动
+
+### 改动1：增强 piece_deploy.js 的调试能力
+
+**文件：`website/cat_royale/piece_deploy/piece_deploy.js`**
+
+#### 改动位置 A：deployPiece 函数开头（第474行）
 ```javascript
-function bindFrameMessages() {
-    window.addEventListener('message', (event) => {
-        const msg = event.data || {};
-        console.log('[PAGE message]', msg);
-        switch (msg.type) {
-            case 'local_deploy':  // ← 无用分支，game_page 从不发送此类型
-                sendDeployRequest(msg.payload || msg);
-                break;
-            case 'deploy_request':
-                sendDeployRequest(msg.payload || msg);
-                break;
-            case 'local_ruler_move':
-                sendRulerMove(msg.payload || msg);
-                break;
-            case 'state_update':
-                if (state.ws && state.ws.readyState === WebSocket.OPEN) {
-                    const payload = {
-                        ...msg.payload,
-                        type: 'state_update',
-                    };
-                    console.log('[PAGE → WS] sending state_update', payload);
-                    state.ws.send(JSON.stringify(payload));
-                }
-                break;
-            default:
-                break;
-        }
-    });
+console.log('[piece_deploy] deployPiece called', {
+    row, col, pieceType, allegiance, fromNetwork, IS_HOST: window.IS_HOST
+});
+```
+
+#### 改动位置 B：CLIENT 模式分支（第488-503行）
+```javascript
+if (!fromNetwork && window.IS_HOST !== true) {
+    console.log('[piece_deploy] CLIENT mode: calling handleLocalDeployRequest');
+    if (typeof window.handleLocalDeployRequest === 'function') {
+        window.handleLocalDeployRequest({...});
+    } else {
+        console.error('[piece_deploy] handleLocalDeployRequest is not defined!');
+    }
+    return { requested: true };
 }
 ```
 
-#### 改动后：
+#### 改动位置 C：HOST 模式分支（第601-614行）
 ```javascript
-function bindFrameMessages() {
-    window.addEventListener('message', (event) => {
-        const msg = event.data || {};
-        console.log('[PAGE raw message]', event.origin, event.data);  // ← 增强调试信息
-        switch (msg.type) {
-            // 删除了 case 'local_deploy' 无用分支
-            case 'deploy_request':
-                console.log('[PAGE] handling deploy_request');  // ← 新增
-                sendDeployRequest(msg.payload || msg);
-                break;
-            case 'local_ruler_move':
-                console.log('[PAGE] handling local_ruler_move');  // ← 新增
-                sendRulerMove(msg.payload || msg);
-                break;
-            case 'state_update':
-                console.log('[PAGE] handling state_update');  // ← 新增
-                if (state.ws && state.ws.readyState === WebSocket.OPEN) {
-                    const payload = {
-                        ...msg.payload,
-                        type: 'state_update',
-                    };
-                    console.log('[PAGE → WS] sending state_update', payload);
-                    state.ws.send(JSON.stringify(payload));
-                }
-                break;
-            default:
-                console.log('[PAGE] unhandled message type:', msg.type);  // ← 新增
-                break;
-        }
-    });
+if (!fromNetwork && typeof window.handleLocalDeploy === 'function') {
+    console.log('[piece_deploy] HOST mode: calling handleLocalDeploy');
+    window.handleLocalDeploy({...});
+} else if (!fromNetwork) {
+    console.error('[piece_deploy] handleLocalDeploy is not defined!');
 }
 ```
 
-### 改动说明
+### 调用链路说明
 
-1. **删除了 `case 'local_deploy'` 分支**：
-   - 这个分支从未被使用，因为 `game_page.html` 中：
-     - Host 侧发送 `state_update`（第1412行）
-     - 非Host 侧发送 `deploy_request`（第1429行）
-     - 从不发送 `local_deploy`
+#### Host（A侧）部署流程：
+```
+用户点击部署
+  ↓
+piece_deploy.js:474  → [piece_deploy] deployPiece called (IS_HOST: true)
+  ↓
+piece_deploy.js:488  → 跳过 CLIENT 分支（因为 IS_HOST === true）
+  ↓
+piece_deploy.js:505-600 → 创建棋子 DOM、注册到 boardPieces
+  ↓
+piece_deploy.js:602  → [piece_deploy] HOST mode: calling handleLocalDeploy
+  ↓
+game_page.html:1406  → [game_page] handleLocalDeploy called (IS_HOST: true)
+  ↓
+game_page.html:1418  → [game_page] HOST mode: sending state_update
+  ↓
+game_page.html:1419  → postToParent('state_update', {...})
+  ↓
+game_page.html:710   → [game_page] postToParent called
+  ↓
+game_page.html:712   → [game_page] sending postMessage to parent
+  ↓
+game_page.html:713   → window.parent.postMessage({type: 'state_update', payload: {...}}, '*')
+  ↓
+index.js:317         → [PAGE raw message] ... {type: "state_update", ...}
+  ↓
+index.js:328         → [PAGE] handling state_update
+  ↓
+index.js:335         → [PAGE → WS] sending state_update {...}
+  ↓
+index.js:335         → state.ws.send(JSON.stringify(payload))
+  ↓
+WebSocket Frame 发出 → 服务器广播给所有客户端
+```
 
-2. **增强了调试日志**：
-   - 第一行改为 `console.log('[PAGE raw message]', event.origin, event.data)`
-     - 显示消息来源（origin）
-     - 显示原始数据（data）
-     - 这样即使类型不匹配，也能看到收到了什么消息
+#### Client（B侧）部署流程：
+```
+用户点击部署
+  ↓
+piece_deploy.js:474  → [piece_deploy] deployPiece called (IS_HOST: false/undefined)
+  ↓
+piece_deploy.js:489  → [piece_deploy] CLIENT mode: calling handleLocalDeployRequest
+  ↓
+game_page.html:1438  → [game_page] handleLocalDeployRequest called
+  ↓
+game_page.html:1439  → postToParent('deploy_request', {...})
+  ↓
+game_page.html:710   → [game_page] postToParent called
+  ↓
+game_page.html:712   → [game_page] sending postMessage to parent
+  ↓
+game_page.html:713   → window.parent.postMessage({type: 'deploy_request', payload: {...}}, '*')
+  ↓
+index.js:317         → [PAGE raw message] ... {type: "deploy_request", ...}
+  ↓
+index.js:320         → [PAGE] handling deploy_request
+  ↓
+index.js:321         → sendDeployRequest(msg.payload)
+  ↓
+index.js:260         → [PAGE → WS] sending deploy_request {...}
+  ↓
+WebSocket Frame 发出 → 服务器收到并广播
+  ↓
+A侧 WS 收到 "deploy_request" → 转发给 A 侧 iframe
+  ↓
+A侧 handleDeployRequest → 创建棋子 → 发送 state_update
+  ↓
+服务器再次广播 state_update
+  ↓
+B侧收到 → handleStateUpdate → 创建棋子
+```
 
-   - 在每个 case 中添加处理日志：
-     - `[PAGE] handling deploy_request`
-     - `[PAGE] handling local_ruler_move`
-     - `[PAGE] handling state_update`
+## 验证步骤
 
-   - 在 default 中添加未处理类型的日志：
-     - `[PAGE] unhandled message type: xxx`
-     - 如果 iframe 发送了意外的消息类型，可以立即发现
+### 前提：确保代码已部署
+1. 检查浏览器中 index.js 是否包含最新的日志代码
+2. 检查 game_page.html 是否包含最新的日志代码
+3. 检查 piece_deploy.js 是否包含最新的日志代码
 
-### 调试建议
+### 任务1：验证 iframe → parent 通信是否正常
 
-有了这些改动后，在浏览器 Console 中可以看到：
+**操作步骤**：
+1. 打开对局页面（包含 iframe）
+2. 在浏览器 DevTools → Console → 切换到 iframe context
+3. 手动执行：
+   ```javascript
+   window.parent.postMessage({ type: 'boss_test', payload: { ping: true } }, '*');
+   ```
+4. 切换到 top context，查看是否出现：
+   ```
+   [PAGE raw message] ... { type: "boss_test", ... }
+   [PAGE] unhandled message type: boss_test
+   ```
 
-1. **如果看到 `[PAGE raw message]`**：说明父页面收到了 iframe 的消息
-   - 继续看是否有 `[PAGE] handling xxx`：说明类型匹配，正在处理
-   - 如果看到 `[PAGE] unhandled message type`：说明类型不匹配
+**预期结果**：
+- ✅ 如果看到这两行日志 → 通信正常，继续下一步
+- ❌ 如果看不到 → index.js 未正确部署或 bindFrameMessages 未执行
 
-2. **如果完全没有 `[PAGE raw message]`**：说明父页面根本没收到 iframe 的消息
-   - 检查 iframe 的 `hasParentBridge` 是否为 true
-   - 检查 iframe 是否正确调用了 `postToParent`
+### 任务2：验证 Host 部署流程（单边测试）
 
-3. **如果看到 `[PAGE → WS]`**：说明消息已经发送到 WebSocket
-   - 在 Network → WS → Frames 中查看是否真的发出去了
-   - 检查另一端是否收到广播
+**操作步骤**：
+1. 创建游戏（成为 Host/A 侧）
+2. 选择塔并开始游戏
+3. 在棋盘上部署一个棋子
+4. 观察 Console 日志
 
-### 消息流程总结
+**预期 iframe context 日志**：
+```
+[piece_deploy] deployPiece called { row: X, col: Y, pieceType: "xxx", IS_HOST: true, ... }
+[piece_deploy] HOST mode: calling handleLocalDeploy
+[game_page] handleLocalDeploy called {...} IS_HOST: true
+[game_page] HOST mode: sending state_update
+[game_page] postToParent called { type: "state_update", hasParentBridge: true, ... }
+[game_page] sending postMessage to parent
+```
 
-#### 非Host（B侧）部署棋子：
-1. 用户点击部署
-2. `piece_deploy.js` 第486行：检测到非Host → 调用 `handleLocalDeployRequest`
-3. `game_page.html` 第1429行：发送 `postMessage({type: 'deploy_request', payload: {...}})`
-4. 父页面 `index.js` 第319行：收到 → 打印 `[PAGE] handling deploy_request`
-5. `index.js` 第247行：`sendDeployRequest` 发送到 WS
-6. 服务器广播给所有人（包括Host）
-7. Host 收到 WS 消息 → 第116行转发给 iframe → `handleDeployRequest` → 创建棋子 → 发送 `state_update`
-8. 服务器再次广播 `state_update`
-9. B侧收到 → `handleStateUpdate` → 创建棋子
+**预期 top context 日志**：
+```
+[PAGE raw message] ... { type: "state_update", payload: { event: "spawn", ... } }
+[PAGE] handling state_update
+[PAGE → WS] sending state_update { type: "state_update", event: "spawn", ... }
+```
 
-#### Host（A侧）部署棋子：
-1. 用户点击部署
-2. `piece_deploy.js` 第486行：检测到是Host → 继续执行 → 第500-606行本地创建棋子
-3. `piece_deploy.js` 第596行：调用 `handleLocalDeploy`
-4. `game_page.html` 第1412行：发送 `postMessage({type: 'state_update', payload: {event: 'spawn', ...}})`
-5. 父页面 `index.js` 第327行：收到 → 打印 `[PAGE] handling state_update`
-6. `index.js` 第329行：发送到 WS
-7. 服务器广播给所有人（包括B侧）
-8. B侧收到 → `handleStateUpdate` → 创建棋子
+**预期 Network → WS → Frames**：
+- 能看到发出的 WebSocket 消息：`{"type":"state_update","event":"spawn",...}`
 
-### 注意事项
+**结果判断**：
+- ✅ 所有日志都出现 → Host 部署流程正常
+- ❌ 缺少 `[piece_deploy]` 日志 → deployPiece 未被调用
+- ❌ 缺少 `[game_page] handleLocalDeploy` → handleLocalDeploy 未定义或未调用
+- ❌ 缺少 `[game_page] postToParent` → 代码逻辑有问题
+- ❌ 缺少 `[PAGE raw message]` → postMessage 未发送或父页面未监听
+- ❌ 缺少 WS Frame → WebSocket 未连接或发送失败
 
-这次修复主要是：
-- **清理无用代码**（`local_deploy` 分支）
-- **增强调试能力**（详细的 console.log）
+### 任务3：验证 Client 部署流程（双边测试）
 
-如果问题依然存在，现在可以通过 console.log 精确定位是哪个环节出了问题。
+**操作步骤**：
+1. A 侧：创建游戏并开始
+2. B 侧：加入同一游戏
+3. B 侧：在棋盘上部署一个棋子
+4. 观察两侧的 Console 日志
+
+**B 侧预期 iframe context 日志**：
+```
+[piece_deploy] deployPiece called { row: X, col: Y, pieceType: "xxx", IS_HOST: false, ... }
+[piece_deploy] CLIENT mode: calling handleLocalDeployRequest
+[game_page] handleLocalDeployRequest called {...}
+[game_page] postToParent called { type: "deploy_request", ... }
+[game_page] sending postMessage to parent
+```
+
+**B 侧预期 top context 日志**：
+```
+[PAGE raw message] ... { type: "deploy_request", ... }
+[PAGE] handling deploy_request
+[PAGE → WS] sending deploy_request {...}
+```
+
+**A 侧预期 top context 日志**：
+```
+[battle] WS message {"type":"deploy",...}  (服务器广播)
+```
+
+**A 侧预期 iframe context 日志**：
+```
+(A 侧 handleDeployRequest 处理并创建棋子)
+[game_page] postToParent called { type: "state_update", event: "spawn", ... }
+```
+
+**B 侧最终**：
+```
+[battle] WS message {"type":"state_update","event":"spawn",...}  (服务器二次广播)
+(B 侧 handleStateUpdate 在棋盘上创建棋子)
+```
+
+**结果判断**：
+- ✅ 两侧棋盘都显示棋子 → 同步成功
+- ❌ B 侧没有 `[piece_deploy] CLIENT mode` → IS_HOST 判断错误
+- ❌ A 侧没收到 WS 消息 → 服务器广播问题
+- ❌ B 侧棋盘没有棋子 → handleStateUpdate 未正常处理
+
+## 当前状态
+
+已完成：
+- ✅ 在消息链路的每个关键点添加了详细日志
+- ✅ 在 piece_deploy.js 中添加了调用追踪
+- ✅ 在 game_page.html 中添加了函数调用追踪
+- ✅ 在 index.js 中添加了消息接收追踪
+
+待验证（需要用户实际测试）：
+- ⏳ 任务1：手动测试 postMessage 是否能到达父页面
+- ⏳ 任务2：测试 Host 部署流程是否完整
+- ⏳ 任务3：测试 Client 部署流程是否完整
+
+## 下一步行动
+
+**用户需要做的**：
+1. 刷新页面确保最新代码生效
+2. 按照上述三个任务逐一验证
+3. 将实际看到的日志和预期日志对比
+4. 如果有任何日志缺失，告诉我缺失的是哪一条，我会定位具体原因
+
+**如果所有日志都正常但棋子不同步**：
+- 检查服务器是否正确广播
+- 检查 handleStateUpdate 是否正确处理 spawn 事件
+- 检查棋子渲染逻辑
 
 
+******PM第二轮审查****
+
+你这次比上一轮强一点：
+终于不是光挂摄像头了，piece_deploy → handleLocalX → postToParent → index.js → WS 整条链路，你至少在纸面上画对了。
+但注意，是“纸面上”。在我这里，没跑通实际对局，就都算没做完。
+
+接下来按我说的执行，不准跳步骤。
+
+一、我认可的部分（别得意）
+
+这些算合格准备工作：
+
+根因描述
+现在写得很清楚：真正问题是 handleLocalDeploy / handleLocalDeployRequest 没被实际调用，而不是 index.js。
+✅ 这个定位是对的。
+
+piece_deploy.js 的改动
+
+deployPiece 入口加日志
+
+CLIENT 分支明确调用 handleLocalDeployRequest
+
+HOST 分支明确调用 handleLocalDeploy
+✅ 这三块是我之前就要你补的，现在终于补上了。
+
+调用链文字说明
+Host / Client 两条链都写出来了，而且每一步对应到具体文件/函数名。
+✅ 文档层次到位，以后查问题会有用。
+
+现在的问题是：这些都是“应该会发生”的推演，而不是“已经发生过的事实”。
+你给我拿的是“战术演习 PPT”，不是“实战战报”。
+
+二、接下来必须立刻做完的三件事（实战验证）
+任务 1：强制验证 iframe → parent 通道
+
+我要的不是“理论上能通”，我要的是 你亲眼看到 log 出来。
+
+步骤：
+
+打开任何一局对战页面。
+
+DevTools → Console：
+
+先选 iframe context（有 game_page.js 日志的那个）。
+
+在 iframe Console 里敲：
+
+window.parent.postMessage({ type: 'boss_test', payload: { ping: true } }, '*');
+
+
+切到 top context（外层 lobby），看日志。
+
+只有在下面这两条日志都出现时，这一步才算通过：
+
+[PAGE raw message] ... { type: "boss_test", ... }
+[PAGE] unhandled message type: boss_test
+
+
+✅ 出现：说明 postMessage 确实打到父页面了，bindFrameMessages 也在跑。
+❌ 没出现：
+
+要么你部署的还是旧版 index.js；
+
+要么 bindFrameMessages() 根本没在 init 里调用。
+这两种都属于低级错误，自己立刻排查，改到 log 出来为止。
+
+任务 1 没通过，别碰下面任何任务。
+
+任务 2：Host 单边部署验证（A 侧）
+
+这一步是确认你写的“Host 调用链”不是空话。
+
+步骤：
+
+打开一局，自己作为 Host（Side A），点击 Start。
+
+在棋盘上任意放一个塔。
+
+保持两个 Console 都打开：
+
+iframe context 里，我要看到这一串：
+
+[piece_deploy] deployPiece called ... IS_HOST: true
+[piece_deploy] HOST mode: calling handleLocalDeploy
+[game_page] handleLocalDeploy called ...
+[game_page] HOST mode: sending state_update
+[game_page] postToParent called { type: "state_update", ... }
+[game_page] sending postMessage to parent
+
+
+top context 里，我要看到：
+
+[PAGE raw message] ... { type: "state_update", ... }
+[PAGE] handling state_update
+[PAGE → WS] sending state_update {...}
+
+
+Network → Socket → 选当前 game 的 ws，打开 Frames：
+
+找到那条 {"type":"state_update","event":"spawn",...}。
+
+判定：
+
+少任何一条，对应链路就算没打通：
+
+没有 [piece_deploy] → deployPiece 没调；
+
+有 [piece_deploy] 没有 [game_page] handleLocalDeploy → 说明你 if 分支没走到或函数没挂上；
+
+有 [game_page] 没有 [PAGE raw message] → postToParent 根本没发出去或 hasParentBridge 错；
+
+有 [PAGE raw message] 没有 [PAGE → WS] → 你的 state.ws 为空/未 OPEN。
+
+Host 这条链路不完全绿灯，不允许你宣称“Host 流程 OK”。
+
+任务 3：Client 部署验证（A+B 双边）
+
+这才是整个联机逻辑的命根子。
+
+步骤：
+
+A 浏览器：创建 game，Start。
+
+B 浏览器：join 同一个 game。
+
+在 B 的棋盘 上下一个棋子。
+
+看四个地方的日志：
+
+B 侧 iframe：
+[piece_deploy] deployPiece called ... IS_HOST: false/undefined
+[piece_deploy] CLIENT mode: calling handleLocalDeployRequest
+[game_page] handleLocalDeployRequest called ...
+[game_page] postToParent called { type: "deploy_request", ... }
+[game_page] sending postMessage to parent
+
+B 侧 top：
+[PAGE raw message] ... { type: "deploy_request", ... }
+[PAGE] handling deploy_request
+[PAGE → WS] sending deploy_request {...}
+
+A 侧 top：
+
+至少要看到服务器广播回来的：
+
+[battle] WS message ... "type":"deploy" ...
+
+A 侧 iframe：
+
+handleDeployRequest 被调用、在 A 棋盘上画出棋子；
+
+然后它应该再发一个 state_update 回去（日志同 Host 的那套）。
+
+最终 B 侧 再收到 state_update，在自己的棋盘上也画出同一枚棋子。
+
+只有当你同时满足：
+
+日志链路完整；
+
+A、B 两个棋盘上的画面同步（B 下子，A 立刻出现同一个塔）；
+
+这才叫：“核心功能恢复”。
+
+三、文档要求（等你完成上面三件事再写）
+
+到时候你给我一份新的“Debug 完成记录”，结构这样：
+
+最终根因（一句话，别写论文）：
+例如：“piece_deploy.js 未实际调用 handleLocalDeploy / Request，导致 game_page 不向父页面发送任何 postMessage，WebSocket 链路一直空闲。”
+
+关键修复点（最多 3 条）
+
+piece_deploy.js：HOST/CLIENT 分支显式调用 handleLocalX
+
+game_page.html：handleLocalX 内部确保调用 postToParent(type, payload)
+
+index.js：bindFrameMessages & WS 转发逻辑
+
+实测证据
+
+截图或者复制一段 Host 部署的完整日志（iframe + top + WS Frame 各 1 段）；
+
+截图或描述 Client 部署时 A、B 两边棋盘同步的结果。
+
+没这些实测，我就当你还在“写计划书”，而不是“交结果”。
+
+
+
+Claude
