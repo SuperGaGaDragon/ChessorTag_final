@@ -24,7 +24,7 @@
         return 1000;
     }
 
-    function getTowersByAllegiance(allegiance = 'a') {
+    function getTowersByAllegiance(allegiance) {
         if (!window.pieceDeployment) return [];
         return (pieceDeployment.boardPieces || []).filter(p =>
             p.allegiance === allegiance &&
@@ -32,7 +32,7 @@
         );
     }
 
-    function canSwitchTowers(allegiance = 'a') {
+    function canSwitchTowers(allegiance) {
         if (typeof elixirManager === 'undefined') return false;
         if (elixirManager.currentElixir < 1) return false;
         if (isAnyAbilityActive()) return false;
@@ -101,7 +101,11 @@
     function switchPlayerTowers(state) {
         const currentPlayerTowers = (state?.getCurrentPlayerTowers?.() || []).filter(Boolean);
         if (currentPlayerTowers.length === 0) return state?.getPlayerTowerType?.();
-        if (!canSwitchTowers('a')) {
+
+        // Get player allegiance from pieceDeployment
+        const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
+
+        if (!canSwitchTowers(playerAllegiance)) {
             console.log('Cannot switch towers: either under attack or not enough elixir.');
             return state?.getPlayerTowerType?.();
         }
@@ -118,7 +122,7 @@
             tower.dataset.towerType = newType;
         });
 
-        const playerTowers = getTowersByAllegiance('a');
+        const playerTowers = getTowersByAllegiance(playerAllegiance);
         rescaleTowerStats(playerTowers, newType);
 
         // Deduct elixir
@@ -127,7 +131,7 @@
         elixirManager.updateElixirBar();
         elixirManager.startElixirGeneration();
 
-        console.log(`Switched towers to ${newType}. Elixir: ${elixirManager.currentElixir}`);
+        console.log(`[AggressiveTowerAbility] Switched ${playerAllegiance} towers to ${newType}. Elixir: ${elixirManager.currentElixir}`);
         state?.setPlayerTowerType?.(newType);
         applyToggleVisual(state?.toggleElement, newType);
         return newType;
@@ -159,7 +163,8 @@
                 setPlayerTowerType
             });
             // Immediately refresh clickable state in case elixir/attack status changed
-            updateToggleDisabled(toggleElement, 'a');
+            const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
+            updateToggleDisabled(toggleElement, playerAllegiance);
         });
 
         function armAbilityFromCell(cell) {
@@ -167,15 +172,17 @@
             const row = parseInt(cell.dataset.row, 10);
             const col = parseInt(cell.dataset.col, 10);
             const allowed = (
-                (row === 6 && col === 1) || // b2
-                (row === 6 && col === 6) || // g2
-                (row === 1 && col === 1) || // b7
-                (row === 1 && col === 6)    // g7 (mirror)
+                (row === 6 && col === 1) || // b2 (side A)
+                (row === 6 && col === 6) || // g2 (side A)
+                (row === 1 && col === 1) || // b7 (side B)
+                (row === 1 && col === 6)    // g7 (side B)
             );
             if (!allowed) return;
             if (getPlayerTowerType() !== 'aggressive') return;
             if (Date.now() < abilityCooldownUntil) return;
-            const towers = getTowersByAllegiance('a').filter(t => t.type === 'aggressive_tower' && !t.attack);
+
+            const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
+            const towers = getTowersByAllegiance(playerAllegiance).filter(t => t.type === 'aggressive_tower' && !t.attack);
             const match = towers.find(t => t.position && t.position.row === row && t.position.col === col);
             if (!match) return;
             ability2Armed = true;
@@ -201,7 +208,9 @@
                 console.log('Not enough elixir for aggressive ability (need >1).');
                 return;
             }
-            const towers = getTowersByAllegiance('a').filter(t => t.type === 'aggressive_tower' && !t.attack);
+
+            const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
+            const towers = getTowersByAllegiance(playerAllegiance).filter(t => t.type === 'aggressive_tower' && !t.attack);
             if (towers.length === 0) return;
 
             // Consume elixir
@@ -212,10 +221,18 @@
 
             setAbilityLock('aggressiveActive', true);
 
-            const forwardSlots = [
-                { fromRow: 6, fromCol: 1, toRow: 5, toCol: 1 }, // b2 -> b3
-                { fromRow: 6, fromCol: 6, toRow: 5, toCol: 6 }  // g2 -> g3
-            ];
+            // Forward slots depend on allegiance
+            // Side A: b2->b3, g2->g3 (row 6->5)
+            // Side B: b7->b6, g7->g6 (row 1->2)
+            const forwardSlots = playerAllegiance === 'a'
+                ? [
+                    { fromRow: 6, fromCol: 1, toRow: 5, toCol: 1 }, // b2 -> b3
+                    { fromRow: 6, fromCol: 6, toRow: 5, toCol: 6 }  // g2 -> g3
+                  ]
+                : [
+                    { fromRow: 1, fromCol: 1, toRow: 2, toCol: 1 }, // b7 -> b6
+                    { fromRow: 1, fromCol: 6, toRow: 2, toCol: 6 }  // g7 -> g6
+                  ];
 
             towers.forEach(t => {
                 // Apply 25% damage reduction
@@ -233,6 +250,8 @@
                     t.position = { row: slot.toRow, col: slot.toCol };
                 }
             });
+
+            console.log(`[AggressiveTowerAbility] Activated ability for ${playerAllegiance} towers`);
 
             if (ability2Timer) clearTimeout(ability2Timer);
             ability2Timer = setTimeout(() => {
@@ -256,8 +275,13 @@
         });
 
         applyToggleVisual(toggleElement, getPlayerTowerType());
-        updateToggleDisabled(toggleElement, 'a');
-        const interval = setInterval(() => updateToggleDisabled(toggleElement, 'a'), 300);
+
+        const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
+        updateToggleDisabled(toggleElement, playerAllegiance);
+        const interval = setInterval(() => {
+            const currentAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
+            updateToggleDisabled(toggleElement, currentAllegiance);
+        }, 300);
         toggleElement._aggAbilityInterval = interval;
     }
 

@@ -38,7 +38,7 @@
         );
     }
 
-    function findSolidTowerAt(row, col, allegiance = 'a') {
+    function findSolidTowerAt(row, col, allegiance) {
         if (!window.pieceDeployment) return null;
         return (pieceDeployment.boardPieces || []).find(p =>
             p.allegiance === allegiance &&
@@ -84,7 +84,9 @@
             if (Date.now() < cooldownUntil) return;
             const row = parseInt(cell.dataset.row, 10);
             const col = parseInt(cell.dataset.col, 10);
-            const tower = findSolidTowerAt(row, col, 'a');
+
+            const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
+            const tower = findSolidTowerAt(row, col, playerAllegiance);
             if (!tower) return;
             armed = true;
             if (armTimer) clearTimeout(armTimer);
@@ -104,16 +106,25 @@
             if (!isSolidMode(getPlayerTowerType)) return;
             if (Date.now() < cooldownUntil) return;
 
-            // Apply to both player towers (b2 and g2) if present
+            const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
+
+            // Apply to both player towers if present
+            // Side A: b2 (row=6, col=1) and g2 (row=6, col=6)
+            // Side B: b7 (row=1, col=1) and g7 (row=1, col=6)
             const targets = [];
-            const tLeft = findSolidTowerAt(6, 1, 'a'); // b2
-            const tRight = findSolidTowerAt(6, 6, 'a'); // g2
+            const row = playerAllegiance === 'a' ? 6 : 1;
+            const tLeft = findSolidTowerAt(row, 1, playerAllegiance);
+            const tRight = findSolidTowerAt(row, 6, playerAllegiance);
             if (tLeft) targets.push(tLeft);
             if (tRight) targets.push(tRight);
             if (targets.length === 0) return;
+
             setAbilityLock('solidActive', true);
             targets.forEach(applyAbility);
             cooldownUntil = Date.now() + COOLDOWN_MS;
+
+            console.log(`[SolidTowerAbility] Activated ability for ${playerAllegiance} towers`);
+
             setTimeout(() => {
                 setAbilityLock('solidActive', false);
             }, DURATION_MS);
