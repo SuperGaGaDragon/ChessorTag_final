@@ -820,26 +820,77 @@
                 }
             }
 
+            let wsReconnectAttempts = 0;
+            let wsReconnectTimer = null;
+            let wsHeartbeatTimer = null;
+            const WS_MAX_RECONNECT_ATTEMPTS = 5;
+            const WS_RECONNECT_DELAY = 3000; // 3 seconds
+            const WS_HEARTBEAT_INTERVAL = 30000; // 30 seconds
+
+            function startHeartbeat() {
+                if (wsHeartbeatTimer) clearInterval(wsHeartbeatTimer);
+                wsHeartbeatTimer = setInterval(() => {
+                    if (directWs && directWs.readyState === WebSocket.OPEN) {
+                        console.log('[battle] Sending heartbeat ping');
+                        directWs.send(JSON.stringify({ type: 'ping' }));
+                    }
+                }, WS_HEARTBEAT_INTERVAL);
+            }
+
+            function stopHeartbeat() {
+                if (wsHeartbeatTimer) {
+                    clearInterval(wsHeartbeatTimer);
+                    wsHeartbeatTimer = null;
+                }
+            }
+
             function connectDirectWs(gameId) {
                 const url = buildWsUrl(gameId);
-                console.log('[battle] connecting WS:', url);
+                console.log('[battle] connecting WS:', url, 'attempt:', wsReconnectAttempts + 1);
                 directWs = new WebSocket(url);
                 window.battleSocket = directWs;
 
                 directWs.onopen = () => {
                     console.log('[battle] WS open');
+                    wsReconnectAttempts = 0; // Reset on successful connection
+                    startHeartbeat();
                 };
+
                 directWs.onclose = (ev) => {
                     console.log('[battle] WS closed', ev.code, ev.reason);
+                    stopHeartbeat();
+
+                    // Handle abnormal closures (code 1006)
+                    if (ev.code === 1006) {
+                        console.warn('[battle] Abnormal closure detected (1006)');
+                        if (wsReconnectAttempts < WS_MAX_RECONNECT_ATTEMPTS) {
+                            wsReconnectAttempts++;
+                            console.log(`[battle] Attempting reconnect ${wsReconnectAttempts}/${WS_MAX_RECONNECT_ATTEMPTS} in ${WS_RECONNECT_DELAY}ms`);
+                            wsReconnectTimer = setTimeout(() => {
+                                connectDirectWs(gameId);
+                            }, WS_RECONNECT_DELAY);
+                        } else {
+                            console.error('[battle] Max reconnect attempts reached. Please refresh the page.');
+                            alert('Connection lost. Please refresh the page to reconnect.');
+                        }
+                    } else if (ev.code !== 1000) { // 1000 = normal closure
+                        console.warn('[battle] Unexpected closure code:', ev.code);
+                    }
                 };
+
                 directWs.onerror = (err) => {
                     console.error('[battle] WS error', err);
+                    console.log('[battle] readyState:', directWs?.readyState);
                 };
+
                 directWs.onmessage = (event) => {
                     console.log('[battle] WS message', event.data);
                     try {
                         const msg = JSON.parse(event.data);
                         switch (msg.type) {
+                            case 'pong': // Response to ping
+                                console.log('[battle] Received heartbeat pong');
+                                break;
                             case 'side':
                                 updateSideFlags(msg.side);
                                 break;
