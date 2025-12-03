@@ -719,6 +719,9 @@
             }
         }
 
+        // Make postToParent available globally for piece_deploy.js
+        window.postToParent = postToParent;
+
         function serializePiece(entry) {
             if (!entry) return null;
             return {
@@ -1010,6 +1013,7 @@
                     allegiance: msg.allegiance || mySide,
                     cost: msg.cost,
                     boardImagePath: msg.boardImagePath,
+                    skipBroadcast: true,  // Prevent deployPiece from calling handleLocalDeploy
                 });
                 if (!pieceEntry || pieceEntry.requested) return;
                 const payload = {

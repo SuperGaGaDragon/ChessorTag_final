@@ -654,8 +654,8 @@ class PieceDeployment {
             pieceEntry._mover = mover;
         }
 
-        // Only call handleLocalDeploy if HOST mode
-        if (!fromNetwork && window.IS_HOST === true) {
+        // Only call handleLocalDeploy if HOST mode and not skipping broadcast
+        if (!fromNetwork && window.IS_HOST === true && !options.skipBroadcast) {
             if (typeof window.handleLocalDeploy === 'function') {
                 console.log('[piece_deploy] HOST mode: calling handleLocalDeploy');
                 window.handleLocalDeploy({

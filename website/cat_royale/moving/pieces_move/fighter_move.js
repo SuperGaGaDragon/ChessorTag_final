@@ -13,12 +13,6 @@
     }
 
     function startFighterAttack(attacker, target) {
-        // Only HOST executes attack logic
-        if (window.IS_HOST !== true) {
-            console.log('[fighter_attack] CLIENT mode: skip attack execution');
-            return;
-        }
-
         if (!attacker || (attacker.hp !== undefined && attacker.hp <= 0)) return;
         if (!target || (target.hp !== undefined && target.hp <= 0)) return;
         if (attacker.attack && attacker._attackInterval && attacker.currentTargetId === (target && target.id)) {

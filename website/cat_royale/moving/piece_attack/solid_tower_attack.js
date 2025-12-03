@@ -23,12 +23,6 @@
     }
 
     function startSolidTowerAttack(attacker, target) {
-        // Only HOST executes attack logic
-        if (window.IS_HOST !== true) {
-            console.log('[solid_tower_attack] CLIENT mode: skip attack execution');
-            return;
-        }
-
         if (!attacker || (attacker.hp !== undefined && attacker.hp <= 0)) return;
         if (attacker.attack && attacker._attackInterval && attacker.currentTargetId === (target && target.id)) {
             return;
