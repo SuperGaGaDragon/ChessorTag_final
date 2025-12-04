@@ -1087,6 +1087,7 @@
             function applyDamageFromServer(pieceId, hp, attackerId = null) {
                 const entry = getPieceEntryById(pieceId, { warn: false });
                 if (!entry) {
+                    console.warn('[applyDamageFromServer] Piece not found, queuing:', pieceId, 'hp:', hp);
                     pendingDamageEvents.push({
                         piece_id: pieceId,
                         hp,
@@ -1095,18 +1096,37 @@
                     });
                     return;
                 }
+
+                console.log('[applyDamageFromServer]', entry.type, entry.id, 'hp:', entry.hp, '->', hp, 'hasHealthBar:', !!entry.healthBar);
+
+                // Ensure healthBar exists
                 ensureHealthBarAttached(entry);
                 if (!entry.healthBar && typeof pieceDeployment?.attachHealthBar === 'function') {
+                    console.log('[applyDamageFromServer] Manually attaching healthBar for:', entry.id);
                     pieceDeployment.attachHealthBar(entry);
                 }
+
+                // Check again after attachment attempts
+                if (!entry.healthBar) {
+                    console.warn('[applyDamageFromServer] Failed to create healthBar for:', entry.type, entry.id, 'element:', !!entry.element);
+                }
+
                 // Force sync HP regardless of local calculation
+                const oldHP = entry.hp;
                 entry.hp = hp;
+
+                // Update healthBar
                 if (entry.healthBar && typeof entry.healthBar.update === 'function') {
                     entry.healthBar.update(entry.hp);
+                    console.log('[applyDamageFromServer] Updated healthBar:', oldHP, '->', entry.hp);
+                } else {
+                    console.warn('[applyDamageFromServer] Cannot update healthBar - healthBar:', !!entry.healthBar, 'update:', typeof entry.healthBar?.update);
                 }
+
                 if (typeof pieceDeployment.refreshHealthTooltip === 'function') {
                     pieceDeployment.refreshHealthTooltip(entry);
                 }
+
                 // If HP <= 0, trigger death
                 if (hp <= 0 && !entry._isDead) {
                     pieceDeployment.handleDeath(entry);
