@@ -3,7 +3,7 @@
 (function() {
     const ABILITY2_COST = 2;
 
-    let ability2CooldownUntil = 0;
+    const ability2CooldownUntil = { a: 0, b: 0 };
 
     function ensureAbilityState() {
         if (!window.TowerAbilityState) {
@@ -20,6 +20,16 @@
     function isAnyAbilityActive() {
         const state = window.TowerAbilityState;
         return !!(state?.solidActive || state?.aggressiveActive);
+    }
+
+    function getCooldownUntil(allegiance) {
+        const side = allegiance === 'b' ? 'b' : 'a';
+        return ability2CooldownUntil[side] || 0;
+    }
+
+    function setCooldownUntil(allegiance, ts) {
+        const side = allegiance === 'b' ? 'b' : 'a';
+        ability2CooldownUntil[side] = ts;
     }
 
     function getMaxHpForTower(type) {
@@ -184,7 +194,7 @@
     }
 
     function runAggressiveAbility2(playerAllegiance, getPlayerTowerType) {
-        if (Date.now() < ability2CooldownUntil) return false;
+        if (Date.now() < getCooldownUntil(playerAllegiance)) return false;
         if (getPlayerTowerType() !== 'aggressive') return false;
         const towers = getTowersByAllegiance(playerAllegiance).filter(t => t.type === 'aggressive_tower' && !t.attack);
         if (towers.length === 0) return false;
@@ -277,7 +287,7 @@
                     t.position = { ...t._originalPosition };
                 }
             });
-            ability2CooldownUntil = Date.now() + 5000;
+            setCooldownUntil(playerAllegiance, Date.now() + 5000);
             setAbilityLock('aggressiveActive', false);
         }, 3000);
 
@@ -351,7 +361,7 @@
             );
             if (!allowed) return;
             if (getPlayerTowerType() !== 'aggressive') return;
-            if (Date.now() < ability2CooldownUntil) return;
+            if (Date.now() < getCooldownUntil(window.pieceDeployment?.playerSide || window.MY_SIDE || 'a')) return;
 
             const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
             const towers = getTowersByAllegiance(playerAllegiance).filter(t => t.type === 'aggressive_tower' && !t.attack);
@@ -376,7 +386,7 @@
             ability2Armed = false;
             const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
             // prevent re-arming during active ability window
-            ability2CooldownUntil = Date.now() + 3000;
+            setCooldownUntil(playerAllegiance, Date.now() + 3000);
             if (!isAuthority) {
                 if (typeof window.postToParent === 'function') {
                     window.postToParent('state_update', {

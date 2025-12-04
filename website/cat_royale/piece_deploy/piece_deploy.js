@@ -635,8 +635,8 @@ class PieceDeployment {
         piece.style.zIndex = '5';
         // Allow clicks for user-controlled movers (e.g., ruler) on local side only.
         piece.style.pointerEvents = pieceType === 'ruler' && isPlayerOwned ? 'auto' : 'none';
-        // Set background color based on allegiance: A端=淡粉色, B端=淡橙色
-        piece.style.backgroundColor = allegiance === 'a' ? '#FFE6F0' : '#FFE6CC';
+        // Set background color based on allegiance: A端=粉色, B端=橙色
+        piece.style.backgroundColor = allegiance === 'a' ? '#FFB3D9' : '#FFCC99';
         piece.style.border = '4px solid #5C4033';
         piece.style.boxSizing = 'border-box';
         piece.style.borderRadius = '5px';

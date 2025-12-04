@@ -1003,6 +1003,7 @@
                     boardImagePath: pieceMsg.boardImagePath
                 });
                 if (pieceEntry) {
+                    ensureHealthBarAttached(pieceEntry);
                     if (typeof pieceMsg.hp === 'number') pieceEntry.hp = pieceMsg.hp;
                     if (typeof pieceMsg.max_hp === 'number') pieceEntry.maxHP = pieceMsg.max_hp;
                     if (pieceEntry.healthBar && typeof pieceEntry.healthBar.update === 'function' && typeof pieceEntry.hp === 'number') {
@@ -1012,8 +1013,9 @@
             }
 
             function applyDamageFromServer(pieceId, hp) {
-                const entry = pieceDeployment.boardPieces.find(p => p.id === pieceId);
+                const entry = getPieceEntryById(pieceId);
                 if (!entry) return;
+                ensureHealthBarAttached(entry);
                 // Force sync HP regardless of local calculation
                 entry.hp = hp;
                 if (entry.healthBar && typeof entry.healthBar.update === 'function') {
@@ -1045,6 +1047,22 @@
                 elixirManager.setElixir(side, value, { emit });
             }
 
+            function getPieceEntryById(id, { warn = true } = {}) {
+                if (!id || !pieceDeployment?.boardPieces) return null;
+                const entry = pieceDeployment.boardPieces.find(p => p.id === id);
+                if (!entry && warn) {
+                    console.warn('[state_update] piece not found for id', id);
+                }
+                return entry;
+            }
+
+            function ensureHealthBarAttached(entry) {
+                if (!entry) return;
+                if (!entry.healthBar && typeof pieceDeployment?.attachHealthBar === 'function') {
+                    pieceDeployment.attachHealthBar(entry);
+                }
+            }
+
             function syncPieceFromSnapshot(pieceMsg) {
                 if (!pieceMsg || !pieceMsg.id) return;
                 const row = parseInt(pieceMsg.row);
@@ -1059,6 +1077,7 @@
                     }
                     if (typeof pieceMsg.hp === 'number') {
                         existing.hp = pieceMsg.hp;
+                        ensureHealthBarAttached(existing);
                         if (existing.healthBar && typeof existing.healthBar.update === 'function') {
                             existing.healthBar.update(existing.hp);
                         }
@@ -1095,6 +1114,7 @@
                     if (typeof pieceMsg.hp === 'number') entry.hp = pieceMsg.hp;
                     if (typeof pieceMsg.max_hp === 'number') entry.maxHP = pieceMsg.max_hp;
                     if (typeof pieceMsg.damage_reduction === 'number') entry.damageReduction = pieceMsg.damage_reduction;
+                    ensureHealthBarAttached(entry);
                     if (entry.healthBar && typeof entry.healthBar.update === 'function' && typeof entry.hp === 'number') {
                         entry.healthBar.update(entry.hp);
                     }
@@ -1218,6 +1238,10 @@
 
             function handleStateUpdate(msg) {
                 const event = msg.event;
+                const shouldLog = !isHost && ['damage', 'elixir', 'tower_switch', 'tower_ability_solid', 'tower_ability_aggressive'].includes(event);
+                if (shouldLog) {
+                    console.log('[client][state_update]', event, msg);
+                }
                 switch (event) {
                     case 'spawn':
                         spawnPieceFromServer(msg.piece);
@@ -1253,13 +1277,14 @@
                         const newType = msg.tower_type;
                         const towers = msg.towers || [];
                         towers.forEach(t => {
-                            const entry = pieceDeployment.boardPieces.find(p => p.id === t.id);
+                            const entry = getPieceEntryById(t.id);
                             if (!entry) return;
                             entry.type = newType === 'solid' ? 'solid_tower' : 'aggressive_tower';
                             entry.maxHP = t.max_hp ?? entry.maxHP;
                             entry.hp = t.hp ?? entry.hp;
                             const desiredPath = t.board_image_path || towerSpriteFor(newType, entry.allegiance || 'a');
                             entry.boardImagePath = desiredPath;
+                            ensureHealthBarAttached(entry);
                             if (entry.healthBar && typeof entry.healthBar.update === 'function') {
                                 entry.healthBar.update(entry.hp);
                             }
@@ -1279,8 +1304,9 @@
                     case 'tower_ability_solid': {
                         const targets = msg.targets || [];
                         targets.forEach(t => {
-                            const entry = pieceDeployment.boardPieces.find(p => p.id === t.id);
+                            const entry = getPieceEntryById(t.id);
                             if (!entry) return;
+                            ensureHealthBarAttached(entry);
                             const img = entry.element ? entry.element.querySelector('img') : null;
                             if (img) {
                                 entry._originalImgSrc = entry._originalImgSrc || img.src;
@@ -1294,7 +1320,7 @@
                         });
                         setTimeout(() => {
                             targets.forEach(t => {
-                                const entry = pieceDeployment.boardPieces.find(p => p.id === t.id);
+                                const entry = getPieceEntryById(t.id, { warn: false });
                                 if (!entry) return;
                                 entry.damageReduction = 0;
                                 const img = entry.element ? entry.element.querySelector('img') : null;
@@ -1310,8 +1336,9 @@
                         const targets = msg.targets || [];
                         const duration = msg.duration_ms || 3000;
                         targets.forEach(t => {
-                            const entry = pieceDeployment.boardPieces.find(p => p.id === t.id);
+                            const entry = getPieceEntryById(t.id);
                             if (!entry) return;
+                            ensureHealthBarAttached(entry);
                             entry.damageReduction = typeof t.damage_reduction === 'number' ? t.damage_reduction : 0.25;
                             const img = entry.element ? entry.element.querySelector('img') : null;
                             const nextImg = t.board_image_path || '../pieces/agressive_tower/aggressive_tower_ability_2.png';
@@ -1330,7 +1357,7 @@
                         });
                         setTimeout(() => {
                             targets.forEach(t => {
-                                const entry = pieceDeployment.boardPieces.find(p => p.id === t.id);
+                                const entry = getPieceEntryById(t.id, { warn: false });
                                 if (!entry) return;
                                 entry.damageReduction = 0;
                                 const img = entry.element ? entry.element.querySelector('img') : null;
@@ -1353,7 +1380,7 @@
                         const row = parseInt(msg.row);
                         const col = parseInt(msg.col);
                         pieceDeployment.movePiece(targetId, { row, col }, { fromNetwork: true, skipBroadcast: true });
-                        const entry = pieceDeployment.boardPieces.find(p => p.id === targetId);
+                        const entry = getPieceEntryById(targetId, { warn: false });
                         if (entry) {
                             entry.position = { row, col };
                         }
@@ -1365,7 +1392,7 @@
                         const row = parseInt(msg.row);
                         const col = parseInt(msg.col);
                         pieceDeployment.movePiece(targetId, { row, col }, { fromNetwork: true, skipBroadcast: true });
-                        const entry = pieceDeployment.boardPieces.find(p => p.id === targetId);
+                        const entry = getPieceEntryById(targetId, { warn: false });
                         if (entry) {
                             entry.position = { row, col };
                         }
@@ -1812,7 +1839,7 @@
                 const row = parseInt(msg.row);
                 const col = parseInt(msg.col);
                 pieceDeployment.movePiece(targetId, { row, col }, { fromNetwork: true, skipBroadcast: true });
-                const entry = pieceDeployment.boardPieces.find(p => p.id === targetId);
+                const entry = getPieceEntryById(targetId, { warn: false });
                 if (entry) {
                     entry.position = { row, col };
                     if (entry._mover) {
