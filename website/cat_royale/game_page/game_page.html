@@ -785,6 +785,7 @@
             const isProdHost = window.location.hostname === 'chessortag.org' || window.location.hostname === 'www.chessortag.org';
             const apiBase = isProdHost ? 'https://api.chessortag.org' : '';
             let pendingTowerEvents = [];
+            let pendingDamageEvents = [];
 
             function startTowerVisualAttack(attacker, target, towerType) {
                 if (!attacker || !target) return;
@@ -823,7 +824,25 @@
             }
 
             // 周期性尝试播放在 spawn 前到达的塔攻击事件，避免动画丢失
-            setInterval(processPendingTowerEvents, 400);
+            setInterval(() => {
+                processPendingTowerEvents();
+                processPendingDamageEvents();
+            }, 400);
+
+            function processPendingDamageEvents() {
+                const MAX_AGE_MS = 6000;
+                const now = Date.now();
+                pendingDamageEvents = pendingDamageEvents.filter(evt => {
+                    const entry = getPieceEntryById(evt.piece_id, { warn: false });
+                    if (!entry) {
+                        if (now - evt.createdAt < MAX_AGE_MS) return true;
+                        console.warn('[damage][pending] drop, piece missing:', evt.piece_id);
+                        return false;
+                    }
+                    applyDamageFromServer(evt.piece_id, evt.hp, evt.attacker_id);
+                    return false;
+                });
+            }
 
             function buildWsUrl(gameId) {
                 if (isProdHost) {
@@ -1060,14 +1079,26 @@
                         pieceEntry.healthBar.update(pieceEntry.hp);
                     }
                     processPendingTowerEvents();
+                    processPendingDamageEvents();
                     ensureKingTowers();
                 }
             }
 
             function applyDamageFromServer(pieceId, hp, attackerId = null) {
-                const entry = getPieceEntryById(pieceId);
-                if (!entry) return;
+                const entry = getPieceEntryById(pieceId, { warn: false });
+                if (!entry) {
+                    pendingDamageEvents.push({
+                        piece_id: pieceId,
+                        hp,
+                        attacker_id: attackerId,
+                        createdAt: Date.now()
+                    });
+                    return;
+                }
                 ensureHealthBarAttached(entry);
+                if (!entry.healthBar && typeof pieceDeployment?.attachHealthBar === 'function') {
+                    pieceDeployment.attachHealthBar(entry);
+                }
                 // Force sync HP regardless of local calculation
                 entry.hp = hp;
                 if (entry.healthBar && typeof entry.healthBar.update === 'function') {
@@ -1306,6 +1337,7 @@
                     msg.pieces.forEach(p => syncPieceFromSnapshot(p));
                 }
                 processPendingTowerEvents();
+                processPendingDamageEvents();
                 ensureKingTowers();
             }
 
