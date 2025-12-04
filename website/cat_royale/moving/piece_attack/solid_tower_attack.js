@@ -22,7 +22,7 @@
         return isInQuarter(attacker, target);
     }
 
-    function startSolidTowerAttack(attacker, target) {
+    function startSolidTowerAttack(attacker, target, visualOnly = false) {
         if (!attacker || (attacker.hp !== undefined && attacker.hp <= 0)) return;
         if (attacker.attack && attacker._attackInterval && attacker.currentTargetId === (target && target.id)) {
             return;
@@ -50,7 +50,10 @@
             const anchor = attackerEl || getAnchorElement(attacker);
             if (!anchor || !targetEl) return false;
             spawnProjectile(anchor, targetEl, '📱', SPEED_MS, () => {
-                if (window.pieceDeployment) window.pieceDeployment.applyDamage(target, DAMAGE, attacker);
+                // Only apply damage if HOST and not visualOnly mode
+                if (!visualOnly && window.IS_HOST === true && window.pieceDeployment) {
+                    window.pieceDeployment.applyDamage(target, DAMAGE, attacker);
+                }
             });
             return true;
         };

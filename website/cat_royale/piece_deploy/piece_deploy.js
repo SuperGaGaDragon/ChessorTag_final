@@ -447,14 +447,36 @@ class PieceDeployment {
                 (tower.type === 'solid_tower' && window.isSolidTowerInRange && window.isSolidTowerInRange(tower, best))
             );
 
+            const wasAttacking = tower.attack && tower.currentTargetId;
+            const newTargetId = inRange ? best?.id : null;
+            const targetChanged = wasAttacking !== !!newTargetId || (wasAttacking && tower.currentTargetId !== newTargetId);
+
             if (inRange) {
                 if (tower.type === 'aggressive_tower' && window.startAggressiveTowerAttack) {
                     window.startAggressiveTowerAttack(tower, best);
                 } else if (tower.type === 'solid_tower' && window.startSolidTowerAttack) {
                     window.startSolidTowerAttack(tower, best);
                 }
+                // Broadcast attack start/target change to clients
+                if (window.IS_HOST === true && targetChanged && typeof window.postToParent === 'function') {
+                    window.postToParent('state_update', {
+                        type: 'state_update',
+                        event: 'tower_attack',
+                        attacker_id: tower.id,
+                        target_id: best.id,
+                        tower_type: tower.type
+                    });
+                }
             } else {
                 this.stopTowerAttack(tower);
+                // Broadcast attack stop to clients
+                if (window.IS_HOST === true && wasAttacking && typeof window.postToParent === 'function') {
+                    window.postToParent('state_update', {
+                        type: 'state_update',
+                        event: 'tower_attack_stop',
+                        attacker_id: tower.id
+                    });
+                }
             }
         });
     }

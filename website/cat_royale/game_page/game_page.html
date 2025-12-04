@@ -1290,15 +1290,43 @@
                         towers.forEach(t => {
                             const entry = getPieceEntryById(t.id);
                             if (!entry) return;
+
+                            // Remove old health bar before switching type
+                            if (entry.healthBar && entry.healthBar.barWrapper) {
+                                const oldBar = entry.healthBar.barWrapper;
+                                if (oldBar.parentElement) {
+                                    oldBar.parentElement.removeChild(oldBar);
+                                }
+                                entry.healthBar = null;
+                            }
+
+                            // Update piece type and stats
                             entry.type = newType === 'solid' ? 'solid_tower' : 'aggressive_tower';
                             entry.maxHP = t.max_hp ?? entry.maxHP;
                             entry.hp = t.hp ?? entry.hp;
                             const desiredPath = t.board_image_path || towerSpriteFor(newType, entry.allegiance || 'a');
                             entry.boardImagePath = desiredPath;
-                            ensureHealthBarAttached(entry);
-                            if (entry.healthBar && typeof entry.healthBar.update === 'function') {
-                                entry.healthBar.update(entry.hp);
+
+                            // Recreate health bar with new type's factory
+                            let factory = null;
+                            if (entry.type === 'aggressive_tower') factory = window.AggressiveTowerHP?.createHealthBar;
+                            else if (entry.type === 'solid_tower') factory = window.SolidTowerHP?.createHealthBar;
+
+                            if (factory && typeof factory === 'function' && entry.element) {
+                                entry.healthBar = factory(entry.element);
+                                if (entry.healthBar && typeof entry.healthBar.update === 'function') {
+                                    entry.healthBar.update(entry.hp);
+                                }
+                                // Reattach tooltip
+                                if (pieceDeployment?.attachHealthTooltip) {
+                                    pieceDeployment.attachHealthTooltip(entry);
+                                }
+                                if (pieceDeployment?.refreshHealthTooltip) {
+                                    pieceDeployment.refreshHealthTooltip(entry);
+                                }
                             }
+
+                            // Update image
                             const img = entry.element ? entry.element.querySelector('img') : null;
                             if (img) {
                                 img.src = desiredPath;
@@ -1410,6 +1438,27 @@
                         const entry = getPieceEntryById(targetId, { warn: false });
                         if (entry) {
                             entry.position = { row, col };
+                        }
+                        break;
+                    }
+                    case 'tower_attack': {
+                        // Client receives attack event and plays visual effects only
+                        const attacker = getPieceEntryById(msg.attacker_id, { warn: false });
+                        const target = getPieceEntryById(msg.target_id, { warn: false });
+                        if (!attacker || !target) break;
+                        const towerType = msg.tower_type || attacker.type;
+                        if (towerType === 'aggressive_tower' && window.startAggressiveTowerAttack) {
+                            window.startAggressiveTowerAttack(attacker, target, true);
+                        } else if (towerType === 'solid_tower' && window.startSolidTowerAttack) {
+                            window.startSolidTowerAttack(attacker, target, true);
+                        }
+                        break;
+                    }
+                    case 'tower_attack_stop': {
+                        // Client receives stop attack event and clears animations
+                        const attacker = getPieceEntryById(msg.attacker_id, { warn: false });
+                        if (attacker && pieceDeployment?.stopTowerAttack) {
+                            pieceDeployment.stopTowerAttack(attacker);
                         }
                         break;
                     }
@@ -1622,11 +1671,19 @@
                 const kingImgA = swap ? '../pieces/king_tower/king_tower_2.png' : '../pieces/king_tower/king_tower_1.png';
                 const kingImgB = swap ? '../pieces/king_tower/king_tower_1.png' : '../pieces/king_tower/king_tower_2.png';
 
-                const createKingAnchor = (allegiance, imgSrc, rowStart, colStart) => {
-                    const rows = [rowStart - 1, rowStart];
-                    const cols = [colStart - 1, colStart];
+                // createKingAnchor creates a 2x2 king tower anchor
+                // For side A: should cover d1,d2,e1,e2 (rows 7,6 cols 3,4)
+                // For side B: should cover d7,d8,e7,e8 (rows 1,0 cols 3,4)
+                const createKingAnchor = (allegiance, imgSrc) => {
+                    // Define absolute logical coordinates for the 2x2 area
+                    const rows = allegiance === 'a' ? [6, 7] : [0, 1]; // A: ranks 2,1; B: ranks 8,7
+                    const cols = [3, 4]; // files d,e
+
+                    // Map logical coords to grid positions (depends on orientation)
                     const gridRows = rows.map(logicalToGridRow);
                     const gridCols = cols.map(logicalToGridCol);
+
+                    // Create anchor div spanning 2x2 grid cells
                     const anchor = document.createElement('div');
                     anchor.className = 'king-anchor';
                     anchor.dataset.allegiance = allegiance;
@@ -1634,15 +1691,19 @@
                     anchor.style.gridColumn = `${Math.min(...gridCols)} / ${Math.max(...gridCols) + 1}`;
                     anchor.innerHTML = `<img src="${imgSrc}" alt="King Tower">`;
                     boardGrid.appendChild(anchor);
+
+                    // Register all 4 cells as king_tower pieces
                     rows.forEach((r) => {
                         cols.forEach((c) => {
                             pieceDeployment.registerStaticPiece('king_tower', r, c, allegiance, anchor);
                         });
                     });
+
+                    console.log(`[registerKingTowers] Created ${allegiance} king tower at rows=${rows}, cols=${cols}, gridRow=${anchor.style.gridRow}, gridCol=${anchor.style.gridColumn}`);
                 };
 
-                createKingAnchor('a', kingImgA, 7, 4);
-                createKingAnchor('b', kingImgB, 1, 4);
+                createKingAnchor('a', kingImgA);
+                createKingAnchor('b', kingImgB);
             }
 
             function startTimer() {
