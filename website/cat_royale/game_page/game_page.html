@@ -1085,6 +1085,8 @@
                     const attacker = getPieceEntryById(attackerId, { warn: false });
                     if (attacker && (attacker.type === 'solid_tower' || attacker.type === 'aggressive_tower')) {
                         startTowerVisualAttack(attacker, entry, attacker.type);
+                    } else if (!attacker) {
+                        console.warn('[damage fallback] attacker missing for id:', attackerId);
                     }
                 }
             }

@@ -432,57 +432,61 @@ class PieceDeployment {
         const troops = this.boardPieces.filter(p => p.role === 'troop' && (p.hp ?? 1) > 0 && p.shouter_lived !== false);
 
         towers.forEach(tower => {
-            let best = null;
-            let bestDist = Infinity;
-            troops.forEach(t => {
-                if (t.allegiance === tower.allegiance) return;
-                if (!t.position) return;
-                const dr = Math.abs((tower.position?.row ?? 0) - t.position.row);
-                const dc = Math.abs((tower.position?.col ?? 0) - t.position.col);
-                const d = Math.max(dr, dc);
-                if (d < bestDist) {
-                    bestDist = d;
-                    best = t;
-                }
-            });
+            try {
+                let best = null;
+                let bestDist = Infinity;
+                troops.forEach(t => {
+                    if (t.allegiance === tower.allegiance) return;
+                    if (!t.position) return;
+                    const dr = Math.abs((tower.position?.row ?? 0) - t.position.row);
+                    const dc = Math.abs((tower.position?.col ?? 0) - t.position.col);
+                    const d = Math.max(dr, dc);
+                    if (d < bestDist) {
+                        bestDist = d;
+                        best = t;
+                    }
+                });
 
-            const inRange = best && (
-                (tower.type === 'aggressive_tower' && window.isAggressiveTowerInRange && window.isAggressiveTowerInRange(tower, best)) ||
-                (tower.type === 'solid_tower' && window.isSolidTowerInRange && window.isSolidTowerInRange(tower, best))
-            );
+                const inRange = best && (
+                    (tower.type === 'aggressive_tower' && window.isAggressiveTowerInRange && window.isAggressiveTowerInRange(tower, best)) ||
+                    (tower.type === 'solid_tower' && window.isSolidTowerInRange && window.isSolidTowerInRange(tower, best))
+                );
 
-            const wasAttacking = tower.attack && tower.currentTargetId;
-            const newTargetId = inRange ? best?.id : null;
-            const targetChanged = wasAttacking !== !!newTargetId || (wasAttacking && tower.currentTargetId !== newTargetId);
+                const wasAttacking = tower.attack && tower.currentTargetId;
+                const newTargetId = inRange ? best?.id : null;
+                const targetChanged = wasAttacking !== !!newTargetId || (wasAttacking && tower.currentTargetId !== newTargetId);
 
-            if (inRange) {
-                if (tower.type === 'aggressive_tower' && window.startAggressiveTowerAttack) {
-                    window.startAggressiveTowerAttack(tower, best, visualOnly);
-                } else if (tower.type === 'solid_tower' && window.startSolidTowerAttack) {
-                    window.startSolidTowerAttack(tower, best, visualOnly);
+                if (inRange) {
+                    if (tower.type === 'aggressive_tower' && window.startAggressiveTowerAttack) {
+                        window.startAggressiveTowerAttack(tower, best, visualOnly);
+                    } else if (tower.type === 'solid_tower' && window.startSolidTowerAttack) {
+                        window.startSolidTowerAttack(tower, best, visualOnly);
+                    }
+                    // Broadcast攻击开始/目标变更（仅HOST）
+                    if (!visualOnly && window.IS_HOST === true && targetChanged && typeof window.postToParent === 'function') {
+                        console.log('[HOST] Broadcasting tower_attack:', tower.id, '->', best.id, tower.type);
+                        window.postToParent('state_update', {
+                            type: 'state_update',
+                            event: 'tower_attack',
+                            attacker_id: tower.id,
+                            target_id: best.id,
+                            tower_type: tower.type
+                        });
+                    }
+                } else {
+                    this.stopTowerAttack(tower);
+                    // Broadcast攻击停止（仅HOST）
+                    if (!visualOnly && window.IS_HOST === true && wasAttacking && typeof window.postToParent === 'function') {
+                        console.log('[HOST] Broadcasting tower_attack_stop:', tower.id);
+                        window.postToParent('state_update', {
+                            type: 'state_update',
+                            event: 'tower_attack_stop',
+                            attacker_id: tower.id
+                        });
+                    }
                 }
-                // Broadcast攻击开始/目标变更（仅HOST）
-                if (!visualOnly && window.IS_HOST === true && targetChanged && typeof window.postToParent === 'function') {
-                    console.log('[HOST] Broadcasting tower_attack:', tower.id, '->', best.id, tower.type);
-                    window.postToParent('state_update', {
-                        type: 'state_update',
-                        event: 'tower_attack',
-                        attacker_id: tower.id,
-                        target_id: best.id,
-                        tower_type: tower.type
-                    });
-                }
-            } else {
-                this.stopTowerAttack(tower);
-                // Broadcast攻击停止（仅HOST）
-                if (!visualOnly && window.IS_HOST === true && wasAttacking && typeof window.postToParent === 'function') {
-                    console.log('[HOST] Broadcasting tower_attack_stop:', tower.id);
-                    window.postToParent('state_update', {
-                        type: 'state_update',
-                        event: 'tower_attack_stop',
-                        attacker_id: tower.id
-                    });
-                }
+            } catch (err) {
+                console.warn('[scanTowerAttacks] error on tower', tower?.id, err);
             }
         });
     }
