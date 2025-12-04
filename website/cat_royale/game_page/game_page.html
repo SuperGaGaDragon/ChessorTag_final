@@ -1064,7 +1064,7 @@
                 }
             }
 
-            function applyDamageFromServer(pieceId, hp) {
+            function applyDamageFromServer(pieceId, hp, attackerId = null) {
                 const entry = getPieceEntryById(pieceId);
                 if (!entry) return;
                 ensureHealthBarAttached(entry);
@@ -1081,8 +1081,8 @@
                     pieceDeployment.handleDeath(entry);
                 }
                 // Fallback: 在 CLIENT 端补播塔攻击动画，避免 tower_attack 丢失后无视觉
-                if (!isHost && entry && msg.attacker_id) {
-                    const attacker = getPieceEntryById(msg.attacker_id, { warn: false });
+                if (!isHost && entry && attackerId) {
+                    const attacker = getPieceEntryById(attackerId, { warn: false });
                     if (attacker && (attacker.type === 'solid_tower' || attacker.type === 'aggressive_tower')) {
                         startTowerVisualAttack(attacker, entry, attacker.type);
                     }
@@ -1326,7 +1326,7 @@
                         spawnPieceFromServer(msg.piece);
                         break;
                     case 'damage':
-                        applyDamageFromServer(msg.piece_id, msg.hp);
+                        applyDamageFromServer(msg.piece_id, msg.hp, msg.attacker_id);
                         break;
                     case 'death':
                         handleDeathFromServer(msg.piece_id);
