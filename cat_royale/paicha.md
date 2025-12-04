@@ -65,3 +65,30 @@
 - ✅ Elixir更新：已通过elixir事件同步 → 已正确同步
 
 **结论**: 所有主要游戏效果都已正确实现HOST权威+客户端同步架构。移动单位的攻击视觉效果在客户端不显示是因为mover完全不在客户端运行（这是合理的设计），如需同步可以参考塔攻击的实现方式。
+
+***第二轮检查***
+### 复测结果
+- B端攻击效果：未显示。仍旧只有HP变化，未看到弹道/动画。
+- B端主塔占格：未修复。B端主塔仍只占1格，没有覆盖 d7 e7 d8 e8（或 d1 d2 e1 e2）。
+- 塔切换血条比例：已修复，切换后血条比例正常。
+
+### 结论
+- 第一轮仅HP比例修复生效，其余两项未落地，需要继续排查和落地。
+
+### 代码原因排查
+- B端攻击效果：`scanTowerAttacks` 仍然只在 HOST 运行且没有任何广播逻辑；`handleStateUpdate` 里也没有 `tower_attack/_stop` 分支，客户端自然无法触发 `startAggressiveTowerAttack`/`startSolidTowerAttack`，所以 B 端只看到 HP 变化。
+- B端主塔 2x2：`registerKingTowers` 虽然计算了 2x2 的 gridRow/gridColumn，但没有任何渲染校验，复测 DOM 仅出现单格主塔，说明锚点未正确跨格；需要在创建后校验 `king-anchor` 的 grid 行/列跨度并确保为 d7 e7 d8 e8（B侧）/ d1 d2 e1 e2（A侧）。
+
+### 解决方案
+- 攻击特效：按照第一轮方案真正落地——在 HOST 的 `scanTowerAttacks` 中广播 `tower_attack`/`tower_attack_stop` 事件，`startAggressiveTowerAttack/startSolidTowerAttack` 支持 `visualOnly`，客户端在 `handleStateUpdate` 中根据事件启动/停止动画；保持伤害只在 HOST 结算。
+- 主塔 2x2：在 `registerKingTowers` 创建锚点后立即校验 `gridRow/gridColumn` 跨度和四个 `king_tower` 注册情况，若缺失则重新设置；必要时将 grid 栅格跨度改为显式 `style.gridArea = 'rowStart / colStart / rowEnd / colEnd'`，并在控制台输出校验日志，确保 B 端也渲染为 d7 e7 d8 e8。
+
+---
+
+## 第三轮修复
+- [x] 攻击特效：允许客户端也执行 `scanTowerAttacks`，非 HOST 以 `visualOnly` 方式启动塔攻击动画；广播/伤害仍仅在 HOST 运行，避免双重结算。客户端即便收不到 `tower_attack` 事件也能本地展示动画。
+- [x] 主塔 2x2：为 `king_anchor` 显式设置 `gridRow`/`gridColumn` 与 `gridArea`，并添加缺失格子校验日志，确保跨格覆盖 d1 d2 e1 e2（或 d7 e7 d8 e8）。
+
+### 待验证点
+- B 端是否能看到塔攻击弹道/动画（即使 WebSocket 未下发 `tower_attack` 事件也应显示）。
+- B 端主塔是否跨 2x2 覆盖目标格子。

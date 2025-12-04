@@ -420,10 +420,14 @@ class PieceDeployment {
         }
         tower.currentTargetId = null;
         const anchor = tower.element || document.querySelector(`.board-cell[data-row="${tower.position?.row}"][data-col="${tower.position?.col}"]`);
-        if (anchor) anchor.classList.remove('tower-attack-circle');
+        if (anchor) {
+            anchor.classList.remove('tower-attack-circle');
+            anchor.classList.remove('tower-attack-bob');
+        }
     }
 
     scanTowerAttacks() {
+        const visualOnly = window.IS_HOST !== true; // clients也运行，用于显示动画，但不结算伤害/不广播
         const towers = this.boardPieces.filter(p => p.role === 'building' && (p.type === 'aggressive_tower' || p.type === 'solid_tower') && (p.hp ?? 1) > 0 && p.aggressive_tower_lived !== false);
         const troops = this.boardPieces.filter(p => p.role === 'troop' && (p.hp ?? 1) > 0 && p.shouter_lived !== false);
 
@@ -453,12 +457,13 @@ class PieceDeployment {
 
             if (inRange) {
                 if (tower.type === 'aggressive_tower' && window.startAggressiveTowerAttack) {
-                    window.startAggressiveTowerAttack(tower, best);
+                    window.startAggressiveTowerAttack(tower, best, visualOnly);
                 } else if (tower.type === 'solid_tower' && window.startSolidTowerAttack) {
-                    window.startSolidTowerAttack(tower, best);
+                    window.startSolidTowerAttack(tower, best, visualOnly);
                 }
-                // Broadcast attack start/target change to clients
-                if (window.IS_HOST === true && targetChanged && typeof window.postToParent === 'function') {
+                // Broadcast攻击开始/目标变更（仅HOST）
+                if (!visualOnly && window.IS_HOST === true && targetChanged && typeof window.postToParent === 'function') {
+                    console.log('[HOST] Broadcasting tower_attack:', tower.id, '->', best.id, tower.type);
                     window.postToParent('state_update', {
                         type: 'state_update',
                         event: 'tower_attack',
@@ -469,8 +474,9 @@ class PieceDeployment {
                 }
             } else {
                 this.stopTowerAttack(tower);
-                // Broadcast attack stop to clients
-                if (window.IS_HOST === true && wasAttacking && typeof window.postToParent === 'function') {
+                // Broadcast攻击停止（仅HOST）
+                if (!visualOnly && window.IS_HOST === true && wasAttacking && typeof window.postToParent === 'function') {
+                    console.log('[HOST] Broadcasting tower_attack_stop:', tower.id);
                     window.postToParent('state_update', {
                         type: 'state_update',
                         event: 'tower_attack_stop',
@@ -865,7 +871,8 @@ class PieceDeployment {
 
         console.log('Piece deployment system initialized');
 
-        if (!this.attackScanTimer && window.IS_HOST === true) {
+        if (!this.attackScanTimer) {
+            // HOST 负责伤害和广播，客户端仅用于视觉同步
             this.attackScanTimer = setInterval(() => this.scanTowerAttacks(), 250);
         }
     }

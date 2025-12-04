@@ -1285,11 +1285,17 @@
                         updateTimerDisplay(msg.seconds_left);
                         break;
                     case 'tower_switch': {
+                        console.log('[tower_switch] Received:', msg);
                         const newType = msg.tower_type;
                         const towers = msg.towers || [];
                         towers.forEach(t => {
                             const entry = getPieceEntryById(t.id);
-                            if (!entry) return;
+                            if (!entry) {
+                                console.warn('[tower_switch] Tower not found:', t.id);
+                                return;
+                            }
+
+                            console.log('[tower_switch] Switching tower:', entry.id, 'from', entry.type, 'to', newType, 'hp:', t.hp, 'maxHP:', t.max_hp);
 
                             // Remove old health bar before switching type
                             if (entry.healthBar && entry.healthBar.barWrapper) {
@@ -1298,12 +1304,16 @@
                                     oldBar.parentElement.removeChild(oldBar);
                                 }
                                 entry.healthBar = null;
+                                console.log('[tower_switch] Removed old healthBar');
                             }
 
                             // Update piece type and stats
+                            const oldMaxHP = entry.maxHP;
                             entry.type = newType === 'solid' ? 'solid_tower' : 'aggressive_tower';
                             entry.maxHP = t.max_hp ?? entry.maxHP;
                             entry.hp = t.hp ?? entry.hp;
+                            console.log('[tower_switch] Updated stats - maxHP:', oldMaxHP, '->', entry.maxHP, 'hp:', entry.hp);
+
                             const desiredPath = t.board_image_path || towerSpriteFor(newType, entry.allegiance || 'a');
                             entry.boardImagePath = desiredPath;
 
@@ -1314,8 +1324,10 @@
 
                             if (factory && typeof factory === 'function' && entry.element) {
                                 entry.healthBar = factory(entry.element);
+                                console.log('[tower_switch] Created new healthBar:', entry.healthBar ? 'success' : 'failed');
                                 if (entry.healthBar && typeof entry.healthBar.update === 'function') {
                                     entry.healthBar.update(entry.hp);
+                                    console.log('[tower_switch] Updated healthBar to:', entry.hp);
                                 }
                                 // Reattach tooltip
                                 if (pieceDeployment?.attachHealthTooltip) {
@@ -1324,6 +1336,8 @@
                                 if (pieceDeployment?.refreshHealthTooltip) {
                                     pieceDeployment.refreshHealthTooltip(entry);
                                 }
+                            } else {
+                                console.warn('[tower_switch] Failed to create healthBar - factory:', !!factory, 'element:', !!entry.element);
                             }
 
                             // Update image
@@ -1443,10 +1457,19 @@
                     }
                     case 'tower_attack': {
                         // Client receives attack event and plays visual effects only
-                        const attacker = getPieceEntryById(msg.attacker_id, { warn: false });
-                        const target = getPieceEntryById(msg.target_id, { warn: false });
-                        if (!attacker || !target) break;
+                        console.log('[CLIENT] tower_attack received:', msg);
+                        const attacker = getPieceEntryById(msg.attacker_id, { warn: true });
+                        const target = getPieceEntryById(msg.target_id, { warn: true });
+                        if (!attacker) {
+                            console.warn('[CLIENT] tower_attack: attacker not found:', msg.attacker_id);
+                            break;
+                        }
+                        if (!target) {
+                            console.warn('[CLIENT] tower_attack: target not found:', msg.target_id);
+                            break;
+                        }
                         const towerType = msg.tower_type || attacker.type;
+                        console.log('[CLIENT] Starting visual attack:', towerType, 'attacker:', attacker.id, 'target:', target.id);
                         if (towerType === 'aggressive_tower' && window.startAggressiveTowerAttack) {
                             window.startAggressiveTowerAttack(attacker, target, true);
                         } else if (towerType === 'solid_tower' && window.startSolidTowerAttack) {
@@ -1456,8 +1479,14 @@
                     }
                     case 'tower_attack_stop': {
                         // Client receives stop attack event and clears animations
-                        const attacker = getPieceEntryById(msg.attacker_id, { warn: false });
-                        if (attacker && pieceDeployment?.stopTowerAttack) {
+                        console.log('[CLIENT] tower_attack_stop received:', msg);
+                        const attacker = getPieceEntryById(msg.attacker_id, { warn: true });
+                        if (!attacker) {
+                            console.warn('[CLIENT] tower_attack_stop: attacker not found:', msg.attacker_id);
+                            break;
+                        }
+                        if (pieceDeployment?.stopTowerAttack) {
+                            console.log('[CLIENT] Stopping attack for:', attacker.id);
                             pieceDeployment.stopTowerAttack(attacker);
                         }
                         break;
@@ -1682,13 +1711,18 @@
                     // Map logical coords to grid positions (depends on orientation)
                     const gridRows = rows.map(logicalToGridRow);
                     const gridCols = cols.map(logicalToGridCol);
+                    const rowStart = Math.min(...gridRows);
+                    const rowEnd = Math.max(...gridRows) + 1;
+                    const colStart = Math.min(...gridCols);
+                    const colEnd = Math.max(...gridCols) + 1;
 
                     // Create anchor div spanning 2x2 grid cells
                     const anchor = document.createElement('div');
                     anchor.className = 'king-anchor';
                     anchor.dataset.allegiance = allegiance;
-                    anchor.style.gridRow = `${Math.min(...gridRows)} / ${Math.max(...gridRows) + 1}`;
-                    anchor.style.gridColumn = `${Math.min(...gridCols)} / ${Math.max(...gridCols) + 1}`;
+                    anchor.style.gridRow = `${rowStart} / ${rowEnd}`;
+                    anchor.style.gridColumn = `${colStart} / ${colEnd}`;
+                    anchor.style.gridArea = `${rowStart} / ${colStart} / ${rowEnd} / ${colEnd}`;
                     anchor.innerHTML = `<img src="${imgSrc}" alt="King Tower">`;
                     boardGrid.appendChild(anchor);
 
@@ -1699,7 +1733,15 @@
                         });
                     });
 
-                    console.log(`[registerKingTowers] Created ${allegiance} king tower at rows=${rows}, cols=${cols}, gridRow=${anchor.style.gridRow}, gridCol=${anchor.style.gridColumn}`);
+                    // Basic sanity check：确保4个格子都存在
+                    const missing = [];
+                    rows.forEach((r) => {
+                        cols.forEach((c) => {
+                            const cell = document.querySelector(`.board-cell[data-row=\"${r}\"][data-col=\"${c}\"]`);
+                            if (!cell) missing.push(`${r},${c}`);
+                        });
+                    });
+                    console.log(`[registerKingTowers] Created ${allegiance} king tower at rows=${rows}, cols=${cols}, gridRow=${anchor.style.gridRow}, gridCol=${anchor.style.gridColumn}, missingCells=${missing.join('|') || 'none'}`);
                 };
 
                 createKingAnchor('a', kingImgA);
