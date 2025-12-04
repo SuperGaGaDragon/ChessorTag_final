@@ -275,9 +275,12 @@
         setTimeout(() => {
             towers.forEach(t => {
                 t.damageReduction = 0;
-                // revert image
+                // revert image - use allegiance-specific sprite
                 const img = t.element ? t.element.querySelector('img') : null;
-                const fallback = t._aggOriginalImgSrc || '../pieces/agressive_tower/aggressive_tower.png';
+                const defaultSprite = t.allegiance === 'a'
+                    ? '../pieces/agressive_tower/aggressive_tower_a.png'
+                    : '../pieces/agressive_tower/aggressive_tower.png';
+                const fallback = t._aggOriginalImgSrc || defaultSprite;
                 if (img) {
                     img.src = fallback;
                 }

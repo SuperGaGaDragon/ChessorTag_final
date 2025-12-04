@@ -30,6 +30,7 @@
     <script src="../moving/pieces_move/fighter_move.js"></script>
     <script src="../moving/pieces_move/ruler_move.js"></script>
     <script src="../moving/pieces_move/aggressive_tower_move.js"></script>
+    <script src="../moving/pieces_move/solid_tower_move.js"></script>
     <script src="../piece_deploy/piece_deploy.js"></script>
     <script src="../pieces_ability/aggressive_tower_ability.js"></script>
     <script src="../pieces_ability/solid_tower_ability.js"></script>
@@ -1361,7 +1362,11 @@
                                 if (!entry) return;
                                 entry.damageReduction = 0;
                                 const img = entry.element ? entry.element.querySelector('img') : null;
-                                const fallback = t.original_image || entry._aggOriginalImgSrc || '../pieces/agressive_tower/aggressive_tower.png';
+                                // Use allegiance-specific sprite as fallback
+                                const defaultSprite = entry.allegiance === 'a'
+                                    ? '../pieces/agressive_tower/aggressive_tower_a.png'
+                                    : '../pieces/agressive_tower/aggressive_tower.png';
+                                const fallback = t.original_image || entry._aggOriginalImgSrc || defaultSprite;
                                 if (img) {
                                     img.src = fallback;
                                 }

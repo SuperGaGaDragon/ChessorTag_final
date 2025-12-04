@@ -13,7 +13,9 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(sips -g all:*)",
-      "Bash(sips:*)"
+      "Bash(sips:*)",
+      "Bash(cp:*)",
+      "Bash(git -C \"/Users/alex/Desktop/chess_report_page\" status)"
     ],
     "deny": [],
     "ask": []

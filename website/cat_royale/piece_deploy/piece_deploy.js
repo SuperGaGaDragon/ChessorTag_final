@@ -287,6 +287,11 @@ class PieceDeployment {
                 window.handleAggressiveTowerDeath(entry);
             }
             this.stopTowerAttack(entry);
+        } else if (entry.type === 'solid_tower') {
+            if (typeof window.handleSolidTowerDeath === 'function') {
+                window.handleSolidTowerDeath(entry);
+            }
+            this.stopTowerAttack(entry);
         } else if (entry.type === 'king_tower') {
             window.gameOver = true;
             console.log('Game over: King tower destroyed');
