@@ -1,5 +1,11 @@
 # 待办事项 / 工作日志
 
+## ✅ 已完成（2025-11-29）
+
+### 1. cat_royale 修复计划书完善
+- `cat_royale/paicha.md`：补齐 Host 权威链路、快照、血条修复与 e2e 验收脚本；明确圣水/移动/塔能力各自 Owner 和时间排期（Day1-Day4）。
+- 记录 B 端血条不扣血根因与解决方案：damage 广播统一走 `handleDamageFromServer` 更新 UI，重建 health bar，禁用本地战斗循环。
+
 ## ✅ 已完成（2025-11-28）
 
 ### 1. Phase 2 模板架构迁移

@@ -351,9 +351,12 @@ class PieceDeployment {
         this.attachHealthBar(entry);
     }
 
-    movePiece(id, newPos) {
+    movePiece(id, newPos, options = {}) {
         const entry = this.boardPieces.find(p => p.id === id);
         if (!entry) return false;
+        const fromNetwork = !!options.fromNetwork;
+        const skipBroadcast = !!options.skipBroadcast;
+        const eventType = options.eventType || 'move';
         const cell = document.querySelector(`.board-cell[data-row="${newPos.row}"][data-col="${newPos.col}"]`);
         if (!cell) return false;
 
@@ -367,6 +370,16 @@ class PieceDeployment {
             if (entry.healthBar && entry.healthBar.barWrapper && entry.healthBar.barWrapper.parentElement !== entry.element) {
                 entry.element.appendChild(entry.healthBar.barWrapper);
             }
+        }
+        if (window.IS_HOST === true && !fromNetwork && !skipBroadcast && typeof window.postToParent === 'function') {
+            window.postToParent('state_update', {
+                type: 'state_update',
+                event: eventType,
+                id,
+                row: newPos.row,
+                col: newPos.col,
+                tick: Date.now()
+            });
         }
         return true;
     }
@@ -491,7 +504,7 @@ class PieceDeployment {
             if (!cardSlot.dataset.pieceType) return;
 
             const cost = parseInt(cardSlot.dataset.cost);
-            if (elixirManager.currentElixir < cost) {
+            if (!elixirManager.hasEnough(cost)) {
                 console.log(`Not enough elixir! Need ${cost}, have ${elixirManager.currentElixir}`);
                 return;
             }
@@ -526,7 +539,7 @@ class PieceDeployment {
             if (this.isDragging) return;
 
             const cost = parseInt(cardSlot.dataset.cost);
-            if (elixirManager.currentElixir < cost) {
+            if (!elixirManager.hasEnough(cost)) {
                 console.log(`Not enough elixir! Need ${cost}, have ${elixirManager.currentElixir}`);
                 return;
             }
@@ -584,7 +597,7 @@ class PieceDeployment {
         }
 
         const shouldSpendElixir = !fromNetwork && isPlayerOwned && !options.skipElixir;
-        if (shouldSpendElixir && elixirManager.currentElixir < cost) {
+        if (shouldSpendElixir && !elixirManager.hasEnough(cost)) {
             console.log('Not enough elixir!');
             return false;
         }
@@ -671,45 +684,14 @@ class PieceDeployment {
         this.attachHealthBar(pieceEntry);
 
         if (shouldSpendElixir) {
-            elixirManager.currentElixir -= cost;
-            elixirManager.updateElixirDisplay();
-            elixirManager.updateElixirBar();
-            elixirManager.startElixirGeneration();
+            const spent = elixirManager.spend(cost, this.playerSide);
+            if (!spent) {
+                console.log('Spend failed, abort deploy');
+                return false;
+            }
         }
 
         if (window.IS_HOST === true) {
-            if (pieceType === 'shouter' && window.createShouterMover) {
-                const mover = window.createShouterMover(pieceEntry, {
-                    pieces: this.boardPieces,
-                    movePiece: this.movePiece.bind(this),
-                    highlightPath: (coords) => this.highlightPath(pieceId, coords)
-                });
-                this.activeMovers[pieceEntry.id] = mover;
-                pieceEntry._mover = mover;
-            } else if (pieceType === 'squirmer' && window.createSquirmerMover) {
-                const mover = window.createSquirmerMover(pieceEntry, {
-                    pieces: this.boardPieces,
-                    movePiece: this.movePiece.bind(this)
-                });
-                this.activeMovers[pieceEntry.id] = mover;
-                pieceEntry._mover = mover;
-            } else if (pieceType === 'fighter' && window.createFighterMover) {
-                const mover = window.createFighterMover(pieceEntry, {
-                    pieces: this.boardPieces,
-                    movePiece: this.movePiece.bind(this)
-                });
-                this.activeMovers[pieceEntry.id] = mover;
-                pieceEntry._mover = mover;
-            } else if (pieceType === 'ruler' && window.createRulerMover) {
-                const mover = window.createRulerMover(pieceEntry, {
-                    pieces: this.boardPieces,
-                    movePiece: this.movePiece.bind(this)
-                });
-                this.activeMovers[pieceEntry.id] = mover;
-                pieceEntry._mover = mover;
-            }
-        } else if (fromNetwork) {
-            // Client-side visual movers for remote pieces (logic remains on HOST)
             if (pieceType === 'shouter' && window.createShouterMover) {
                 const mover = window.createShouterMover(pieceEntry, {
                     pieces: this.boardPieces,
@@ -856,7 +838,7 @@ class PieceDeployment {
 
         console.log('Piece deployment system initialized');
 
-        if (!this.attackScanTimer) {
+        if (!this.attackScanTimer && window.IS_HOST === true) {
             this.attackScanTimer = setInterval(() => this.scanTowerAttacks(), 250);
         }
     }

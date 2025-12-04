@@ -1,10 +1,61 @@
 // Elixir Management System
 class ElixirManager {
     constructor() {
-        this.currentElixir = 0;
+        this.pools = { a: 0, b: 0 };
+        this.currentElixir = 0; // local side cache for UI
+        this.side = 'a';
         this.maxElixir = 10;
         this.gameStart = false;
         this.elixirInterval = null;
+        this.onChange = null;
+    }
+
+    setSide(side) {
+        if (side === 'a' || side === 'b') {
+            this.side = side;
+        } else {
+            this.side = 'spectate';
+        }
+        this.currentElixir = this.getElixir(this.side);
+        this.updateElixirDisplay();
+        this.updateElixirBar();
+    }
+
+    getElixir(side = this.side) {
+        const key = side === 'b' ? 'b' : 'a';
+        return this.pools[key] ?? 0;
+    }
+
+    setElixir(side, value, { emit = true } = {}) {
+        const key = side === 'b' ? 'b' : 'a';
+        const clamped = Math.max(0, Math.min(value, this.maxElixir));
+        this.pools[key] = clamped;
+        if (key === this.side) {
+            this.currentElixir = clamped;
+            this.updateElixirDisplay();
+            this.updateElixirBar();
+        }
+        if (emit && typeof this.onChange === 'function') {
+            this.onChange(key, clamped);
+        }
+        return clamped;
+    }
+
+    changeElixir(side, delta, opts = {}) {
+        const next = this.getElixir(side) + delta;
+        return this.setElixir(side, next, opts);
+    }
+
+    hasEnough(cost, side = this.side) {
+        return this.getElixir(side) >= cost;
+    }
+
+    spend(cost, side = this.side, opts = {}) {
+        if (typeof window !== 'undefined' && window.IS_HOST !== true) return false;
+        if (!this.hasEnough(cost, side)) return false;
+        this.changeElixir(side, -cost, opts);
+        this.startElixirGeneration();
+        return true;
     }
 
     // Start the elixir generation
@@ -20,23 +71,18 @@ class ElixirManager {
 
         // Generate +1 elixir per second
         this.elixirInterval = setInterval(() => {
-            if (this.currentElixir < this.maxElixir) {
-                this.currentElixir++;
-                this.updateElixirDisplay();
-                this.updateElixirBar();
-                console.log(`Elixir: ${this.currentElixir}/${this.maxElixir}`);
-                if (typeof window !== 'undefined' && window.IS_HOST === true && typeof window.postToParent === 'function') {
-                    window.postToParent('state_update', {
-                        type: 'state_update',
-                        event: 'elixir',
-                        side: 'a',
-                        elixir: this.currentElixir
-                    });
+            if (typeof window !== 'undefined' && window.IS_HOST !== true) return;
+            let anyChanged = false;
+            ['a', 'b'].forEach((side) => {
+                if (this.getElixir(side) < this.maxElixir) {
+                    anyChanged = true;
+                    const next = this.getElixir(side) + 1;
+                    this.setElixir(side, next);
+                    console.log(`[elixir] ${side} -> ${next}/${this.maxElixir}`);
                 }
-
-                if (this.currentElixir >= this.maxElixir) {
-                    this.stopElixirGeneration();
-                }
+            });
+            if (!anyChanged) {
+                this.stopElixirGeneration();
             }
         }, 1000); // 1 second interval
     }
@@ -77,6 +123,7 @@ class ElixirManager {
 
     // Reset elixir
     reset() {
+        this.pools = { a: 0, b: 0 };
         this.currentElixir = 0;
         this.gameStart = false;
         this.stopElixirGeneration();

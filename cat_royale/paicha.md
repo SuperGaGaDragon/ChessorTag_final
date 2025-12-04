@@ -1,6 +1,6 @@
 已完成：
 - 客户端画面保持更新：fromNetwork 部署也创建移动器，tower 扫描/攻击动画在客户端开启；攻击函数去掉 HOST 限制，客户端运行动画但伤害仍仅由 Host 计算与广播。
-- 血条悬浮提示修复：health bar 统一写入 title，并在 HP 变化后刷新，客户端悬浮可看到 “当前/最大”。//
+- 血条悬浮提示修复：health bar 统一写入 title，并在 HP 变化后刷新，客户端悬浮可看到 “当前/最大”。
 
 未完成 / 风险：
 - Elixir 仍仅维护 side a，Host 未对 deploy/ruler/ability 做扣费/冷却校验，B 侧可能免费操作且不广播 elixir。
@@ -9,10 +9,48 @@
 
 ***修复计划书***
 
-- Host 统一圣水：在 Host 状态中维护 a_elixir/b_elixir，客户端仅显示广播；deploy/ruler/ability request 全部由 Host 校验费用/冷却并扣费后再广播 state_update: {event:"elixir", side, elixir}；补上 B 侧圣水递增定时与持久化，客户端本地加圣水逻辑移除。
-- 权威移动同步：ruler_move/troop mover 只在 Host 运行并每步广播位置；客户端停掉自算坐标，收到广播直接覆盖显示；补充对 host_offline/backfill 的初始位置快照，避免路径漂移。
-- 塔切换与能力请求链：tower ability/switch 改为 Client→Host request，Host 校验费用/冷却/目标合法后修改状态并广播 ability/switch 事件（含当前模式/减伤剩余时间）；客户端只渲染广播结果且播放动画。
-- 回归与验证：
-  - 双端放兵、切塔、放技能时，Host 日志出现 request→state_update 且 elixir 正确扣减；B 侧操作能看到 A 侧画面同步变化。
-  - 断线/重连：新加入的客户端能收到当前 elixir/能力模式/棋子坐标的完整快照。
-  - 性能与保护：为重复 request 加去抖/幂等 id，防止多次扣费；添加最小 e2e 场景回放用例（双端对战 30s）验证圣水/移动/能力同步。
+目标：消除三项风险（圣水仅管 A、移动漂移、塔切换/能力不同步），由 Host 持有唯一真相，Client 只渲染广播事实，确保 B 端血条与战场状态完全一致。
+
+交付物：
+- Host 权威：圣水、移动、塔模式/技能的请求-校验-广播链路。
+- 快照：进入/重连时，提供 elixir、棋子坐标、塔模式/减伤、血条标题的全量快照。
+- 客户端：去掉本地模拟/扣费，改为渲染广播并重建 UI（含 health bar）。
+- 验收脚本：30s 双端对局回放，校验扣费、位置、技能、血条同步。
+
+工作拆解与责任：
+- 圣水权威（Owner: backend）
+  - `elixir.js`：Host 维护 `a_elixir/b_elixir`（含上限、加速），定时递增并广播 `{event:"elixir", side, elixir}`。
+  - Host 校验 deploy/ruler/ability 费用与冷却，合法扣费广播，非法返回 err code；客户端移除本地加圣水。
+  - 新增 B 侧初始 elixir 推送 + 断线重连 elixir 快照。
+- 权威移动同步（Owner: moving）
+  - mover/ruler 仅在 Host 跑；按步广播 `{event:"ruler_move"/"move", id, row, col, tick}`。
+  - 客户端停本地坐标模拟，收到广播直接覆盖；进入/重连请求全量棋子坐标快照。
+  - death/game_over：Host 停止 mover 并广播终态，客户端只做动画清理。
+- 塔切换/能力请求链（Owner: tower）
+  - Client→Host request 携带 `tower_id、mode/skill、cost、cooldown_token`。
+  - Host 校验费用/冷却/目标，成功扣费并广播 `{event:"tower_switch"/"ability", tower_id, mode/skill, expire_at, side}`；失败回 err code。
+  - 客户端不本地切换/减伤，只渲染广播；塔模式/减伤剩余写入快照。
+- B 端血条修复（Owner: UI/WS）
+  - damage state_update 统一走 `handleDamageFromServer`：覆盖 hp、调用 `updateHealthBar` + `writeHealthBarTitle`（当前/最大），禁用本地 `applyDamage` 改血。
+  - 进入/重连后按棋子快照重建 health bar DOM + title，确保 UI 有基座。
+  - 关闭客户端本地伤害/战斗循环，只渲染 Host 广播；增加 WS 日志/回放验证血条掉血。
+
+回归与验收：
+- 功能：双端放兵、走 ruler、切塔、放技能，Host 日志出现 request→state_update，elixir 正确扣减，双方画面同步。
+- 断线重连：刷新后立即拿到 elixir/棋子坐标/塔模式/血条快照，继续广播无漂移。
+- 异常防护：重复 request 幂等/去抖；非法费用/冷却返回明确 err code；game_over 后拒绝新 request。
+- e2e：录制 30s 双端回放，验证圣水曲线、移动、能力、血条同步。
+
+
+- Step1：圣水双侧维护与扣费校验，移除客户端加圣水。
+- Step2：权威移动广播、客户端覆盖与快照。
+- Step3：塔切换/能力请求链与广播。
+- Step4：血条修复收尾、断线重连回归、自测脚本。
+
+***核对审查***
+
+- [Step1 圣水权威] `game_page/elixir.js` 现已维护双侧池并只在 HOST 侧计时广播，`deploy_request`/`ruler_move_request` 都会走 `elixirManager.spend` 校验与扣费，匹配计划。但塔能力仍未接入：`pieces_ability/solid_tower_ability.js:76-152` 完全免费，且广播时把 `side` 硬编码为 `a`，远端会收到错误圣水同步；`pieces_ability/aggressive_tower_ability.js:255-266` 仅本地扣 1 费，未做冷却令牌/err code，缺乏请求-响应链。
+- [Step2 移动权威] mover 构造仅在 `window.IS_HOST===true` 执行（`piece_deploy.js:685-725`），`movePiece` 在 HOST 时广播 `state_update`，客户端通过事件覆盖坐标；`beginMatch` 非 HOST 会主动 `snapshot_request`。该风险基本消除。
+- [Step3 塔切换/能力同步] 切换模式走请求链并扣 1 费（`game_page.html:1068-1140` + `aggressive_tower_ability.js:185-210`），符合计划。但两条能力链缺失：Solid 及 Aggressive 2 均为 HOST 本地触发，未校验请求端、未广播 err code/冷却令牌，Aggressive 2 也未向客户端广播减伤/形态，仅靠移动广播位置，视觉与状态不同步。
+- [Step4 血条/快照] `handleStateUpdate('damage')` 落地到 `applyDamageFromServer` 并强制刷 `healthBar.title`，快照含棋子坐标与 elixir（`game_page.html:1179-1233`）。但快照未包含塔能力/减伤状态，重连后能力形态会丢失，仍需补充。
+- 重大缺陷：`aggressive_tower_ability.js:255` 处在声明 `playerAllegiance` 之前调用，Enter 触发会直接抛 `ReferenceError`，导致能力 2 失效并阻断后续逻辑；需立即修复并补同步广播。

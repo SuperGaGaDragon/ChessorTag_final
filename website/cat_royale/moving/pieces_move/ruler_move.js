@@ -98,7 +98,7 @@
         }
 
         canMove() {
-            if (elixirManager?.currentElixir < 1) {
+            if (!elixirManager?.hasEnough?.(1)) {
                 console.log('Ruler cannot move: insufficient elixir', elixirManager?.currentElixir);
                 return false;
             }
@@ -150,14 +150,14 @@
                 this.clearHighlights();
                 return;
             }
-            // Deduct elixir
-            elixirManager.currentElixir -= 1;
-            elixirManager.updateElixirDisplay();
-            elixirManager.updateElixirBar();
-            elixirManager.startElixirGeneration();
+            if (!elixirManager.spend(1)) {
+                console.log('Ruler move blocked: insufficient elixir');
+                this.clearHighlights();
+                return;
+            }
 
             if (typeof this.board.movePiece === 'function') {
-                this.board.movePiece(this.unit.id, { row, col });
+                this.board.movePiece(this.unit.id, { row, col }, { skipBroadcast: true });
             }
             this.unit.position = { row, col };
             this.lastMoveAt = Date.now();

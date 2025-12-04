@@ -706,6 +706,33 @@
         let directWs = null;
         let directGameId = null;
 
+        function getTowerTypeForSide(side) {
+            const normalized = side === 'b' ? 'b' : 'a';
+            return normalized === mySide ? playerTowerType : opponentTowerType;
+        }
+
+        function setTowerTypeForSide(side, newType) {
+            const normalized = side === 'b' ? 'b' : 'a';
+            if (normalized === mySide) {
+                playerTowerType = newType;
+            } else {
+                opponentTowerType = newType;
+            }
+        }
+
+        if (typeof elixirManager !== 'undefined') {
+            elixirManager.onChange = (side, value) => {
+                if (window.IS_HOST === true) {
+                    postToParent('state_update', {
+                        type: 'state_update',
+                        event: 'elixir',
+                        side,
+                        elixir: value
+                    });
+                }
+            };
+        }
+
         function postToParent(type, payload = {}) {
             console.log('[game_page] postToParent called', { type, hasParentBridge, payload });
             if (hasParentBridge) {
@@ -1011,30 +1038,136 @@
                 pieceDeployment.handleDeath(entry);
             }
 
-            function setElixir(side, value) {
+            function setElixir(side, value, { emit = false } = {}) {
                 if (typeof elixirManager === 'undefined') return;
-                if (side === 'a') {
-                    elixirManager.currentElixir = value;
-                }
-                elixirManager.updateElixirDisplay();
-                elixirManager.updateElixirBar();
+                elixirManager.setElixir(side, value, { emit });
             }
 
-            function hostSetElixir(side, value) {
-                if (!isHost) return;
-                setElixir(side, value);
-                postToParent('state_update', {
-                    type: 'state_update',
-                    event: 'elixir',
-                    side,
-                    elixir: value
+            function syncPieceFromSnapshot(pieceMsg) {
+                if (!pieceMsg || !pieceMsg.id) return;
+                const row = parseInt(pieceMsg.row);
+                const col = parseInt(pieceMsg.col);
+                const type = pieceMsg.kind || pieceMsg.type;
+                const allegiance = pieceMsg.owner || pieceMsg.allegiance || 'a';
+                const existing = pieceDeployment.boardPieces.find(p => p.id === pieceMsg.id);
+                if (existing) {
+                    if (Number.isInteger(row) && Number.isInteger(col)) {
+                        pieceDeployment.movePiece(existing.id, { row, col }, { fromNetwork: true, skipBroadcast: true });
+                        existing.position = { row, col };
+                    }
+                    if (typeof pieceMsg.hp === 'number') {
+                        existing.hp = pieceMsg.hp;
+                        if (existing.healthBar && typeof existing.healthBar.update === 'function') {
+                            existing.healthBar.update(existing.hp);
+                        }
+                        pieceDeployment.refreshHealthTooltip?.(existing);
+                    }
+                    return;
+                }
+                const cell = Number.isInteger(row) && Number.isInteger(col)
+                    ? document.querySelector(`.board-cell[data-row="${row}"][data-col="${col}"]`)
+                    : null;
+                if (!cell) return;
+                pieceDeployment.deployPiece(cell, null, {
+                    fromNetwork: true,
+                    skipElixir: true,
+                    pieceType: type,
+                    allegiance,
+                    id: pieceMsg.id,
+                    cost: pieceMsg.cost,
+                    boardImagePath: pieceMsg.boardImagePath || pieceMsg.board_image_path
+                });
+                const entry = pieceDeployment.boardPieces.find(p => p.id === pieceMsg.id);
+                if (entry) {
+                    if (typeof pieceMsg.hp === 'number') entry.hp = pieceMsg.hp;
+                    if (typeof pieceMsg.max_hp === 'number') entry.maxHP = pieceMsg.max_hp;
+                    if (entry.healthBar && typeof entry.healthBar.update === 'function' && typeof entry.hp === 'number') {
+                        entry.healthBar.update(entry.hp);
+                    }
+                }
+            }
+
+            function broadcastElixirSnapshot() {
+                if (!isHost || typeof elixirManager === 'undefined') return;
+                ['a', 'b'].forEach((side) => {
+                    const value = elixirManager.getElixir ? elixirManager.getElixir(side) : 0;
+                    elixirManager.setElixir(side, value, { emit: true });
                 });
             }
 
-            function hostChangeElixir(side, delta) {
+            function processTowerSwitchRequest(allegiance) {
                 if (!isHost) return;
-                const current = side === 'a' ? elixirManager.currentElixir : 0;
-                hostSetElixir(side, current + delta);
+                const side = allegiance === 'b' ? 'b' : 'a';
+                if (typeof window.AggressiveTowerAbility?.canSwitchTowers === 'function') {
+                    if (!window.AggressiveTowerAbility.canSwitchTowers(side)) {
+                        postToParent('state_update', {
+                            type: 'state_update',
+                            event: 'error',
+                            code: 'tower_switch_denied',
+                            side
+                        });
+                        return;
+                    }
+                }
+                if (!elixirManager?.spend?.(1, side)) {
+                    postToParent('state_update', {
+                        type: 'state_update',
+                        event: 'error',
+                        code: 'elixir_insufficient',
+                        side,
+                        action: 'tower_switch',
+                        cost: 1
+                    });
+                    return;
+                }
+                const currentType = getTowerTypeForSide(side);
+                const newType = currentType === 'solid' ? 'aggressive' : 'solid';
+                const towers = (pieceDeployment.boardPieces || []).filter(p =>
+                    p.allegiance === side &&
+                    (p.type === 'aggressive_tower' || p.type === 'solid_tower')
+                );
+                window.AggressiveTowerAbility?.rescaleTowerStats?.(towers, newType);
+                setTowerTypeForSide(side, newType);
+                const serialized = towers.map(t => serializePiece(t));
+                postToParent('state_update', {
+                    type: 'state_update',
+                    event: 'tower_switch',
+                    side,
+                    tower_type: newType,
+                    towers: serialized
+                });
+                if (side === mySide) {
+                    updateTowerToggle();
+                }
+            }
+
+            function buildSnapshot() {
+                const pieces = pieceDeployment.boardPieces.map(p => serializePiece(p));
+                return {
+                    type: 'state_update',
+                    event: 'snapshot',
+                    pieces,
+                    elixir: {
+                        a: elixirManager?.getElixir?.('a') ?? 0,
+                        b: elixirManager?.getElixir?.('b') ?? 0
+                    }
+                };
+            }
+
+            function sendSnapshot() {
+                if (!isHost) return;
+                const payload = buildSnapshot();
+                postToParent('state_update', payload);
+            }
+
+            function applySnapshot(msg) {
+                if (msg.elixir) {
+                    if (typeof msg.elixir.a === 'number') setElixir('a', msg.elixir.a);
+                    if (typeof msg.elixir.b === 'number') setElixir('b', msg.elixir.b);
+                }
+                if (Array.isArray(msg.pieces)) {
+                    msg.pieces.forEach(p => syncPieceFromSnapshot(p));
+                }
             }
 
             function updateTimerDisplay(seconds) {
@@ -1060,6 +1193,15 @@
                     case 'elixir':
                         setElixir(msg.side, msg.elixir);
                         break;
+                    case 'snapshot_request':
+                        if (isHost) sendSnapshot();
+                        break;
+                    case 'snapshot':
+                        applySnapshot(msg);
+                        break;
+                    case 'tower_switch_request':
+                        processTowerSwitchRequest(msg.side || msg.allegiance);
+                        break;
                     case 'timer':
                         updateTimerDisplay(msg.seconds_left);
                         break;
@@ -1082,6 +1224,9 @@
                                 img.src = desiredPath;
                             }
                         });
+                        if (msg.side) {
+                            setTowerTypeForSide(msg.side, newType);
+                        }
                         if (typeof window.AggressiveTowerAbility?.init === 'function') {
                             updateTowerToggle();
                         }
@@ -1103,12 +1248,24 @@
                         });
                         break;
                     }
+                    case 'move': {
+                        const targetId = msg.id || msg.piece_id;
+                        if (!targetId) break;
+                        const row = parseInt(msg.row);
+                        const col = parseInt(msg.col);
+                        pieceDeployment.movePiece(targetId, { row, col }, { fromNetwork: true, skipBroadcast: true });
+                        const entry = pieceDeployment.boardPieces.find(p => p.id === targetId);
+                        if (entry) {
+                            entry.position = { row, col };
+                        }
+                        break;
+                    }
                     case 'ruler_move': {
                         const targetId = msg.id || msg.piece_id;
                         if (!targetId) break;
                         const row = parseInt(msg.row);
                         const col = parseInt(msg.col);
-                        pieceDeployment.movePiece(targetId, { row, col });
+                        pieceDeployment.movePiece(targetId, { row, col }, { fromNetwork: true, skipBroadcast: true });
                         const entry = pieceDeployment.boardPieces.find(p => p.id === targetId);
                         if (entry) {
                             entry.position = { row, col };
@@ -1118,6 +1275,11 @@
                     case 'game_over':
                         battleStarted = false;
                         alert(`Game over! Winner: ${msg.winner || '-'}`);
+                        break;
+                    case 'error':
+                        if (!msg.side || msg.side === mySide) {
+                            console.warn('[state_update error]', msg.code || msg.reason || 'unknown', msg);
+                        }
                         break;
                     default:
                         break;
@@ -1129,12 +1291,31 @@
                 const row = parseInt(msg.row);
                 const col = parseInt(msg.col);
                 if (Number.isNaN(row) || Number.isNaN(col)) return;
+                const allegiance = msg.allegiance || mySide || 'a';
+                const pieceType = msg.pieceType || msg.cardType;
+                const cost = msg.cost ?? (pieceDeployment?.getDefaultCost?.(pieceType) || 0);
+
+                if (typeof elixirManager !== 'undefined') {
+                    const spent = elixirManager.spend(cost, allegiance);
+                    if (!spent) {
+                        postToParent('state_update', {
+                            type: 'state_update',
+                            event: 'error',
+                            code: 'elixir_insufficient',
+                            side: allegiance,
+                            action: 'deploy',
+                            cost
+                        });
+                        return;
+                    }
+                }
+
                 const cell = document.querySelector(`.board-cell[data-row="${row}"][data-col="${col}"]`);
                 if (!cell) return;
                 const pieceEntry = pieceDeployment.deployPiece(cell, null, {
-                    pieceType: msg.pieceType || msg.cardType,
-                    allegiance: msg.allegiance || mySide,
-                    cost: msg.cost,
+                    pieceType,
+                    allegiance,
+                    cost,
                     boardImagePath: msg.boardImagePath,
                     skipBroadcast: true,  // Prevent deployPiece from calling handleLocalDeploy
                     fromNetwork: true
@@ -1155,6 +1336,7 @@
                 const row = parseInt(msg.row);
                 const col = parseInt(msg.col);
                 if (Number.isNaN(row) || Number.isNaN(col)) return;
+                const allegiance = msg.allegiance || mySide || 'a';
 
                 const entry = pieceDeployment.boardPieces.find(p => p.id === targetId);
                 if (!entry) return;
@@ -1168,13 +1350,22 @@
                 }
                 const MOVE_COST = 1;
                 const COOLDOWN_MS = 5000;
-                if (elixirManager.currentElixir < MOVE_COST) return;
-                elixirManager.currentElixir -= MOVE_COST;
-                elixirManager.updateElixirDisplay();
-                elixirManager.updateElixirBar();
-                elixirManager.startElixirGeneration();
+                if (typeof elixirManager !== 'undefined') {
+                    const spent = elixirManager.spend(MOVE_COST, allegiance);
+                    if (!spent) {
+                        postToParent('state_update', {
+                            type: 'state_update',
+                            event: 'error',
+                            code: 'elixir_insufficient',
+                            side: allegiance,
+                            action: 'ruler_move',
+                            cost: MOVE_COST
+                        });
+                        return;
+                    }
+                }
 
-                pieceDeployment.movePiece(targetId, { row, col });
+                pieceDeployment.movePiece(targetId, { row, col }, { skipBroadcast: true });
                 entry.position = { row, col };
                 const now = Date.now();
                 if (mover) {
@@ -1203,6 +1394,9 @@
                 window.isHost = isHost;
                 window.MY_SIDE = normalized;
                 IS_SPECTATOR = normalized === 'spectate';
+                if (typeof elixirManager?.setSide === 'function') {
+                    elixirManager.setSide(normalized);
+                }
             }
             updateSideFlags(window.GAME_SIDE || window.PLAYER_SIDE || 'spectate');
 
@@ -1474,6 +1668,7 @@
                 if (elixirManager && typeof elixirManager.reset === 'function') {
                     elixirManager.reset();
                 }
+                broadcastElixirSnapshot();
                 elixirManager.startElixirGeneration();
 
                 pieceDeployment.initialize();
@@ -1481,6 +1676,15 @@
                 startTimer();
                 initializeCards();
                 initAbilities();
+                if (isHost) {
+                    sendSnapshot();
+                } else {
+                    postToParent('state_update', {
+                        type: 'state_update',
+                        event: 'snapshot_request',
+                        side: window.PLAYER_SIDE
+                    });
+                }
             }
 
             function handleRemoteDeploy(msg) {
@@ -1508,7 +1712,7 @@
                 if (!targetId) return;
                 const row = parseInt(msg.row);
                 const col = parseInt(msg.col);
-                pieceDeployment.movePiece(targetId, { row, col });
+                pieceDeployment.movePiece(targetId, { row, col }, { fromNetwork: true, skipBroadcast: true });
                 const entry = pieceDeployment.boardPieces.find(p => p.id === targetId);
                 if (entry) {
                     entry.position = { row, col };

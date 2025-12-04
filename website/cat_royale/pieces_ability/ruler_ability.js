@@ -54,17 +54,13 @@
             if (!ruler) return;
             if (!window.startRulerAttack || !window.isRulerInRange) return;
             if (Date.now() < abilityCooldownUntil) return;
-            if (elixirManager?.currentElixir < ABILITY_COST) return;
+            if (!elixirManager?.hasEnough?.(ABILITY_COST)) return;
             if (getMoveCooldownRemaining(ruler) > 0) return;
 
             const target = findNearestTroopInRange(ruler);
             if (!target) return;
 
-            // Spend elixir
-            elixirManager.currentElixir -= ABILITY_COST;
-            elixirManager.updateElixirDisplay();
-            elixirManager.updateElixirBar();
-            elixirManager.startElixirGeneration();
+            if (!elixirManager.spend(ABILITY_COST)) return;
 
             abilityCooldownUntil = Date.now() + ABILITY_COOLDOWN_MS;
             window.startRulerAttack(ruler, target);
