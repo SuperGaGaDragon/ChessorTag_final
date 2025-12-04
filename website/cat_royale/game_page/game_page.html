@@ -1051,6 +1051,7 @@
                         pieceEntry.healthBar.update(pieceEntry.hp);
                     }
                     processPendingTowerEvents();
+                    ensureKingTowers();
                 }
             }
 
@@ -1069,6 +1070,13 @@
                 // If HP <= 0, trigger death
                 if (hp <= 0 && !entry._isDead) {
                     pieceDeployment.handleDeath(entry);
+                }
+                // Fallback: 在 CLIENT 端补播塔攻击动画，避免 tower_attack 丢失后无视觉
+                if (!isHost && entry && msg.attacker_id) {
+                    const attacker = getPieceEntryById(msg.attacker_id, { warn: false });
+                    if (attacker && (attacker.type === 'solid_tower' || attacker.type === 'aggressive_tower')) {
+                        startTowerVisualAttack(attacker, entry, attacker.type);
+                    }
                 }
             }
 
@@ -1279,6 +1287,7 @@
                     msg.pieces.forEach(p => syncPieceFromSnapshot(p));
                 }
                 processPendingTowerEvents();
+                ensureKingTowers();
             }
 
             function updateTimerDisplay(seconds) {
@@ -1737,10 +1746,15 @@
                 });
             }
 
-            function registerKingTowers() {
+            function registerKingTowers(preservedShared = null) {
                 if (typeof pieceDeployment === 'undefined') return;
                 const boardGrid = document.querySelector('.board-grid');
                 if (!boardGrid) return;
+
+                const prevShared = preservedShared || {
+                    a: pieceDeployment.kingTowerShared?.a ? { ...pieceDeployment.kingTowerShared.a } : null,
+                    b: pieceDeployment.kingTowerShared?.b ? { ...pieceDeployment.kingTowerShared.b } : null
+                };
 
                 // 清理旧的 anchor 和缓存，避免重复挂载导致显示异常
                 boardGrid.querySelectorAll('.king-anchor').forEach(el => el.remove());
@@ -1788,6 +1802,12 @@
                         });
                     });
 
+                    // 恢复之前的血量（如果有）
+                    const sharedCache = prevShared?.[allegiance];
+                    if (sharedCache) {
+                        pieceDeployment.updateKingHealth(allegiance, sharedCache.hp ?? sharedCache.maxHP ?? 1800);
+                    }
+
                     // Basic sanity check：确保4个格子都存在
                     const missing = [];
                     rows.forEach((r) => {
@@ -1802,6 +1822,17 @@
 
                 createKingAnchor('a', kingImgA);
                 createKingAnchor('b', kingImgB);
+            }
+
+            function ensureKingTowers() {
+                const boardGrid = document.querySelector('.board-grid');
+                if (!boardGrid) return;
+                const anchors = boardGrid.querySelectorAll('.king-anchor');
+                const aCount = (pieceDeployment.boardPieces || []).filter(p => p.type === 'king_tower' && p.allegiance === 'a').length;
+                const bCount = (pieceDeployment.boardPieces || []).filter(p => p.type === 'king_tower' && p.allegiance === 'b').length;
+                if (anchors.length < 2 || aCount < 4 || bCount < 4) {
+                    registerKingTowers();
+                }
             }
 
             function startTimer() {
