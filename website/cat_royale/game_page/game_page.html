@@ -1023,6 +1023,15 @@
                 const type = pieceMsg.kind || pieceMsg.pieceType;
                 const allegiance = pieceMsg.owner || pieceMsg.allegiance || 'a';
 
+                // king_tower 由 registerKingTowers 管理，不在客户端按单格重建
+                if (type === 'king_tower') {
+                    ensureKingTowers();
+                    if (typeof pieceMsg.hp === 'number') {
+                        pieceDeployment.updateKingHealth(allegiance, pieceMsg.hp);
+                    }
+                    return;
+                }
+
                 // Check if piece already exists (prevent duplicate spawns)
                 if (pieceMsg.id) {
                     const existing = pieceDeployment.boardPieces.find(p => p.id === pieceMsg.id);
@@ -1129,6 +1138,14 @@
                 const col = parseInt(pieceMsg.col);
                 const type = pieceMsg.kind || pieceMsg.type;
                 const allegiance = pieceMsg.owner || pieceMsg.allegiance || 'a';
+                // king_tower: anchor 已经在棋盘上，不移动，只同步血量
+                if (type === 'king_tower') {
+                    if (typeof pieceMsg.hp === 'number') {
+                        pieceDeployment.updateKingHealth(allegiance, pieceMsg.hp);
+                    }
+                    ensureKingTowers();
+                    return;
+                }
                 const existing = pieceDeployment.boardPieces.find(p => p.id === pieceMsg.id);
                 if (existing) {
                     if (Number.isInteger(row) && Number.isInteger(col)) {
