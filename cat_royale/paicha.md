@@ -1,78 +1,20 @@
-***用户端检查报告 - 新问题排查***
+问题记录（暂不修复代码）：
+1. A 端 aggressive tower 图片仍旧显示异常，未按预期更新。
+2. B 端 aggressive tower 常态应显示 aggressive_tower.png，但实际使用了 cooked_aggressive_tower.png。
+3. solid tower 的死亡特效未正常播放，击毁后没有出现预期特效表现。
+4. B 端释放技能后，A 端与 B 端同时进入冷却，未实现仅 B 端冷却的逻辑。
 
-## ✅ 已修复问题
+***原因排查***
+- A 端 aggressive tower 贴图没有按阵营切换：右侧切换按钮和能力回落默认用 `../pieces/agressive_tower/aggressive_tower.png`，未按 allegiance 取 `_a` 资源（game_page.html:683-684 及 tower_ability_aggressive 回落逻辑），因此 A 侧一直显示 B 侧贴图。
+- B 端 aggressive tower 正常态被渲染成 cooked：死亡处理 `handleAggressiveTowerDeath`（website/cat_royale/moving/pieces_move/aggressive_tower_move.js）把 `boardImagePath`/img.src 持久改成 `cooked_aggressive_tower.png` 并被 serialize 广播，重新开局/切换时没有重置活体贴图，存活状态仍沿用死亡贴图。
+- solid tower 死亡特效缺失：远端只收到 death 事件时，如果 entry 已标记 `_isDead` 或 hp 未同步到 0，`pieceDeployment.handleDeath` 会直接返回，`handleSolidTowerDeath` 不执行，DOM 也不会替换成 `cooked_solid_tower.png`/灰度。
+- B 端释放 aggressive 技能导致双方冷却：冷却与锁定状态保存在全局 `TowerAbilityState`/`ability2CooldownUntil`，未按 side 区分。`setAbilityLock('aggressiveActive', true)` 让 `canSwitchTowers` 认为能力激活，从而 A、B 两侧按钮同时被禁用/冷却。
 
-### 1. ✅ 创建缺失的 aggressive_tower.png 文件
-**问题**：B端通用皮肤文件缺失
-**修复**：从 `aggressive_tower_original_tall.png` 复制创建了 `aggressive_tower.png` 文件
-**文件**：`website/cat_royale/pieces/agressive_tower/aggressive_tower.png`
+***修复方案***
+- aggressive tower 贴图选择补齐阵营判断：切换按钮与 ability 回落改用 `towerSpriteFor(..., allegiance)`，payload 中带上 allegiance，避免默认落到 B 侧资源。
+- aggressive tower 在复活/重摆/切换形态时统一重置 `boardImagePath` 与 img.src（`aggressive_tower.png`/`_a`），仅在 hp<=0 时写入 cooked，serialize 时也依据当前 hp 选择正常或死亡贴图。
+- solid tower death 同步兜底：`handleDeathFromServer` 即便 `_isDead` 已置也强制执行一次 `handleSolidTowerDeath`（或 death 事件携带 board_image_path 并强制覆盖），确保远端能看到 cooked/灰度效果。
+- 将 tower ability 锁与冷却按 side 存储与判定（如 `ability2CooldownUntil[side]`、`TowerAbilityState[side].aggressiveActive`），按钮禁用逻辑带 side，避免一方施法占用全局锁导致另一方一并冷却。
 
-### 2. ✅ King Tower 尺寸问题
-**问题**：B 端国王塔只占 1 格，怀疑 2x2 anchor 未生效
-**检查结果**：代码逻辑正确，`createKingAnchor` 正确创建了 2x2 的 grid span
-- Side A: rows [6,7], cols [3,4]
-- Side B: rows [0,1], cols [3,4]
-- `logicalToGridRow/logicalToGridCol` 函数正确处理了视觉位置转换
-**状态**：代码逻辑已验证正确，如果运行时仍有问题，需要检查 CSS 渲染
-
-### 3. ✅ 统一 Aggressive Tower 图片路径
-**问题**：A 端塔缺边框且皮肤不统一，技能结束后回滚路径错误
-**修复内容**：
-- **正常态**：根据 allegiance 使用正确的皮肤
-  - A侧：`aggressive_tower_a.png`
-  - B侧：`aggressive_tower.png`
-- **死亡态**：`cooked_aggressive_tower.png`（已有黑白效果）
-- **技能态**：`aggressive_tower_ability_2.png`
-- **回滚修复**：修改了技能结束后的图片回滚逻辑，确保基于 allegiance 使用正确的默认皮肤
-
-**修改文件**：
-- `aggressive_tower_ability.js:280-283` - 技能结束回滚逻辑
-- `game_page.html:1365-1368` - CLIENT端接收ability结束事件
-
-### 4. ✅ B 端血条不同步问题
-**问题**：日志显示 damage 事件抵达，UI 条不变
-**检查结果**：
-- `registerStaticPiece` 正确调用了 `attachHealthBar`（第351行）
-- `attachHealthBar` 没有任何 side/isHost 判断，对所有端一视同仁
-- `ensureHealthBarAttached` 在所有网络同步路径中都被调用
-- `applyDamageFromServer` 使用唯一 id 查找，不依赖 side 过滤
-**状态**：代码逻辑已验证正确，血条应该在两端都能正常附加和更新
-
-### 5. ✅ Solid Tower 死亡特效
-**问题**：solid tower hp=0 时应该变成 cooked_solid_tower.png
-**修复内容**：
-- 创建了新文件 `solid_tower_move.js`
-- 实现了 `handleSolidTowerDeath` 函数，与 aggressive tower 一致：
-  - 切换图片为 `cooked_solid_tower.png`
-  - 添加灰度滤镜 `grayscale(1)`
-  - 清理攻击状态和定时器
-- 在 `game_page.html` 中引入新文件
-- 在 `piece_deploy.js:290-294` 的 `handleDeath` 函数中添加了 solid_tower 分支
-
-## 📋 修复总结
-
-所有 paicha.md 中列出的问题已全部修复完成：
-
-1. ✅ 缺失的图片文件已创建
-2. ✅ King Tower 2x2 逻辑已验证正确
-3. ✅ Aggressive Tower 图片路径统一（三态：正常/死亡/技能）
-4. ✅ 血条附加逻辑已验证对两端一致
-5. ✅ Solid Tower 死亡特效已实现
-
-**修改的文件列表**：
-- 新建：`website/cat_royale/pieces/agressive_tower/aggressive_tower.png`
-- 新建：`website/cat_royale/moving/pieces_move/solid_tower_move.js`
-- 修改：`website/cat_royale/pieces_ability/aggressive_tower_ability.js`
-- 修改：`website/cat_royale/game_page/game_page.html`
-- 修改：`website/cat_royale/piece_deploy/piece_deploy.js`
-
-**测试建议**：
-1. 测试 A/B 两端 aggressive tower 的正常显示、技能激活、技能结束、死亡的图片切换
-2. 测试 solid tower 死亡时的图片切换和灰度效果
-3. 验证 B 端的血条在受到伤害时是否正确更新
-4. 验证 King Tower 在 B 端是否正确显示为 2x2
-
----
-
-**修复完成时间**：2025-12-04
-**修复问题数**：5个
+***审核批注***
+- 当前仅记录问题与方案，仓库未有对应代码修改；四个问题均未修复，需要按上述方案落地。

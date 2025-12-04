@@ -7,19 +7,28 @@
 
     function ensureAbilityState() {
         if (!window.TowerAbilityState) {
-            window.TowerAbilityState = { solidActive: false, aggressiveActive: false };
+            window.TowerAbilityState = {
+                a: { solidActive: false, aggressiveActive: false },
+                b: { solidActive: false, aggressiveActive: false }
+            };
         }
         return window.TowerAbilityState;
     }
 
-    function setAbilityLock(key, active) {
+    function setAbilityLock(key, active, side = 'a') {
         const state = ensureAbilityState();
-        state[key] = !!active;
+        const normalizedSide = side === 'b' ? 'b' : 'a';
+        if (!state[normalizedSide]) {
+            state[normalizedSide] = { solidActive: false, aggressiveActive: false };
+        }
+        state[normalizedSide][key] = !!active;
     }
 
-    function isAnyAbilityActive() {
+    function isAnyAbilityActive(side = 'a') {
         const state = window.TowerAbilityState;
-        return !!(state?.solidActive || state?.aggressiveActive);
+        const normalizedSide = side === 'b' ? 'b' : 'a';
+        if (!state || !state[normalizedSide]) return false;
+        return !!(state[normalizedSide].solidActive || state[normalizedSide].aggressiveActive);
     }
 
     function getCooldownUntil(allegiance) {
@@ -49,7 +58,8 @@
     function canSwitchTowers(allegiance) {
         if (typeof elixirManager === 'undefined') return false;
         if (!elixirManager.hasEnough(1, allegiance)) return false;
-        if (isAnyAbilityActive()) return false;
+        const side = allegiance === 'b' ? 'b' : 'a';
+        if (isAnyAbilityActive(side)) return false;
         const towers = getTowersByAllegiance(allegiance);
         if (towers.length === 0) return false;
         return towers.every(t => !t.be_attacked);
@@ -162,16 +172,29 @@
         state?.setPlayerTowerType?.(newType);
         applyToggleVisual(state?.toggleElement, newType);
         if (typeof window.postToParent === 'function') {
-            const serialized = playerTowers.map(t => ({
-                id: t.id,
-                row: t.position?.row,
-                col: t.position?.col,
-                type: t.type,
-                hp: t.hp,
-                max_hp: t.maxHP,
-                allegiance: t.allegiance,
-                board_image_path: t.boardImagePath
-            }));
+            const serialized = playerTowers.map(t => {
+                // Use correct sprite based on hp state
+                let imagePath = t.boardImagePath;
+                const currentHp = t.hp ?? t.maxHP ?? 1;
+                if (currentHp <= 0) {
+                    // Dead state - use cooked image
+                    if (t.type === 'aggressive_tower') {
+                        imagePath = '../pieces/agressive_tower/cooked_aggressive_tower.png';
+                    } else if (t.type === 'solid_tower') {
+                        imagePath = '../pieces/solid_tower/cooked_solid_tower.png';
+                    }
+                }
+                return {
+                    id: t.id,
+                    row: t.position?.row,
+                    col: t.position?.col,
+                    type: t.type,
+                    hp: t.hp,
+                    max_hp: t.maxHP,
+                    allegiance: t.allegiance,
+                    board_image_path: imagePath
+                };
+            });
             window.postToParent('state_update', {
                 type: 'state_update',
                 event: 'tower_switch',
@@ -218,7 +241,7 @@
             return false;
         }
 
-        setAbilityLock('aggressiveActive', true);
+        setAbilityLock('aggressiveActive', true, playerAllegiance);
 
         const forwardSlots = playerAllegiance === 'a'
             ? [
@@ -275,11 +298,18 @@
         setTimeout(() => {
             towers.forEach(t => {
                 t.damageReduction = 0;
-                // revert image - use allegiance-specific sprite
+                // revert image - use allegiance-specific sprite via towerSpriteFor
                 const img = t.element ? t.element.querySelector('img') : null;
-                const defaultSprite = t.allegiance === 'a'
-                    ? '../pieces/agressive_tower/aggressive_tower_a.png'
-                    : '../pieces/agressive_tower/aggressive_tower.png';
+                const towerSpriteFor = window.towerSpriteFor || ((type, allegiance) => {
+                    if (allegiance === 'a') {
+                        if (type === 'solid' || type === 'solid_tower') return '../pieces/solid_tower/solid_tower_a.png';
+                        if (type === 'aggressive' || type === 'aggressive_tower') return '../pieces/agressive_tower/aggressive_tower_a.png';
+                    }
+                    if (type === 'solid' || type === 'solid_tower') return '../pieces/solid_tower/solid_tower.png';
+                    if (type === 'aggressive' || type === 'aggressive_tower') return '../pieces/agressive_tower/aggressive_tower.png';
+                    return '';
+                });
+                const defaultSprite = towerSpriteFor('aggressive', t.allegiance || 'a');
                 const fallback = t._aggOriginalImgSrc || defaultSprite;
                 if (img) {
                     img.src = fallback;
@@ -291,7 +321,7 @@
                 }
             });
             setCooldownUntil(playerAllegiance, Date.now() + 5000);
-            setAbilityLock('aggressiveActive', false);
+            setAbilityLock('aggressiveActive', false, playerAllegiance);
         }, 3000);
 
         return true;

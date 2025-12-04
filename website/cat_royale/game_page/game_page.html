@@ -1037,7 +1037,17 @@
                     console.warn('[death] Piece not found:', pieceId);
                     return;
                 }
-                // Prevent duplicate handling
+                // For solid/aggressive towers, force visual update even if already marked dead
+                if ((entry.type === 'solid_tower' || entry.type === 'aggressive_tower') && entry._isDead) {
+                    // Force visual death effect for towers
+                    if (entry.type === 'solid_tower' && typeof window.handleSolidTowerDeath === 'function') {
+                        window.handleSolidTowerDeath(entry);
+                    } else if (entry.type === 'aggressive_tower' && typeof window.handleAggressiveTowerDeath === 'function') {
+                        window.handleAggressiveTowerDeath(entry);
+                    }
+                    return;
+                }
+                // Prevent duplicate handling for non-tower pieces
                 if (entry._isDead) return;
                 // Call handleDeath without broadcasting (already done by HOST)
                 pieceDeployment.handleDeath(entry);
@@ -1754,6 +1764,15 @@
                 const img1 = towerToggle.querySelector('.tower-img-1');
                 const img2 = towerToggle.querySelector('.tower-img-2');
                 const oppositeType = playerTowerType === 'solid' ? 'aggressive' : 'solid';
+
+                // Update image sources based on player's allegiance
+                const playerAllegiance = window.PLAYER_SIDE || 'a';
+                const solidPath = towerSpriteFor('solid', playerAllegiance);
+                const aggressivePath = towerSpriteFor('aggressive', playerAllegiance);
+
+                if (img1) img1.src = solidPath;
+                if (img2) img2.src = aggressivePath;
+
                 if (oppositeType === 'solid') {
                     img1.style.display = 'block';
                     img2.style.display = 'none';

@@ -8,19 +8,26 @@
     const ABILITY_COST = 1;
     let armed = false;
     let armTimer = null;
-    let cooldownUntil = 0;
+    const cooldownUntil = { a: 0, b: 0 }; // Changed to object for per-side cooldown
     let activeTimers = new Map(); // towerId -> timeout
 
     function ensureAbilityState() {
         if (!window.TowerAbilityState) {
-            window.TowerAbilityState = { solidActive: false, aggressiveActive: false };
+            window.TowerAbilityState = {
+                a: { solidActive: false, aggressiveActive: false },
+                b: { solidActive: false, aggressiveActive: false }
+            };
         }
         return window.TowerAbilityState;
     }
 
-    function setAbilityLock(key, active) {
+    function setAbilityLock(key, active, side = 'a') {
         const state = ensureAbilityState();
-        state[key] = !!active;
+        const normalizedSide = side === 'b' ? 'b' : 'a';
+        if (!state[normalizedSide]) {
+            state[normalizedSide] = { solidActive: false, aggressiveActive: false };
+        }
+        state[normalizedSide][key] = !!active;
     }
 
     function isSolidMode(getPlayerTowerType) {
@@ -78,7 +85,8 @@
 
     function triggerSolidAbility(playerAllegiance, getPlayerTowerType) {
         if (!isSolidMode(getPlayerTowerType)) return false;
-        if (Date.now() < cooldownUntil) return false;
+        const side = playerAllegiance === 'b' ? 'b' : 'a';
+        if (Date.now() < cooldownUntil[side]) return false;
 
         // Apply to both player towers if present
         const targets = [];
@@ -108,9 +116,9 @@
             return false;
         }
 
-        setAbilityLock('solidActive', true);
+        setAbilityLock('solidActive', true, playerAllegiance);
         targets.forEach(applyAbility);
-        cooldownUntil = Date.now() + COOLDOWN_MS;
+        cooldownUntil[side] = Date.now() + COOLDOWN_MS;
         if (typeof window.postToParent === 'function') {
             window.postToParent('state_update', {
                 type: 'state_update',
@@ -129,7 +137,7 @@
         console.log(`[SolidTowerAbility] Activated ability for ${playerAllegiance} towers`);
 
         setTimeout(() => {
-            setAbilityLock('solidActive', false);
+            setAbilityLock('solidActive', false, playerAllegiance);
         }, DURATION_MS);
 
         return true;
@@ -157,11 +165,12 @@
             if (!cell) return;
             if (!isSolidMode(getPlayerTowerType)) return;
             if (!allowedCell(cell)) return;
-            if (Date.now() < cooldownUntil) return;
+            const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
+            const side = playerAllegiance === 'b' ? 'b' : 'a';
+            if (Date.now() < cooldownUntil[side]) return;
             const row = parseInt(cell.dataset.row, 10);
             const col = parseInt(cell.dataset.col, 10);
 
-            const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
             const tower = findSolidTowerAt(row, col, playerAllegiance);
             if (!tower) return;
             armed = true;
@@ -180,8 +189,9 @@
                 armTimer = null;
             }
             const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
+            const side = playerAllegiance === 'b' ? 'b' : 'a';
             if (!isSolidMode(getPlayerTowerType)) return;
-            if (Date.now() < cooldownUntil) return;
+            if (Date.now() < cooldownUntil[side]) return;
             if (window.IS_HOST !== true) {
                 if (typeof window.postToParent === 'function') {
                     window.postToParent('state_update', {
