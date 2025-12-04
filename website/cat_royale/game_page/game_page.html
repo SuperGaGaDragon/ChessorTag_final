@@ -784,6 +784,46 @@
             }, {});
             const isProdHost = window.location.hostname === 'chessortag.org' || window.location.hostname === 'www.chessortag.org';
             const apiBase = isProdHost ? 'https://api.chessortag.org' : '';
+            let pendingTowerEvents = [];
+
+            function startTowerVisualAttack(attacker, target, towerType) {
+                if (!attacker || !target) return;
+                if (towerType === 'aggressive_tower' && window.startAggressiveTowerAttack) {
+                    window.startAggressiveTowerAttack(attacker, target, true);
+                } else if (towerType === 'solid_tower' && window.startSolidTowerAttack) {
+                    window.startSolidTowerAttack(attacker, target, true);
+                }
+            }
+
+            function processPendingTowerEvents() {
+                const MAX_AGE_MS = 5000;
+                const now = Date.now();
+                pendingTowerEvents = pendingTowerEvents.filter(evt => {
+                    const attacker = getPieceEntryById(evt.attacker_id, { warn: false });
+                    if (!attacker) {
+                        if (now - evt.createdAt < MAX_AGE_MS) return true;
+                        console.warn('[tower_attack][pending] drop, attacker missing:', evt.attacker_id);
+                        return false;
+                    }
+                    if (evt.type === 'start') {
+                        const target = getPieceEntryById(evt.target_id, { warn: false });
+                        if (!target) {
+                            if (now - evt.createdAt < MAX_AGE_MS) return true;
+                            console.warn('[tower_attack][pending] drop, target missing:', evt.target_id);
+                            return false;
+                        }
+                        startTowerVisualAttack(attacker, target, evt.tower_type || attacker.type);
+                    } else if (evt.type === 'stop') {
+                        if (pieceDeployment?.stopTowerAttack) {
+                            pieceDeployment.stopTowerAttack(attacker);
+                        }
+                    }
+                    return false; // processed
+                });
+            }
+
+            // 周期性尝试播放在 spawn 前到达的塔攻击事件，避免动画丢失
+            setInterval(processPendingTowerEvents, 400);
 
             function buildWsUrl(gameId) {
                 if (isProdHost) {
@@ -1010,6 +1050,7 @@
                     if (pieceEntry.healthBar && typeof pieceEntry.healthBar.update === 'function' && typeof pieceEntry.hp === 'number') {
                         pieceEntry.healthBar.update(pieceEntry.hp);
                     }
+                    processPendingTowerEvents();
                 }
             }
 
@@ -1237,6 +1278,7 @@
                 if (Array.isArray(msg.pieces)) {
                     msg.pieces.forEach(p => syncPieceFromSnapshot(p));
                 }
+                processPendingTowerEvents();
             }
 
             function updateTimerDisplay(seconds) {
@@ -1458,31 +1500,35 @@
                     case 'tower_attack': {
                         // Client receives attack event and plays visual effects only
                         console.log('[CLIENT] tower_attack received:', msg);
-                        const attacker = getPieceEntryById(msg.attacker_id, { warn: true });
-                        const target = getPieceEntryById(msg.target_id, { warn: true });
-                        if (!attacker) {
-                            console.warn('[CLIENT] tower_attack: attacker not found:', msg.attacker_id);
-                            break;
-                        }
-                        if (!target) {
-                            console.warn('[CLIENT] tower_attack: target not found:', msg.target_id);
+                        const attacker = getPieceEntryById(msg.attacker_id, { warn: false });
+                        const target = getPieceEntryById(msg.target_id, { warn: false });
+                        if (!attacker || !target) {
+                            pendingTowerEvents.push({
+                                type: 'start',
+                                attacker_id: msg.attacker_id,
+                                target_id: msg.target_id,
+                                tower_type: msg.tower_type,
+                                createdAt: Date.now()
+                            });
+                            console.warn('[CLIENT] tower_attack queued, missing attacker/target:', msg.attacker_id, msg.target_id);
                             break;
                         }
                         const towerType = msg.tower_type || attacker.type;
                         console.log('[CLIENT] Starting visual attack:', towerType, 'attacker:', attacker.id, 'target:', target.id);
-                        if (towerType === 'aggressive_tower' && window.startAggressiveTowerAttack) {
-                            window.startAggressiveTowerAttack(attacker, target, true);
-                        } else if (towerType === 'solid_tower' && window.startSolidTowerAttack) {
-                            window.startSolidTowerAttack(attacker, target, true);
-                        }
+                        startTowerVisualAttack(attacker, target, towerType);
                         break;
                     }
                     case 'tower_attack_stop': {
                         // Client receives stop attack event and clears animations
                         console.log('[CLIENT] tower_attack_stop received:', msg);
-                        const attacker = getPieceEntryById(msg.attacker_id, { warn: true });
+                        const attacker = getPieceEntryById(msg.attacker_id, { warn: false });
                         if (!attacker) {
-                            console.warn('[CLIENT] tower_attack_stop: attacker not found:', msg.attacker_id);
+                            pendingTowerEvents.push({
+                                type: 'stop',
+                                attacker_id: msg.attacker_id,
+                                createdAt: Date.now()
+                            });
+                            console.warn('[CLIENT] tower_attack_stop queued, attacker missing:', msg.attacker_id);
                             break;
                         }
                         if (pieceDeployment?.stopTowerAttack) {
@@ -1696,6 +1742,15 @@
                 const boardGrid = document.querySelector('.board-grid');
                 if (!boardGrid) return;
 
+                // 清理旧的 anchor 和缓存，避免重复挂载导致显示异常
+                boardGrid.querySelectorAll('.king-anchor').forEach(el => el.remove());
+                if (Array.isArray(pieceDeployment.boardPieces)) {
+                    pieceDeployment.boardPieces = pieceDeployment.boardPieces.filter(p => p.type !== 'king_tower');
+                }
+                if (pieceDeployment.kingTowerShared) {
+                    pieceDeployment.kingTowerShared = { a: null, b: null };
+                }
+
                 const swap = Math.random() >= 0.5;
                 const kingImgA = swap ? '../pieces/king_tower/king_tower_2.png' : '../pieces/king_tower/king_tower_1.png';
                 const kingImgB = swap ? '../pieces/king_tower/king_tower_1.png' : '../pieces/king_tower/king_tower_2.png';
@@ -1741,7 +1796,8 @@
                             if (!cell) missing.push(`${r},${c}`);
                         });
                     });
-                    console.log(`[registerKingTowers] Created ${allegiance} king tower at rows=${rows}, cols=${cols}, gridRow=${anchor.style.gridRow}, gridCol=${anchor.style.gridColumn}, missingCells=${missing.join('|') || 'none'}`);
+                    const registeredCount = (pieceDeployment.boardPieces || []).filter(p => p.type === 'king_tower' && p.allegiance === allegiance).length;
+                    console.log(`[registerKingTowers] Created ${allegiance} king tower at rows=${rows}, cols=${cols}, gridRow=${anchor.style.gridRow}, gridCol=${anchor.style.gridColumn}, missingCells=${missing.join('|') || 'none'}, registered=${registeredCount}`);
                 };
 
                 createKingAnchor('a', kingImgA);
