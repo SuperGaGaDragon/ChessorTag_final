@@ -132,5 +132,8 @@ class ElixirManager {
     }
 }
 
-// Create global elixir manager instance
-const elixirManager = new ElixirManager();
+// Create global elixir manager instance (idempotent if already present)
+if (!window.elixirManager || !(window.elixirManager instanceof ElixirManager)) {
+    window.elixirManager = new ElixirManager();
+}
+const elixirManager = window.elixirManager;

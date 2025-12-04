@@ -1110,7 +1110,7 @@
             }
 
             function broadcastElixirSnapshot() {
-                if (!isHost || typeof elixirManager === 'undefined') return;
+                if (!isHost || typeof elixirManager?.setElixir !== 'function') return;
                 ['a', 'b'].forEach((side) => {
                     const value = elixirManager.getElixir ? elixirManager.getElixir(side) : 0;
                     elixirManager.setElixir(side, value, { emit: true });
