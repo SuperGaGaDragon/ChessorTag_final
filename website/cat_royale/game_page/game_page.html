@@ -749,19 +749,21 @@
         // Make postToParent available globally for piece_deploy.js
         window.postToParent = postToParent;
 
-        function serializePiece(entry) {
-            if (!entry) return null;
-            return {
-                id: entry.id,
-                owner: entry.allegiance,
-                kind: entry.type,
-                row: entry.position?.row,
-                col: entry.position?.col,
-                hp: entry.hp,
-                max_hp: entry.maxHP,
-                boardImagePath: entry.boardImagePath || null
-            };
-        }
+            function serializePiece(entry) {
+                if (!entry) return null;
+                return {
+                    id: entry.id,
+                    owner: entry.allegiance,
+                    kind: entry.type,
+                    row: entry.position?.row,
+                    col: entry.position?.col,
+                    hp: entry.hp,
+                    max_hp: entry.maxHP,
+                    boardImagePath: entry.boardImagePath || null,
+                    board_image_path: entry.boardImagePath || null,
+                    damage_reduction: entry.damageReduction
+                };
+            }
 
         document.addEventListener('DOMContentLoaded', function() {
             const overlay = document.getElementById('game-start-overlay');
@@ -1062,6 +1064,17 @@
                         }
                         pieceDeployment.refreshHealthTooltip?.(existing);
                     }
+                    if (typeof pieceMsg.damage_reduction === 'number') {
+                        existing.damageReduction = pieceMsg.damage_reduction;
+                    }
+                    const imagePath = pieceMsg.board_image_path || pieceMsg.boardImagePath;
+                    if (imagePath) {
+                        existing.boardImagePath = imagePath;
+                        const img = existing.element ? existing.element.querySelector('img') : null;
+                        if (img) {
+                            img.src = imagePath;
+                        }
+                    }
                     return;
                 }
                 const cell = Number.isInteger(row) && Number.isInteger(col)
@@ -1081,8 +1094,17 @@
                 if (entry) {
                     if (typeof pieceMsg.hp === 'number') entry.hp = pieceMsg.hp;
                     if (typeof pieceMsg.max_hp === 'number') entry.maxHP = pieceMsg.max_hp;
+                    if (typeof pieceMsg.damage_reduction === 'number') entry.damageReduction = pieceMsg.damage_reduction;
                     if (entry.healthBar && typeof entry.healthBar.update === 'function' && typeof entry.hp === 'number') {
                         entry.healthBar.update(entry.hp);
+                    }
+                    const imagePath = pieceMsg.board_image_path || pieceMsg.boardImagePath;
+                    if (imagePath) {
+                        entry.boardImagePath = imagePath;
+                        const img = entry.element ? entry.element.querySelector('img') : null;
+                        if (img) {
+                            img.src = imagePath;
+                        }
                     }
                 }
             }
@@ -1138,6 +1160,22 @@
                 });
                 if (side === mySide) {
                     updateTowerToggle();
+                }
+            }
+
+            function processSolidAbilityRequest(allegiance) {
+                if (!isHost) return;
+                const side = allegiance === 'b' ? 'b' : 'a';
+                if (typeof window.SolidTowerAbility?.handleRequest === 'function') {
+                    window.SolidTowerAbility.handleRequest(side, () => getTowerTypeForSide(side));
+                }
+            }
+
+            function processAggressiveAbilityRequest(allegiance) {
+                if (!isHost) return;
+                const side = allegiance === 'b' ? 'b' : 'a';
+                if (typeof window.AggressiveTowerAbility?.handleAbility2Request === 'function') {
+                    window.AggressiveTowerAbility.handleAbility2Request(side, () => getTowerTypeForSide(side));
                 }
             }
 
@@ -1202,6 +1240,12 @@
                     case 'tower_switch_request':
                         processTowerSwitchRequest(msg.side || msg.allegiance);
                         break;
+                    case 'tower_ability_solid_request':
+                        processSolidAbilityRequest(msg.side || msg.allegiance);
+                        break;
+                    case 'tower_ability_aggressive_request':
+                        processAggressiveAbilityRequest(msg.side || msg.allegiance);
+                        break;
                     case 'timer':
                         updateTimerDisplay(msg.seconds_left);
                         break;
@@ -1245,7 +1289,62 @@
                                     if (entry._originalImgSrc) img.src = entry._originalImgSrc;
                                 }, msg.duration_ms || 3000);
                             }
+                            entry.boardImagePath = '../pieces/solid_tower/solid_tower_ability.png';
+                            entry.damageReduction = 0.75;
                         });
+                        setTimeout(() => {
+                            targets.forEach(t => {
+                                const entry = pieceDeployment.boardPieces.find(p => p.id === t.id);
+                                if (!entry) return;
+                                entry.damageReduction = 0;
+                                const img = entry.element ? entry.element.querySelector('img') : null;
+                                if (img && entry._originalImgSrc) {
+                                    img.src = entry._originalImgSrc;
+                                }
+                                entry.boardImagePath = entry._originalImgSrc || entry.boardImagePath;
+                            });
+                        }, msg.duration_ms || 3000);
+                        break;
+                    }
+                    case 'tower_ability_aggressive': {
+                        const targets = msg.targets || [];
+                        const duration = msg.duration_ms || 3000;
+                        targets.forEach(t => {
+                            const entry = pieceDeployment.boardPieces.find(p => p.id === t.id);
+                            if (!entry) return;
+                            entry.damageReduction = typeof t.damage_reduction === 'number' ? t.damage_reduction : 0.25;
+                            const img = entry.element ? entry.element.querySelector('img') : null;
+                            const nextImg = t.board_image_path || '../pieces/agressive_tower/aggressive_tower_ability_2.png';
+                            if (img) {
+                                entry._aggOriginalImgSrc = entry._aggOriginalImgSrc || img.src;
+                                img.src = nextImg;
+                            }
+                            entry.boardImagePath = nextImg;
+                            if (Number.isInteger(t.row) && Number.isInteger(t.col)) {
+                                pieceDeployment.movePiece(entry.id, { row: t.row, col: t.col }, { fromNetwork: true, skipBroadcast: true });
+                                entry.position = { row: t.row, col: t.col };
+                            }
+                            if (Number.isInteger(t.original_row) && Number.isInteger(t.original_col)) {
+                                entry._originalPosition = { row: t.original_row, col: t.original_col };
+                            }
+                        });
+                        setTimeout(() => {
+                            targets.forEach(t => {
+                                const entry = pieceDeployment.boardPieces.find(p => p.id === t.id);
+                                if (!entry) return;
+                                entry.damageReduction = 0;
+                                const img = entry.element ? entry.element.querySelector('img') : null;
+                                const fallback = t.original_image || entry._aggOriginalImgSrc || '../pieces/agressive_tower/aggressive_tower.png';
+                                if (img) {
+                                    img.src = fallback;
+                                }
+                                entry.boardImagePath = fallback;
+                                if (entry._originalPosition) {
+                                    pieceDeployment.movePiece(entry.id, { ...entry._originalPosition }, { fromNetwork: true, skipBroadcast: true });
+                                    entry.position = { ...entry._originalPosition };
+                                }
+                            });
+                        }, duration);
                         break;
                     }
                     case 'move': {

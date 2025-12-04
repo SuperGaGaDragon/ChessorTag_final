@@ -5,6 +5,7 @@
     const ARM_WINDOW_MS = 1000;
     const DURATION_MS = 3000;
     const COOLDOWN_MS = 5000;
+    const ABILITY_COST = 1;
     let armed = false;
     let armTimer = null;
     let cooldownUntil = 0;
@@ -58,6 +59,7 @@
             tower._originalImgSrc = tower._originalImgSrc || img.src;
             img.src = ABILITY_IMG;
         }
+        tower.boardImagePath = ABILITY_IMG;
 
         if (activeTimers.has(tower.id)) {
             clearTimeout(activeTimers.get(tower.id));
@@ -68,15 +70,88 @@
             if (revertImg && tower._originalImgSrc) {
                 revertImg.src = tower._originalImgSrc;
             }
+            tower.boardImagePath = tower._originalImgSrc || tower.boardImagePath;
             activeTimers.delete(tower.id);
         }, DURATION_MS);
         activeTimers.set(tower.id, timeout);
     }
 
+    function triggerSolidAbility(playerAllegiance, getPlayerTowerType) {
+        if (!isSolidMode(getPlayerTowerType)) return false;
+        if (Date.now() < cooldownUntil) return false;
+
+        // Apply to both player towers if present
+        const targets = [];
+        const row = playerAllegiance === 'a' ? 6 : 1;
+        const tLeft = findSolidTowerAt(row, 1, playerAllegiance);
+        const tRight = findSolidTowerAt(row, 6, playerAllegiance);
+        if (tLeft) targets.push(tLeft);
+        if (tRight) targets.push(tRight);
+        if (targets.length === 0) return false;
+
+        if (!elixirManager.hasEnough(ABILITY_COST, playerAllegiance)) {
+            console.log('Not enough elixir for solid ability.');
+            if (typeof window.postToParent === 'function') {
+                window.postToParent('state_update', {
+                    type: 'state_update',
+                    event: 'error',
+                    code: 'elixir_insufficient',
+                    side: playerAllegiance,
+                    action: 'tower_ability_solid',
+                    cost: ABILITY_COST
+                });
+            }
+            return false;
+        }
+        if (!elixirManager.spend(ABILITY_COST, playerAllegiance)) {
+            console.log('Solid ability spend failed.');
+            return false;
+        }
+
+        setAbilityLock('solidActive', true);
+        targets.forEach(applyAbility);
+        cooldownUntil = Date.now() + COOLDOWN_MS;
+        if (typeof window.postToParent === 'function') {
+            window.postToParent('state_update', {
+                type: 'state_update',
+                event: 'tower_ability_solid',
+                side: playerAllegiance,
+                targets: targets.map(t => ({
+                    id: t.id,
+                    row: t.position?.row,
+                    col: t.position?.col,
+                    allegiance: t.allegiance
+                })),
+                duration_ms: DURATION_MS
+            });
+        }
+
+        console.log(`[SolidTowerAbility] Activated ability for ${playerAllegiance} towers`);
+
+        setTimeout(() => {
+            setAbilityLock('solidActive', false);
+        }, DURATION_MS);
+
+        return true;
+    }
+
+    function handleSolidAbilityRequest(side, getPlayerTowerType) {
+        const playerAllegiance = side || window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
+        if (window.IS_HOST !== true) {
+            if (typeof window.postToParent === 'function') {
+                window.postToParent('state_update', {
+                    type: 'state_update',
+                    event: 'tower_ability_solid_request',
+                    side: playerAllegiance
+                });
+            }
+            return false;
+        }
+        return triggerSolidAbility(playerAllegiance, getPlayerTowerType);
+    }
+
     function init(options = {}) {
         const getPlayerTowerType = options.getPlayerTowerType || (() => null);
-        if (window.IS_HOST !== true) return;
-
         document.addEventListener('click', (e) => {
             const cell = e.target.closest?.('.board-cell');
             if (!cell) return;
@@ -104,54 +179,25 @@
                 clearTimeout(armTimer);
                 armTimer = null;
             }
+            const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
             if (!isSolidMode(getPlayerTowerType)) return;
             if (Date.now() < cooldownUntil) return;
-
-            const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
-
-            // Apply to both player towers if present
-            // Side A: b2 (row=6, col=1) and g2 (row=6, col=6)
-            // Side B: b7 (row=1, col=1) and g7 (row=1, col=6)
-            const targets = [];
-            const row = playerAllegiance === 'a' ? 6 : 1;
-            const tLeft = findSolidTowerAt(row, 1, playerAllegiance);
-            const tRight = findSolidTowerAt(row, 6, playerAllegiance);
-            if (tLeft) targets.push(tLeft);
-            if (tRight) targets.push(tRight);
-            if (targets.length === 0) return;
-
-            setAbilityLock('solidActive', true);
-            targets.forEach(applyAbility);
-            cooldownUntil = Date.now() + COOLDOWN_MS;
-            if (typeof window.postToParent === 'function') {
-                window.postToParent('state_update', {
-                    type: 'state_update',
-                    event: 'tower_ability_solid',
-                    targets: targets.map(t => ({
-                        id: t.id,
-                        row: t.position?.row,
-                        col: t.position?.col,
-                        allegiance: t.allegiance
-                    })),
-                    duration_ms: DURATION_MS
-                });
-                window.postToParent('state_update', {
-                    type: 'state_update',
-                    event: 'elixir',
-                    side: 'a',
-                    elixir: elixirManager.currentElixir
-                });
+            if (window.IS_HOST !== true) {
+                if (typeof window.postToParent === 'function') {
+                    window.postToParent('state_update', {
+                        type: 'state_update',
+                        event: 'tower_ability_solid_request',
+                        side: playerAllegiance
+                    });
+                }
+                return;
             }
-
-            console.log(`[SolidTowerAbility] Activated ability for ${playerAllegiance} towers`);
-
-            setTimeout(() => {
-                setAbilityLock('solidActive', false);
-            }, DURATION_MS);
+            triggerSolidAbility(playerAllegiance, getPlayerTowerType);
         });
     }
 
     window.SolidTowerAbility = {
-        init
+        init,
+        handleRequest: handleSolidAbilityRequest
     };
 })();

@@ -54,3 +54,11 @@
 - [Step3 塔切换/能力同步] 切换模式走请求链并扣 1 费（`game_page.html:1068-1140` + `aggressive_tower_ability.js:185-210`），符合计划。但两条能力链缺失：Solid 及 Aggressive 2 均为 HOST 本地触发，未校验请求端、未广播 err code/冷却令牌，Aggressive 2 也未向客户端广播减伤/形态，仅靠移动广播位置，视觉与状态不同步。
 - [Step4 血条/快照] `handleStateUpdate('damage')` 落地到 `applyDamageFromServer` 并强制刷 `healthBar.title`，快照含棋子坐标与 elixir（`game_page.html:1179-1233`）。但快照未包含塔能力/减伤状态，重连后能力形态会丢失，仍需补充。
 - 重大缺陷：`aggressive_tower_ability.js:255` 处在声明 `playerAllegiance` 之前调用，Enter 触发会直接抛 `ReferenceError`，导致能力 2 失效并阻断后续逻辑；需立即修复并补同步广播。
+
+***本轮整改核对***
+
+- 已修复 Aggressive 2 的 `playerAllegiance` 未定义崩溃，提取为 `runAggressiveAbility2` 并加 cooldown 保护。
+- 塔技能现走 Host 权威扣费与请求链：非 Host 触发会发送 `tower_ability_solid/aggressive_request`，Host 校验 `elixirManager.spend`，不足会广播 `error: elixir_insufficient`；Solid 费用 1，Aggressive 2 费用 2。
+- 能力广播补齐：Host 启动 Solid 会广播 `tower_ability_solid`（含 side/targets/duration），Aggressive 2 会广播 `tower_ability_aggressive`（含位移/减伤/形态），客户端渲染并按 duration 回滚。
+- 快照增强：`serializePiece` 加入 `board_image_path` 与 `damage_reduction`，`applySnapshot` 覆盖图片与减伤，重连保留能力形态/减伤。
+- 遗留：Aggressive 2 的 cooldown/降伤状态未传 cooldown token，仅用本地计时，若多端重复请求可能需要服务端去抖；Solid/Aggressive 2 仍未单独广播冷却时间或拒绝原因外的其他 err code。

@@ -1,6 +1,10 @@
 // Ability logic for switching player towers between solid/aggressive.
 // Exposes helpers on window.AggressiveTowerAbility for use in game_page.html.
 (function() {
+    const ABILITY2_COST = 2;
+
+    let ability2CooldownUntil = 0;
+
     function ensureAbilityState() {
         if (!window.TowerAbilityState) {
             window.TowerAbilityState = { solidActive: false, aggressiveActive: false };
@@ -169,6 +173,132 @@
         return newType;
     }
 
+    function broadcastAggressiveAbility(side, payload) {
+        if (typeof window.postToParent !== 'function') return;
+        window.postToParent('state_update', {
+            type: 'state_update',
+            event: 'tower_ability_aggressive',
+            side,
+            ...payload
+        });
+    }
+
+    function runAggressiveAbility2(playerAllegiance, getPlayerTowerType) {
+        if (Date.now() < ability2CooldownUntil) return false;
+        if (getPlayerTowerType() !== 'aggressive') return false;
+        const towers = getTowersByAllegiance(playerAllegiance).filter(t => t.type === 'aggressive_tower' && !t.attack);
+        if (towers.length === 0) return false;
+
+        if (!elixirManager.hasEnough(ABILITY2_COST, playerAllegiance)) {
+            console.log('Not enough elixir for aggressive ability.');
+            if (typeof window.postToParent === 'function') {
+                window.postToParent('state_update', {
+                    type: 'state_update',
+                    event: 'error',
+                    code: 'elixir_insufficient',
+                    side: playerAllegiance,
+                    action: 'tower_ability_aggressive',
+                    cost: ABILITY2_COST
+                });
+            }
+            return false;
+        }
+        if (!elixirManager.spend(ABILITY2_COST, playerAllegiance)) {
+            console.log('Spend failed for aggressive ability.');
+            return false;
+        }
+
+        setAbilityLock('aggressiveActive', true);
+
+        const forwardSlots = playerAllegiance === 'a'
+            ? [
+                { fromRow: 6, fromCol: 1, toRow: 5, toCol: 1 }, // b2 -> b3
+                { fromRow: 6, fromCol: 6, toRow: 5, toCol: 6 }  // g2 -> g3
+              ]
+            : [
+                { fromRow: 1, fromCol: 1, toRow: 2, toCol: 1 }, // b7 -> b6
+                { fromRow: 1, fromCol: 6, toRow: 2, toCol: 6 }  // g7 -> g6
+              ];
+
+        const applied = [];
+
+        towers.forEach(t => {
+            // Apply 25% damage reduction
+            t.damageReduction = 0.25;
+            // Swap image to ability form
+            const img = t.element ? t.element.querySelector('img') : null;
+            const previousImg = img ? img.src : t.boardImagePath;
+            if (img) {
+                t._aggOriginalImgSrc = previousImg || t._aggOriginalImgSrc;
+                img.src = '../pieces/agressive_tower/aggressive_tower_ability_2.png';
+            }
+            t.boardImagePath = '../pieces/agressive_tower/aggressive_tower_ability_2.png';
+
+            const slot = forwardSlots.find(s => s.fromRow === t.position?.row && s.fromCol === t.position?.col);
+            if (slot && window.pieceDeployment && typeof window.pieceDeployment.movePiece === 'function') {
+                t._originalPosition = { ...t.position };
+                window.pieceDeployment.movePiece(t.id, { row: slot.toRow, col: slot.toCol });
+                t.position = { row: slot.toRow, col: slot.toCol };
+            }
+
+            applied.push({
+                id: t.id,
+                row: t.position?.row,
+                col: t.position?.col,
+                original_row: t._originalPosition?.row,
+                original_col: t._originalPosition?.col,
+                original_image: t._aggOriginalImgSrc || previousImg,
+                board_image_path: t.boardImagePath,
+                damage_reduction: t.damageReduction
+            });
+        });
+
+        console.log(`[AggressiveTowerAbility] Activated ability for ${playerAllegiance} towers`);
+
+        if (typeof window.postToParent === 'function') {
+            broadcastAggressiveAbility(playerAllegiance, {
+                targets: applied,
+                duration_ms: 3000
+            });
+        }
+
+        setTimeout(() => {
+            towers.forEach(t => {
+                t.damageReduction = 0;
+                // revert image
+                const img = t.element ? t.element.querySelector('img') : null;
+                const fallback = t._aggOriginalImgSrc || '../pieces/agressive_tower/aggressive_tower.png';
+                if (img) {
+                    img.src = fallback;
+                }
+                t.boardImagePath = fallback;
+                if (t._originalPosition && window.pieceDeployment && typeof window.pieceDeployment.movePiece === 'function') {
+                    window.pieceDeployment.movePiece(t.id, { ...t._originalPosition });
+                    t.position = { ...t._originalPosition };
+                }
+            });
+            ability2CooldownUntil = Date.now() + 5000;
+            setAbilityLock('aggressiveActive', false);
+        }, 3000);
+
+        return true;
+    }
+
+    function handleAggressiveAbilityRequest(side, getPlayerTowerType) {
+        const playerAllegiance = side || window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
+        if (window.IS_HOST !== true) {
+            if (typeof window.postToParent === 'function') {
+                window.postToParent('state_update', {
+                    type: 'state_update',
+                    event: 'tower_ability_aggressive_request',
+                    side: playerAllegiance
+                });
+            }
+            return;
+        }
+        runAggressiveAbility2(playerAllegiance, getPlayerTowerType);
+    }
+
     function init(options = {}) {
         const toggleElement = options.toggleElement;
         if (!toggleElement) return;
@@ -180,7 +310,6 @@
         let ability2Armed = false;
         let ability2ArmTimeout = null;
         let ability2Timer = null;
-        let abilityCooldownUntil = 0;
 
         toggleElement.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -210,117 +339,60 @@
             updateToggleDisabled(toggleElement, playerAllegiance);
         });
 
-        if (!isAuthority) {
-            return;
+        function armAbilityFromCell(cell) {
+            if (!cell) return;
+            const row = parseInt(cell.dataset.row, 10);
+            const col = parseInt(cell.dataset.col, 10);
+            const allowed = (
+                (row === 6 && col === 1) || // b2 (side A)
+                (row === 6 && col === 6) || // g2 (side A)
+                (row === 1 && col === 1) || // b7 (side B)
+                (row === 1 && col === 6)    // g7 (side B)
+            );
+            if (!allowed) return;
+            if (getPlayerTowerType() !== 'aggressive') return;
+            if (Date.now() < ability2CooldownUntil) return;
+
+            const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
+            const towers = getTowersByAllegiance(playerAllegiance).filter(t => t.type === 'aggressive_tower' && !t.attack);
+            const match = towers.find(t => t.position && t.position.row === row && t.position.col === col);
+            if (!match) return;
+            ability2Armed = true;
+            if (ability2ArmTimeout) clearTimeout(ability2ArmTimeout);
+            ability2ArmTimeout = setTimeout(() => {
+                ability2Armed = false;
+                ability2ArmTimeout = null;
+            }, 1000);
         }
 
-        if (isAuthority) {
-            function armAbilityFromCell(cell) {
-                if (!cell) return;
-                const row = parseInt(cell.dataset.row, 10);
-                const col = parseInt(cell.dataset.col, 10);
-                const allowed = (
-                    (row === 6 && col === 1) || // b2 (side A)
-                    (row === 6 && col === 6) || // g2 (side A)
-                    (row === 1 && col === 1) || // b7 (side B)
-                    (row === 1 && col === 6)    // g7 (side B)
-                );
-                if (!allowed) return;
-                if (getPlayerTowerType() !== 'aggressive') return;
-                if (Date.now() < abilityCooldownUntil) return;
+        document.addEventListener('click', (e) => {
+            const cell = e.target.closest?.('.board-cell');
+            if (!cell) return;
+            armAbilityFromCell(cell);
+        });
 
-                const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
-                const towers = getTowersByAllegiance(playerAllegiance).filter(t => t.type === 'aggressive_tower' && !t.attack);
-                const match = towers.find(t => t.position && t.position.row === row && t.position.col === col);
-                if (!match) return;
-                ability2Armed = true;
-                if (ability2ArmTimeout) clearTimeout(ability2ArmTimeout);
-                ability2ArmTimeout = setTimeout(() => {
-                    ability2Armed = false;
-                    ability2ArmTimeout = null;
-                }, 1000);
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' || !ability2Armed) return;
+            ability2Armed = false;
+            const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
+            // prevent re-arming during active ability window
+            ability2CooldownUntil = Date.now() + 3000;
+            if (!isAuthority) {
+                if (typeof window.postToParent === 'function') {
+                    window.postToParent('state_update', {
+                        type: 'state_update',
+                        event: 'tower_ability_aggressive_request',
+                        side: playerAllegiance
+                    });
+                }
+                return;
             }
 
-            document.addEventListener('click', (e) => {
-                const cell = e.target.closest?.('.board-cell');
-                if (!cell) return;
-                armAbilityFromCell(cell);
-            });
-
-            document.addEventListener('keydown', (e) => {
-                if (e.key !== 'Enter' || !ability2Armed) return;
-                ability2Armed = false;
-                const towerType = getPlayerTowerType();
-                if (towerType !== 'aggressive') return;
-                if (!elixirManager.hasEnough(2, playerAllegiance)) {
-                    console.log('Not enough elixir for aggressive ability (need >1).');
-                    return;
-                }
-
-                const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
-                const towers = getTowersByAllegiance(playerAllegiance).filter(t => t.type === 'aggressive_tower' && !t.attack);
-                if (towers.length === 0) return;
-
-                if (!elixirManager.spend(1, playerAllegiance)) {
-                    console.log('Spend failed for aggressive ability.');
-                    return;
-                }
-
-                setAbilityLock('aggressiveActive', true);
-
-                // Forward slots depend on allegiance
-                // Side A: b2->b3, g2->g3 (row 6->5)
-                // Side B: b7->b6, g7->g6 (row 1->2)
-                const forwardSlots = playerAllegiance === 'a'
-                    ? [
-                        { fromRow: 6, fromCol: 1, toRow: 5, toCol: 1 }, // b2 -> b3
-                        { fromRow: 6, fromCol: 6, toRow: 5, toCol: 6 }  // g2 -> g3
-                      ]
-                    : [
-                        { fromRow: 1, fromCol: 1, toRow: 2, toCol: 1 }, // b7 -> b6
-                        { fromRow: 1, fromCol: 6, toRow: 2, toCol: 6 }  // g7 -> g6
-                      ];
-
-                towers.forEach(t => {
-                    // Apply 25% damage reduction
-                    t.damageReduction = 0.25;
-                    // Swap image to ability form
-                    const img = t.element ? t.element.querySelector('img') : null;
-                    if (img) {
-                        t._aggOriginalImgSrc = t._aggOriginalImgSrc || img.src;
-                        img.src = '../pieces/agressive_tower/aggressive_tower_ability_2.png';
-                    }
-                    const slot = forwardSlots.find(s => s.fromRow === t.position?.row && s.fromCol === t.position?.col);
-                    if (slot && window.pieceDeployment && typeof window.pieceDeployment.movePiece === 'function') {
-                        t._originalPosition = { ...t.position };
-                        window.pieceDeployment.movePiece(t.id, { row: slot.toRow, col: slot.toCol });
-                        t.position = { row: slot.toRow, col: slot.toCol };
-                    }
-                });
-
-                console.log(`[AggressiveTowerAbility] Activated ability for ${playerAllegiance} towers`);
-
-                if (ability2Timer) clearTimeout(ability2Timer);
-                ability2Timer = setTimeout(() => {
-                    towers.forEach(t => {
-                        t.damageReduction = 0;
-                        // revert image
-                        const img = t.element ? t.element.querySelector('img') : null;
-                        if (img) {
-                            const fallback = '../pieces/agressive_tower/aggressive_tower.png';
-                            img.src = t._aggOriginalImgSrc || fallback;
-                        }
-                        if (t._originalPosition && window.pieceDeployment && typeof window.pieceDeployment.movePiece === 'function') {
-                            window.pieceDeployment.movePiece(t.id, { ...t._originalPosition });
-                            t.position = { ...t._originalPosition };
-                        }
-                    });
-                    ability2Timer = null;
-                    abilityCooldownUntil = Date.now() + 5000; // 5s cooldown after effect ends
-                    setAbilityLock('aggressiveActive', false);
-                }, 3000);
-            });
-        }
+            runAggressiveAbility2(playerAllegiance, getPlayerTowerType);
+            ability2Timer = setTimeout(() => {
+                ability2Timer = null;
+            }, 3000);
+        });
 
         applyToggleVisual(toggleElement, getPlayerTowerType());
 
@@ -340,6 +412,8 @@
         getMaxHpForTower,
         updateToggleDisabled,
         applyToggleVisual,
-        switchPlayerTowers
+        switchPlayerTowers,
+        handleAbility2Request: handleAggressiveAbilityRequest,
+        broadcastAggressiveAbility
     };
 })();
