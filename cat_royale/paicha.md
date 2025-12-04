@@ -62,3 +62,208 @@
 - 能力广播补齐：Host 启动 Solid 会广播 `tower_ability_solid`（含 side/targets/duration），Aggressive 2 会广播 `tower_ability_aggressive`（含位移/减伤/形态），客户端渲染并按 duration 回滚。
 - 快照增强：`serializePiece` 加入 `board_image_path` 与 `damage_reduction`，`applySnapshot` 覆盖图片与减伤，重连保留能力形态/减伤。
 - 遗留：Aggressive 2 的 cooldown/降伤状态未传 cooldown token，仅用本地计时，若多端重复请求可能需要服务端去抖；Solid/Aggressive 2 仍未单独广播冷却时间或拒绝原因外的其他 err code。
+
+***用户端检查修复***
+
+- “对局开始不产圣水”根因：宿主页面覆盖了 `window.elixirManager`，`startElixirGeneration` 前调用 `setElixir` 抛 `is not a function`，后续初始化中断。已在 `game_page/elixir.js` 强制单例化 `window.elixirManager`，避免被父框架污染。
+- “卡牌不显示”“塔技能无效”系同一异常导致的初始化中止。圣水实例修复后，`initializeCards()` 正常填充卡槽，`AggressiveTowerAbility/SolidTowerAbility.init` 正常绑定，塔技能可用。
+
+
+***用户端检查报告***
+
+当前状况：
+A 端一切正常；
+B 端 状态数据是对的（HP 数值、tower 类型、elixir 都同步），
+但是 画面/血条/图标没有跟着变。
+
+这说明：Host → B 的网络链路是通的，问题在 B 端的 UI 应用层。
+我们可以把问题压缩成一句话：“B 端收到了事件，但没正确画出来。”
+
+下面我给你一个针对 B 端的排查 Checklist，全部是“目标级描述”，你照着对就行。
+
+1. 确认：B 端确实收到了正确的事件
+
+在 B 端 Console 加一组 log，只在 fromNetwork / state_update 那层打：
+
+damage / hp 相关：
+
+console.log('[B] damage event', payload);
+
+
+确认：
+
+每次 A 打 tower / 单位，B 端都能看到 {event:"damage", id, hp, max_hp, side}；
+
+hp 数值和 A 端看到的一致（这一点你说“信息同步”应该已经成立）。
+
+elixir / tower_switch / tower_ability 也类似打一行 log。
+
+如果这里没问题，说明：
+
+Host → B 的“数据”没问题，问题一定在“怎么把数据用到 DOM 上”。
+
+2. 查所有「只更新自己 side」的 UI 逻辑
+
+历史遗留里最容易踩坑的一类是这样：
+
+if (side === 'a') {
+  // 更新血条 / 塔图标 / 卡牌等
+}
+
+
+或者：
+
+if (payload.side === mySide) {
+  updateHealthBar(entry);
+}
+
+
+当时为了只画 A 端，用了 side === 'a' / payload.side === mySide 之类条件，现在 B 也要玩了，这会导致：
+
+状态对象被改了（因为你说 “信息同步”）；
+
+但 UI 更新只在“自己视角/host”的分支下跑，B 端直接 return 了。
+
+你可以在 B 端全局搜索这几个关键词：
+
+if (isHost
+
+if (side === 'a' / if (side !== 'a'
+
+if (payload.side === mySide / if (entry.side === mySide
+
+然后按这个准则处理：
+
+权威逻辑（扣费、移动、生成 movers、attack scan 等）
+→ 保留 isHost 限制，只能 Host 做。
+
+UI 逻辑（updateHealthBar、writeHealthBarTitle、updateTowerImage、renderAbility Effect）
+→ 不要用 isHost 或 side === mySide 限制，
+只要有事件就应该更新对应棋子 / 塔，无论是 A 还是 B。
+
+目标：
+“Host only 限制只出现在『修改游戏真相』的代码里，
+任何以 DOM / CSS / title / icon 为主的代码都不做 side 过滤（除了决定画在哪边的位置）。”
+
+3. 检查 HP → DOM 的映射是否对 B 也是对的
+
+你现在的血条管线大致是：
+
+收到 snapshot 或 damage：
+
+找到 entry（piece/tower 的本地对象）；
+
+更新 entry.hp；
+
+调 updateHealthBar(entry)；
+
+调 writeHealthBarTitle(entry)。
+
+B 端“信息同步但显示不同步”很可能是：找到的 entry 不是你以为的那个。
+
+重点检查两点：
+
+3.1 entry 查找是不是只查 “自己 side”
+
+例如这种：
+
+const entry = deployedPieces.find(e => e.id === payload.id && e.side === mySide);
+
+
+如果 Host 用的是 side === 'a'，B 是 'b'，再来一样的查找，就会：
+
+找不到对方单位/塔；
+
+entry 是 undefined，于是根本没更新血条；
+
+但你另一个地方更新了内存 state（比如 piecesById），肉眼以为“数值对了”，DOM 没动。
+
+修正目标：
+
+查找 entry 时只用 唯一 id（+ board 类型），不要再用 side === mySide 限制：
+
+const entry = piecesById[payload.id]; // 或 find(e => e.id === payload.id)
+
+
+entry.side 只用于决定画在左/右、用哪套皮肤，不影响“是否更新”。
+
+3.2 health bar DOM 是否为双方都构建了
+
+在 syncPieceFromSnapshot / 初始摆塔的时候：
+
+确保 不论 side 是 'a' 还是 'b'，都创建了 health bar 元素，并把它挂在 entry 上；
+
+很多老逻辑可能写成：
+
+if (entry.side === mySide) {
+  attachHealthBar(entry);
+}
+
+
+这样 B 进场时，他自己的塔有血条，对手塔压根没 bar，自然就看不到对方掉血。
+
+目标：
+
+attachHealthBar(entry) 对所有棋子/塔都调用；
+
+区别只体现在样式（颜色、位置），而不是“要不要有”。
+
+4. 重点看 snapshot 的「orientation」和「行列」
+
+你 Console 里有一行：
+
+[createBoardGrid] data-row and data-col are ABSOLUTE coordinates (same for both sides)
+
+这说明你现在的棋盘坐标是绝对坐标（a1 在左下，无论 A/B）。
+
+那么要保证：
+
+snapshot 中的 row/col 是绝对坐标；
+
+syncPieceFromSnapshot 在 B 端不要再二次做“翻转”
+（比如把 row 反过来），否则：
+
+B 端会把 piece 画到别的位置；
+
+damage 更新按 id 找 entry 可能找到了，但 DOM 显示因为坐标/anchor 错位，看起来“像没动”。
+
+简单说：
+
+坐标只翻转一次，要么在 snapshot 里已经是“观众视角”，要么在前端渲染时翻；
+绝不能在 A/B 端各翻一遍。
+
+5. 一套快速验证流程（只做 B 端）
+
+给你一个 1 分钟的验证剧本：
+
+A 当 Host，B 加入，打开 B 的 Console。
+
+在 B 上加一个临时 log：
+
+window.handleDamageFromServer = function(payload) {
+  console.log('[B] damage', payload.id, payload.side, payload.hp);
+  // 原来更新 entry + updateHealthBar 的逻辑也写这里
+}
+
+
+并确保 fromNetwork 的 damage 分支只调用这一个函数。
+
+A 控制一枚单位持续攻击 B 的塔：
+
+看 Console：每一下 [B] damage ... 都出现；
+
+然后看：
+
+对应塔的 title 是否从 1000/1000 → 900/1000 → ...；
+
+条形血量是否有缩短（如果没有，多半是没调用 updateHealthBar 或找错 entry）。
+
+再让 B 端点技能 / 切塔：
+
+看 ability / switch 事件是否也触发 B 的 UI 更新；
+
+同时确认没有任何只在 isHost 条件内的 UI 逻辑。
+
+处理结果补充：
+- 已对 `elixirManager` 做全局单例保护，避免父页面覆盖导致初始化中断，圣水/卡槽/塔技能在 B 端可正常渲染。
+- 事件链路（damage/elixir/tower_switch/tower_ability）均在 `state_update` 中无视 side 应用到 DOM，并在快照里携带血条基座、减伤、图片路径，B 端刷新后可同步显示。需要验证时按上述脚本在 B 端 Console 打 log，即可确认 UI 与广播一致。
