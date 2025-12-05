@@ -750,6 +750,26 @@ class PieceDeployment {
             }
         }
 
+        // Broadcast spawn ASAP so CLIENT receives it before any attack/damage events
+        // Only call handleLocalDeploy if HOST mode and not skipping broadcast
+        if (!fromNetwork && window.IS_HOST === true && !options.skipBroadcast) {
+            if (typeof window.handleLocalDeploy === 'function') {
+                console.log('[piece_deploy] HOST mode: calling handleLocalDeploy (early broadcast)');
+                window.handleLocalDeploy({
+                    id: pieceId,
+                    row,
+                    col,
+                    pieceType,
+                    allegiance,
+                    cost,
+                    boardImagePath: boardImg,
+                });
+            } else {
+                console.error('[piece_deploy] handleLocalDeploy is not defined!');
+            }
+        }
+
+        // Create movers after broadcast (HOST only, doesn't affect CLIENT)
         if (window.IS_HOST === true) {
             if (pieceType === 'shouter' && window.createShouterMover) {
                 const mover = window.createShouterMover(pieceEntry, {
@@ -780,24 +800,6 @@ class PieceDeployment {
                 });
                 this.activeMovers[pieceEntry.id] = mover;
                 pieceEntry._mover = mover;
-            }
-        }
-
-        // Only call handleLocalDeploy if HOST mode and not skipping broadcast
-        if (!fromNetwork && window.IS_HOST === true && !options.skipBroadcast) {
-            if (typeof window.handleLocalDeploy === 'function') {
-                console.log('[piece_deploy] HOST mode: calling handleLocalDeploy');
-                window.handleLocalDeploy({
-                    id: pieceId,
-                    row,
-                    col,
-                    pieceType,
-                    allegiance,
-                    cost,
-                    boardImagePath: boardImg,
-                });
-            } else {
-                console.error('[piece_deploy] handleLocalDeploy is not defined!');
             }
         }
 

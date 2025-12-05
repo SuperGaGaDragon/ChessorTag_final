@@ -801,7 +801,7 @@
             }
 
             function processPendingTowerEvents() {
-                const MAX_AGE_MS = 5000;
+                const MAX_AGE_MS = 10000; // Increased from 5000 to 10000 for better spawn delay tolerance
                 const now = Date.now();
                 pendingTowerEvents = pendingTowerEvents.filter(evt => {
                     const attacker = getPieceEntryById(evt.attacker_id, { warn: false });
@@ -834,7 +834,7 @@
             }, 400);
 
             function processPendingDamageEvents() {
-                const MAX_AGE_MS = 6000;
+                const MAX_AGE_MS = 10000; // Increased from 6000 to 10000 for better spawn delay tolerance
                 const now = Date.now();
                 pendingDamageEvents = pendingDamageEvents.filter(evt => {
                     const entry = getPieceEntryById(evt.piece_id, { warn: false });

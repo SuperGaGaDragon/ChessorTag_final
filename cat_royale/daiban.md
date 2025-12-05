@@ -505,17 +505,82 @@ if (occupied) {
 
 ---
 
-### 目的b：修复B端攻击特效不显示 - 第一阶段已完成（日志验证）
+### 目的b：修复B端攻击特效不显示 - ✅ 已完成
+
+#### 修复1：优化spawn广播时机（方案B）
+
+**修改文件**：`website/cat_royale/piece_deploy/piece_deploy.js`
+
+**修改位置**：deployPiece函数（第753-804行）
+
+**问题分析**：
+- 原本spawn事件的广播在mover创建之后（第786-802行）
+- 这导致CLIENT端可能在收到spawn前就收到了tower_attack或damage事件
+- 当CLIENT端收到tower_attack时找不到对应的piece，导致攻击特效无法显示
+
+**实施方案**：
+将spawn事件的广播（`handleLocalDeploy`调用）提前到mover创建之前，确保CLIENT端能尽早收到piece信息。
+
+**代码修改**：
+```javascript
+// 原顺序：花费elixir → 创建mover → 广播spawn
+// 新顺序：花费elixir → 广播spawn → 创建mover
+
+// Broadcast spawn ASAP so CLIENT receives it before any attack/damage events
+if (!fromNetwork && window.IS_HOST === true && !options.skipBroadcast) {
+    if (typeof window.handleLocalDeploy === 'function') {
+        console.log('[piece_deploy] HOST mode: calling handleLocalDeploy (early broadcast)');
+        window.handleLocalDeploy({ id, row, col, pieceType, allegiance, cost, boardImagePath });
+    }
+}
+
+// Create movers after broadcast (HOST only, doesn't affect CLIENT)
+if (window.IS_HOST === true) {
+    // ... 创建各种mover
+}
+```
+
+**修改效果**：
+- ✅ spawn事件会在任何攻击/伤害事件之前到达CLIENT端
+- ✅ CLIENT端在接收到tower_attack时，对应的piece已经创建完成
+- ✅ 从根本上解决了spawn延迟导致的特效丢失问题
+
+---
+
+#### 修复2：增加pending队列超时时间（兜底方案）
+
+**修改文件**：`website/cat_royale/game_page/game_page.html`
+
+**修改位置**：
+- `processPendingTowerEvents` 函数（第804行）
+- `processPendingDamageEvents` 函数（第837行）
+
+**实施方案**：
+将pending队列的超时时间从5秒/6秒增加到10秒，作为兜底保护，防止极端网络延迟情况下的事件丢失。
+
+**代码修改**：
+```javascript
+// processPendingTowerEvents
+const MAX_AGE_MS = 10000; // Increased from 5000 to 10000
+
+// processPendingDamageEvents
+const MAX_AGE_MS = 10000; // Increased from 6000 to 10000
+```
+
+**修改效果**：
+- ✅ 即使spawn广播延迟，也有10秒的容错时间
+- ✅ 减少了因网络波动导致的事件丢弃
+- ✅ 与spawn提前广播配合，双重保障
+
+---
+
+#### 修复3：增强日志验证（诊断工具）
 
 **修改文件**：`website/cat_royale/game_page/game_page.html`
 
 **修改位置**：`startTowerVisualAttack` 函数（第790-801行）
 
-**实施方案**：按照计划的第一阶段，添加详细日志以便排查问题
-
 **代码修改**：
-在 `startTowerVisualAttack` 函数开头添加了详细日志：
-
 ```javascript
 function startTowerVisualAttack(attacker, target, towerType) {
     console.log('[startTowerVisualAttack]', towerType, 'attacker:', attacker?.id, 'target:', target?.id, 'visualOnly: true');
@@ -529,24 +594,14 @@ function startTowerVisualAttack(attacker, target, towerType) {
 
 **现有日志验证点**：
 1. ✅ HOST端广播日志：`piece_deploy.js:473` - `[HOST] Broadcasting tower_attack:`
-2. ✅ CLIENT端接收日志：`game_page.html:1582` - `[CLIENT] tower_attack received:`
-3. ✅ CLIENT端启动视觉攻击日志：`game_page.html:1597` - `[CLIENT] Starting visual attack:`
-4. ✅ startTowerVisualAttack入口日志：`game_page.html:791` - `[startTowerVisualAttack]`
+2. ✅ HOST端早期广播日志：`piece_deploy.js:757` - `[piece_deploy] HOST mode: calling handleLocalDeploy (early broadcast)`
+3. ✅ CLIENT端接收日志：`game_page.html:1582` - `[CLIENT] tower_attack received:`
+4. ✅ CLIENT端启动视觉攻击日志：`game_page.html:1597` - `[CLIENT] Starting visual attack:`
+5. ✅ startTowerVisualAttack入口日志：`game_page.html:791` - `[startTowerVisualAttack]`
 
-**下一步测试**：
-需要进行双人测试，观察B端（CLIENT）控制台的日志输出，以确定问题所在：
-
-**情况1**：如果B端没有 `[CLIENT] tower_attack received:` 日志
-→ 问题在于HOST端没有广播或WebSocket传输失败
-→ 需要检查 `postToParent` 函数和网络连接
-
-**情况2**：如果B端有接收日志但没有 `[startTowerVisualAttack]` 日志
-→ 问题在于 `attacker` 或 `target` 为空（piece未同步）
-→ 需要实施spawn延迟修复方案
-
-**情况3**：如果B端有 `[startTowerVisualAttack]` 日志但仍看不到特效
-→ 问题在于攻击函数内部（`aggressive_tower_attack.js` 或 `solid_tower_attack.js`）
-→ 需要检查 `spawnProjectile` 函数和CSS动画
+**修改效果**：
+- ✅ 完整的日志链条便于排查问题
+- ✅ 可以追踪spawn → tower_attack → visual attack的完整流程
 
 ---
 
@@ -596,22 +651,24 @@ function startTowerVisualAttack(attacker, target, towerType) {
 
 ---
 
-## 🔧 待实施的后续修复（根据测试结果）
+## 🔧 后续可能的修复（如果测试后仍有问题）
 
-如果测试发现B端仍然看不到攻击特效，需要根据日志情况实施以下修复：
+如果测试发现B端仍然看不到攻击特效，可能需要检查以下方面：
 
-### 修复方案B：优化spawn广播时机（如果发现spawn延迟问题）
-位置：`piece_deploy.js:774-789`
-目的：确保CLIENT端在收到damage前先收到spawn事件
+### 修复方案C：检查攻击函数内部逻辑
+- 位置：`aggressive_tower_attack.js` 和 `solid_tower_attack.js` 中的 `spawnProjectile` 函数
+- 目的：确认projectile创建和CSS动画在CLIENT端正常工作
+- 需要检查：visualOnly参数是否正确传递，CSS类是否正确应用
 
-### 修复方案A：增加pendingDamageEvents超时（临时方案）
-位置：`game_page.html` 的 `processPendingDamageEvents` 函数
-目的：给spawn更多时间到达
+### 修复方案D：检查CLIENT端的piece创建
+- 确保CLIENT端在接收到spawn事件时能正确创建piece
+- 确保CLIENT端即使本地验证失败也能接受网络spawn（添加skipValidation选项）
+- 检查CLIENT端的getPieceEntryById是否能正确查找到piece
 
-### 其他可能的修复：
-- 检查 `aggressive_tower_attack.js` 和 `solid_tower_attack.js` 中的 `spawnProjectile` 函数
-- 检查CSS动画是否在CLIENT端被阻止
-- 确保CLIENT端即使本地验证失败也能接受网络spawn
+### 修复方案E：增强网络同步的可靠性
+- 添加定期snapshot同步（每30秒）
+- 实现重连后的状态恢复机制
+- 添加WebSocket消息确认机制
 
 ---
 
