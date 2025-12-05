@@ -522,6 +522,19 @@ class PieceDeployment {
         if (pieceType === 'shouter' && row === shouterHomeRow && (col === 0 || col === 2 || col === 5 || col === 7)) {
             return false;
         }
+
+        // Check if cell is already occupied by another piece
+        const occupied = this.boardPieces.some(p =>
+            p.position?.row === row &&
+            p.position?.col === col &&
+            (p.hp === undefined || p.hp > 0) && // Only count alive pieces
+            !p._isDead
+        );
+        if (occupied) {
+            console.log(`[isValidCell] Cell (${row},${col}) is occupied`);
+            return false;
+        }
+
         return true;
     }
 

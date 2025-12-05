@@ -788,7 +788,11 @@
             let pendingDamageEvents = [];
 
             function startTowerVisualAttack(attacker, target, towerType) {
-                if (!attacker || !target) return;
+                console.log('[startTowerVisualAttack]', towerType, 'attacker:', attacker?.id, 'target:', target?.id, 'visualOnly: true');
+                if (!attacker || !target) {
+                    console.warn('[startTowerVisualAttack] Missing attacker or target');
+                    return;
+                }
                 if (towerType === 'aggressive_tower' && window.startAggressiveTowerAttack) {
                     window.startAggressiveTowerAttack(attacker, target, true);
                 } else if (towerType === 'solid_tower' && window.startSolidTowerAttack) {
