@@ -473,19 +473,22 @@
         logo.setAttribute('aria-label', 'Open battle');
         logo.addEventListener('click', (e) => {
           e?.preventDefault();
-          if (clickTimer) return;
-          clickTimer = setTimeout(() => {
-            openOldLobby();
-            clickTimer = null;
-          }, 220);
-        });
-        logo.addEventListener('dblclick', (e) => {
-          e?.preventDefault();
-          if (clickTimer) {
-            clearTimeout(clickTimer);
-            clickTimer = null;
+          // On the first click, wait briefly to see if a second click comes.
+          if (!clickTimer && e.detail === 1) {
+            clickTimer = setTimeout(() => {
+              openOldLobby();
+              clickTimer = null;
+            }, 300);
+            return;
           }
-          openNewLobby();
+          // If this is the second click of a double click, open the new lobby and cancel the old one.
+          if (e.detail === 2) {
+            if (clickTimer) {
+              clearTimeout(clickTimer);
+              clickTimer = null;
+            }
+            openNewLobby();
+          }
         });
       };
 
