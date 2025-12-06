@@ -345,6 +345,36 @@ def _predict_with_pipeline(fen: str, engine_path: Optional[str]) -> AnalyzeRespo
     return payload
 
 
+def _engine_only_prediction(fen: str, engine_path: Optional[str], reason: str) -> AnalyzeResponse:
+    """
+    Fallback when predictor is unavailable: reuse engine_top so UI still renders.
+    """
+    engine_req = EngineTopRequest(fen=fen, depth=12, multipv=5, engine_path=engine_path)
+    engine_resp = engine_top(engine_req)
+    moves_output = []
+    for move in engine_resp.moves:
+        moves_output.append(
+            AnalyzeMove(
+                san=move.san,
+                uci=move.uci,
+                score_cp=move.cp,
+                probabilities=None,
+                tags=[],
+                tag_flags=None,
+            )
+        )
+    return AnalyzeResponse(
+        study_id="",
+        players=["engine_only"],
+        moves=moves_output,
+        metadata={
+            "mode": "engine_only",
+            "reason": reason,
+            "engine_path": engine_path or ENGINE_DEFAULT,
+        },
+    )
+
+
 def _log_predictor_call(fen: str, result: AnalyzeResponse, engine_path: Optional[str]):
     try:
         log_dir = Path(__file__).resolve().parent.parent / "website" / "predictor_log"
@@ -481,7 +511,15 @@ def analyze(
     current_user: User = Depends(get_current_user),
 ):
     engine_bin = req.engine_path or ENGINE_DEFAULT
-    payload = _predict_with_pipeline(req.fen, engine_bin)
+    predictor_error = None
+    try:
+        payload = _predict_with_pipeline(req.fen, engine_bin)
+    except HTTPException as exc:
+        predictor_error = getattr(exc, "detail", None) or str(exc)
+        payload = _engine_only_prediction(req.fen, engine_bin, predictor_error)
+    except Exception as exc:  # pragma: no cover
+        predictor_error = str(exc)
+        payload = _engine_only_prediction(req.fen, engine_bin, predictor_error)
     _log_predictor_call(req.fen, payload, engine_bin)
 
     result_data = payload.model_dump()

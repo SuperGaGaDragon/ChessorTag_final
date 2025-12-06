@@ -459,16 +459,34 @@
         const logo = document.getElementById('home-logo');
         if (!logo) return;
 
-        function openNewWindow(e) {
-          e?.preventDefault();
+        const openOldLobby = () => {
           window.open('cat_royale/game_page/index.html', '_blank', 'noopener');
-        }
+        };
+        const openNewLobby = () => {
+          window.open('cat_royale/game_page/lobby.html', '_blank', 'noopener');
+        };
+
+        let clickTimer = null;
 
         logo.style.cursor = 'pointer';
         logo.setAttribute('role', 'button');
         logo.setAttribute('aria-label', 'Open battle');
-        logo.addEventListener('click', openNewWindow);
-        logo.addEventListener('dblclick', openNewWindow);
+        logo.addEventListener('click', (e) => {
+          e?.preventDefault();
+          if (clickTimer) return;
+          clickTimer = setTimeout(() => {
+            openOldLobby();
+            clickTimer = null;
+          }, 220);
+        });
+        logo.addEventListener('dblclick', (e) => {
+          e?.preventDefault();
+          if (clickTimer) {
+            clearTimeout(clickTimer);
+            clickTimer = null;
+          }
+          openNewLobby();
+        });
       };
 
       if (document.readyState === 'loading') {

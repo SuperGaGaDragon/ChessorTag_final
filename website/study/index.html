@@ -1354,6 +1354,8 @@
     })();
 
     const API_BASE = 'https://api.chessortag.org';
+    let engineRequestController = null;
+    let analyzeRequestController = null;
 
     function getStudyIdFromUrl() {
       const params = new URLSearchParams(window.location.search);
@@ -2268,11 +2270,16 @@
 
       // Kick off fast engine first so we have immediate output
       (async () => {
+        if (engineRequestController) {
+          engineRequestController.abort();
+        }
+        engineRequestController = new AbortController();
         try {
           const res2 = await fetch(`${API_BASE}/api/study/engine_top`, {
             method: "POST",
             headers: authHeaders(),
             body: JSON.stringify({ fen, depth: 12, multipv: 5 }),
+            signal: engineRequestController.signal,
           });
           if (handleUnauthorized(res2)) return;
           if (!res2.ok) {
@@ -2301,20 +2308,28 @@
           latestEnginePrediction = enriched;
           applyIfFresh(enriched, "engine_top");
         } catch (err) {
+          if (err?.name === "AbortError") return;
           console.warn("engine_top failed", err);
           if (requestId === predictionRequestId && engineMovesList.textContent === "") {
             engineMovesList.textContent = `Engine error (API_BASE=${API_BASE}): ${err.message}`;
           }
+        } finally {
+          engineRequestController = null;
         }
       })();
 
       // In parallel, try full predictor (GM tags + probs). When it returns, overwrite.
       (async () => {
+        if (analyzeRequestController) {
+          analyzeRequestController.abort();
+        }
+        analyzeRequestController = new AbortController();
         try {
           const res = await fetch(`${API_BASE}/api/study/analyze`, {
             method: "POST",
             headers: authHeaders(),
             body: JSON.stringify({ fen }),
+            signal: analyzeRequestController.signal,
           });
           if (handleUnauthorized(res)) return;
           if (!res.ok) {
@@ -2324,6 +2339,7 @@
           const data = await res.json();
           applyIfFresh(data, "predictor");
         } catch (e) {
+          if (e?.name === "AbortError") return;
           console.warn(`analyze failed at ${API_BASE}/api/study/analyze`, e);
           // keep engine result if it already rendered
         } finally {
@@ -2331,6 +2347,7 @@
             isPredicting = false;
             renderSelectedGms();
           }
+          analyzeRequestController = null;
         }
       })();
     }

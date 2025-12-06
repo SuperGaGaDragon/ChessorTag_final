@@ -20,16 +20,18 @@ BASE_DIR = Path(__file__).resolve().parent
 STYLE_REPORT_DIR = BASE_DIR.parent / "style_report"
 
 # 允许前端访问后端
-origins = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "https://chessortag.org",
-    "https://www.chessortag.org",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=[
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://chessortag.org",
+        "https://www.chessortag.org",
+        "https://api.chessortag.org",
+    ],
+    allow_origin_regex=r"https?://(.+\.)?chessortag\.org",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
