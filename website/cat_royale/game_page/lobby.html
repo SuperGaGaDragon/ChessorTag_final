@@ -894,6 +894,7 @@
         const API_BASE = window.location.hostname === 'chessortag.org' || window.location.hostname === 'www.chessortag.org'
             ? 'https://api.chessortag.org'
             : 'http://localhost:3000';
+        const BATTLE_API = `${API_BASE}/api/battle`;
 
         // Show/hide pages
         function showPage(pageId) {
@@ -906,12 +907,12 @@
         // Create a new game
         async function createGame() {
             try {
-                const response = await fetch(`${API_BASE}/create`, { method: 'POST' });
+                const response = await fetch(`${BATTLE_API}/create`, { method: 'POST' });
                 const data = await response.json();
 
-                if (data.gameId) {
-                    currentGameId = data.gameId;
-                    currentSide = 'a';
+                if (data.game_id || data.gameId) {
+                    currentGameId = (data.game_id || data.gameId).toUpperCase();
+                    currentSide = (data.side || 'a').toLowerCase();
                     isHost = true;
 
                     document.getElementById('gameIdDisplay').textContent = currentGameId;
@@ -943,24 +944,21 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE}/join`, {
+                const response = await fetch(`${BATTLE_API}/join`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ gameId })
+                    body: JSON.stringify({ game_id: gameId })
                 });
 
                 const data = await response.json();
 
-                if (data.success) {
-                    currentGameId = gameId;
-                    currentSide = 'b';
+                if (data.side) {
+                    currentGameId = (data.game_id || gameId).toUpperCase();
+                    currentSide = data.side.toLowerCase();
                     isHost = false;
 
-                    // Show start button immediately for joiner
-                    document.getElementById('joinStartGameBtn').classList.remove('hidden');
-
-                    // Start polling
-                    pollGameState();
+                    // Joiner goes straight to game
+                    startGameNow();
                 } else {
                     alert(data.error || 'Failed to join game');
                 }
@@ -989,32 +987,20 @@
             if (!currentGameId) return;
 
             try {
-                const response = await fetch(`${API_BASE}/game/${currentGameId}`);
+                const response = await fetch(`${BATTLE_API}/game_info?game=${encodeURIComponent(currentGameId)}`);
                 const data = await response.json();
 
-                if (data.playerA && data.playerB) {
-                    // Both players present
-                    if (isHost) {
-                        document.getElementById('startGameBtn').classList.remove('hidden');
-                    }
+                // Host waits for player B to arrive, then can start
+                if (isHost && data.has_player_b) {
+                    document.getElementById('startGameBtn').classList.remove('hidden');
+                }
 
-                    // Check if opponent is ready
-                    if (currentSide === 'a' && data.playerB?.ready) {
-                        opponentReady = true;
-                    } else if (currentSide === 'b' && data.playerA?.ready) {
-                        opponentReady = true;
-                    }
-
-                    // If both ready, start game
-                    if (selfReady && opponentReady) {
+                // If both sides present, auto-start after brief delay
+                if (data.has_player_a && data.has_player_b) {
+                    setTimeout(() => {
                         startGameNow();
-                        return;
-                    }
-
-                    // If self ready but opponent not, show loading
-                    if (selfReady && !opponentReady) {
-                        document.getElementById('loadingScreen').classList.add('active');
-                    }
+                    }, 500);
+                    return;
                 }
 
                 // Continue polling
@@ -1028,39 +1014,13 @@
         // Click to start
         async function startGame() {
             if (!currentGameId) return;
-
-            try {
-                const response = await fetch(`${API_BASE}/ready`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ gameId: currentGameId, side: currentSide })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    selfReady = true;
-
-                    // If opponent already ready, start immediately
-                    if (opponentReady) {
-                        startGameNow();
-                    } else {
-                        // Show loading screen
-                        document.getElementById('loadingScreen').classList.add('active');
-                    }
-                } else {
-                    alert('Failed to ready up');
-                }
-            } catch (error) {
-                console.error('Error sending ready:', error);
-                alert('Failed to ready up');
-            }
+            startGameNow();
         }
 
         // Start the actual game
         function startGameNow() {
             // Redirect to game page
-            window.location.href = `game_page.html?gameId=${currentGameId}&side=${currentSide}`;
+            window.location.href = `game_page.html?game=${encodeURIComponent(currentGameId)}`;
         }
     </script>
 </body>
