@@ -704,10 +704,13 @@ class PieceDeployment {
             } else {
                 // CLIENT mode: send request to host
                 // CLIENT只检查elixir是否足够，不实际扣费
+                console.log('[CLIENT] Checking elixir:', 'cost:', cost, 'isPlayerOwned:', isPlayerOwned, 'skipElixir:', options.skipElixir);
+                console.log('[CLIENT] ElixirManager state:', 'side:', elixirManager.side, 'currentElixir:', elixirManager.currentElixir, 'pools:', elixirManager.pools);
                 if (isPlayerOwned && !options.skipElixir && !elixirManager.hasEnough(cost)) {
                     console.log('[CLIENT] Not enough elixir!', 'need:', cost, 'have:', elixirManager.currentElixir);
                     return false;
                 }
+                console.log('[CLIENT] Elixir check passed!');
 
                 console.log('[piece_deploy] CLIENT mode: calling handleLocalDeployRequest');
                 if (typeof window.handleLocalDeployRequest === 'function') {
