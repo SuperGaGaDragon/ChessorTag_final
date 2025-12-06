@@ -35,15 +35,26 @@
         if (attacker._attackInterval) clearInterval(attacker._attackInterval);
 
         const fire = () => {
-            if (!attacker.attack || (attacker.hp !== undefined && attacker.hp <= 0) || attacker.aggressive_tower_lived === false) return false;
+            if (!attacker.attack || (attacker.hp !== undefined && attacker.hp <= 0) || attacker.aggressive_tower_lived === false) {
+                // 清除动画
+                const anchor = getAnchorElement(attacker);
+                if (anchor) anchor.classList.remove('tower-attack-circle');
+                return false;
+            }
             if (!target || target.role !== 'troop' || (target.hp !== undefined && target.hp <= 0)) {
                 attacker.attack = false;
                 attacker.currentTargetId = null;
+                // 清除动画
+                const anchor = getAnchorElement(attacker);
+                if (anchor) anchor.classList.remove('tower-attack-circle');
                 return false;
             }
             if (!isAggressiveTowerInRange(attacker, target)) {
                 attacker.attack = false;
                 attacker.currentTargetId = null;
+                // 清除动画
+                const anchor = getAnchorElement(attacker);
+                if (anchor) anchor.classList.remove('tower-attack-circle');
                 return false;
             }
             const targetEl = getAnchorElement(target);

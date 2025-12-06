@@ -1438,6 +1438,16 @@
 
                             console.log('[tower_switch] Switching tower:', entry.id, 'from', entry.type, 'to', newType, 'hp:', t.hp, 'maxHP:', t.max_hp);
 
+                            // 记录当前攻击状态
+                            const wasAttacking = entry.attack;
+                            const currentTarget = wasAttacking ? getPieceEntryById(entry.currentTargetId, { warn: false }) : null;
+                            const oldType = entry.type;
+
+                            // 停止旧的攻击动画
+                            if (pieceDeployment?.stopTowerAttack) {
+                                pieceDeployment.stopTowerAttack(entry);
+                            }
+
                             // Remove old health bar before switching type
                             if (entry.healthBar && entry.healthBar.barWrapper) {
                                 const oldBar = entry.healthBar.barWrapper;
@@ -1485,6 +1495,17 @@
                             const img = entry.element ? entry.element.querySelector('img') : null;
                             if (img) {
                                 img.src = desiredPath;
+                            }
+
+                            // 如果之前在攻击，用新类型重新启动攻击
+                            if (wasAttacking && currentTarget) {
+                                console.log('[tower_switch] Restarting attack with new type:', entry.type);
+                                const visualOnly = window.IS_HOST !== true;
+                                if (entry.type === 'aggressive_tower' && window.startAggressiveTowerAttack) {
+                                    window.startAggressiveTowerAttack(entry, currentTarget, visualOnly);
+                                } else if (entry.type === 'solid_tower' && window.startSolidTowerAttack) {
+                                    window.startSolidTowerAttack(entry, currentTarget, visualOnly);
+                                }
                             }
                         });
                         if (msg.side) {
