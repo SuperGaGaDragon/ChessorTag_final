@@ -1115,7 +1115,11 @@
                     // Connect WebSocket
                     connectWebSocket();
 
-                    // Show tower selection immediately for joiner
+                    // Hide all pages and show tower selection immediately for joiner
+                    document.getElementById('mainLobby').classList.add('hidden');
+                    document.getElementById('createGamePage').classList.add('hidden');
+                    document.getElementById('joinGamePage').classList.add('hidden');
+
                     showTowerSelection();
                 } else {
                     alert(data.error || 'Failed to join game');
