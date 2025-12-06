@@ -1020,7 +1020,8 @@
         // Start the actual game
         function startGameNow() {
             // Redirect to game page
-            window.location.href = `game_page.html?game=${encodeURIComponent(currentGameId)}`;
+            const sideParam = currentSide ? `&side=${encodeURIComponent(currentSide)}` : '';
+            window.location.href = `game_page.html?game=${encodeURIComponent(currentGameId)}${sideParam}`;
         }
     </script>
 </body>

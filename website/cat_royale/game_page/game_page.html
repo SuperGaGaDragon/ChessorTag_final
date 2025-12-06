@@ -1020,13 +1020,21 @@
             async function initStandaloneNetworking() {
                 const params = new URLSearchParams(window.location.search);
                 const game = params.get('game');
+                const urlSide = (params.get('side') || '').toLowerCase();
                 if (!game) {
                     console.warn('No game id in URL; networking disabled.');
                     return;
                 }
                 const gameId = game.trim().toUpperCase();
+                if (urlSide === 'a' || urlSide === 'b') {
+                    window.PLAYER_SIDE = urlSide;
+                }
                 setupDirectBridge(gameId);
-                await directJoin(gameId);
+                if (window.PLAYER_SIDE !== 'a') {
+                    await directJoin(gameId);
+                } else {
+                    updateSideFlags('a');
+                }
                 connectDirectWs(gameId);
             }
 
