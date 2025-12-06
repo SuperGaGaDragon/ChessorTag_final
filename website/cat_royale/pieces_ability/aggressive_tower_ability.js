@@ -79,16 +79,29 @@
         if (!tower) return;
         const anchor = tower.element || document.querySelector(`.board-cell[data-row="${tower.position?.row}"][data-col="${tower.position?.col}"]`);
         if (!anchor) return;
+
+        // Remove old health bar
         if (tower.healthBar && tower.healthBar.barWrapper && tower.healthBar.barWrapper.parentElement) {
             tower.healthBar.barWrapper.remove();
         }
+
+        // Get the correct factory based on tower type
         let factory = null;
         if (tower.type === 'aggressive_tower') factory = window.AggressiveTowerHP?.createHealthBar;
         if (tower.type === 'solid_tower') factory = window.SolidTowerHP?.createHealthBar;
+
         if (typeof factory === 'function') {
+            // Create new health bar with correct maxHP
             tower.healthBar = factory(anchor);
+
+            // Update to current HP value
             if (tower.healthBar && typeof tower.healthBar.update === 'function') {
                 tower.healthBar.update(tower.hp);
+            }
+
+            // Reattach tooltip if available
+            if (window.pieceDeployment && typeof window.pieceDeployment.attachHealthTooltip === 'function') {
+                window.pieceDeployment.attachHealthTooltip(tower);
             }
         }
     }
@@ -120,11 +133,26 @@
         });
     }
 
-    function applyToggleVisual(toggleEl, playerTowerType) {
+    function applyToggleVisual(toggleEl, playerTowerType, playerAllegiance = 'a') {
         if (!toggleEl) return;
         const img1 = toggleEl.querySelector('.tower-img-1');
         const img2 = toggleEl.querySelector('.tower-img-2');
         if (!img1 || !img2) return;
+
+        // Update image sources based on allegiance
+        const towerSpriteFor = window.towerSpriteFor || ((type, allegiance) => {
+            if (allegiance === 'a') {
+                if (type === 'solid' || type === 'solid_tower') return '../pieces/solid_tower/solid_tower_a.png';
+                if (type === 'aggressive' || type === 'aggressive_tower') return '../pieces/agressive_tower/aggressive_tower_a.png';
+            }
+            if (type === 'solid' || type === 'solid_tower') return '../pieces/solid_tower/solid_tower.png';
+            if (type === 'aggressive' || type === 'aggressive_tower') return '../pieces/agressive_tower/aggressive_tower.png';
+            return '';
+        });
+
+        img1.src = towerSpriteFor('solid', playerAllegiance);
+        img2.src = towerSpriteFor('aggressive', playerAllegiance);
+
         const oppositeType = playerTowerType === 'solid' ? 'aggressive' : 'solid';
         if (oppositeType === 'solid') {
             img1.style.display = 'block';
@@ -150,9 +178,19 @@
 
         const currentType = currentPlayerTowers[0].dataset.towerType;
         const newType = currentType === 'solid' ? 'aggressive' : 'solid';
-        const newImagePath = newType === 'solid'
-            ? '../pieces/solid_tower/solid_tower.png'
-            : '../pieces/agressive_tower/aggressive_tower.png';
+
+        // Use correct allegiance-specific image path
+        const towerSpriteFor = window.towerSpriteFor || ((type, allegiance) => {
+            if (allegiance === 'a') {
+                if (type === 'solid' || type === 'solid_tower') return '../pieces/solid_tower/solid_tower_a.png';
+                if (type === 'aggressive' || type === 'aggressive_tower') return '../pieces/agressive_tower/aggressive_tower_a.png';
+            }
+            if (type === 'solid' || type === 'solid_tower') return '../pieces/solid_tower/solid_tower.png';
+            if (type === 'aggressive' || type === 'aggressive_tower') return '../pieces/agressive_tower/aggressive_tower.png';
+            return '';
+        });
+
+        const newImagePath = towerSpriteFor(newType, playerAllegiance);
 
         if (!elixirManager.spend(1, playerAllegiance)) {
             console.log('Cannot switch towers: insufficient elixir for host');
@@ -162,6 +200,7 @@
         currentPlayerTowers.forEach(tower => {
             const img = tower.querySelector('img');
             if (img) img.src = newImagePath;
+            // Update dataset to match new tower type
             tower.dataset.towerType = newType;
         });
 
@@ -170,7 +209,7 @@
 
         console.log(`[AggressiveTowerAbility] Switched ${playerAllegiance} towers to ${newType}. Elixir: ${elixirManager.currentElixir}`);
         state?.setPlayerTowerType?.(newType);
-        applyToggleVisual(state?.toggleElement, newType);
+        applyToggleVisual(state?.toggleElement, newType, playerAllegiance);
         if (typeof window.postToParent === 'function') {
             const serialized = playerTowers.map(t => {
                 // Use correct sprite based on hp state
@@ -437,9 +476,8 @@
             }, 3000);
         });
 
-        applyToggleVisual(toggleElement, getPlayerTowerType());
-
         const playerAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';
+        applyToggleVisual(toggleElement, getPlayerTowerType(), playerAllegiance);
         updateToggleDisabled(toggleElement, playerAllegiance);
         const interval = setInterval(() => {
             const currentAllegiance = window.pieceDeployment?.playerSide || window.MY_SIDE || 'a';

@@ -563,11 +563,12 @@
             border: 3px solid #5C4033;
             border-radius: 5px;
             background-color: #FFF5F8;
+            overflow: hidden; /* Prevent content from spilling out */
         }
 
         .tower-piece img {
-            width: 110%;
-            height: 110%;
+            width: 90%;
+            height: 90%;
             object-fit: contain;
         }
 
@@ -581,10 +582,10 @@
             animation: shouterShake 0.15s ease-in-out infinite alternate;
         }
 
-        /* Aggressive tower specific sizing */
+        /* Aggressive tower specific sizing - keep within bounds */
         .tower-piece[data-tower-type="aggressive"] img {
-            width: 150%;
-            height: 150%;
+            width: 95%;
+            height: 95%;
             object-fit: contain;
         }
     </style>

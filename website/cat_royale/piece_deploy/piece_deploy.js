@@ -746,6 +746,7 @@ class PieceDeployment {
         piece.style.display = 'flex';
         piece.style.alignItems = 'center';
         piece.style.justifyContent = 'center';
+        piece.style.overflow = 'hidden'; // Prevent images from overflowing
 
         const img = document.createElement('img');
         // Use allegiance-specific board image for side A, otherwise fallback to dataset/defaults
