@@ -1439,9 +1439,24 @@
                         const newType = msg.tower_type;
                         const towers = msg.towers || [];
                         towers.forEach(t => {
-                            const entry = getPieceEntryById(t.id);
+                            let entry = getPieceEntryById(t.id, { warn: false });
+
+                            // If not found by ID, try finding by position and allegiance
+                            if (!entry && t.row != null && t.col != null && t.allegiance) {
+                                entry = pieceDeployment.boardPieces.find(p =>
+                                    p.position?.row === t.row &&
+                                    p.position?.col === t.col &&
+                                    p.allegiance === t.allegiance &&
+                                    (p.type === 'solid_tower' || p.type === 'aggressive_tower')
+                                );
+                                if (entry) {
+                                    console.log('[tower_switch] Found tower by position:', entry.id, 'at', t.row, t.col);
+                                }
+                            }
+
                             if (!entry) {
-                                console.warn('[tower_switch] Tower not found:', t.id);
+                                console.warn('[tower_switch] Tower not found for id:', t.id, 'pos:', t.row, t.col, 'allegiance:', t.allegiance);
+                                console.warn('[tower_switch] Available towers:', pieceDeployment.boardPieces.filter(p => p.type === 'solid_tower' || p.type === 'aggressive_tower').map(p => ({id: p.id, pos: p.position, type: p.type})));
                                 return;
                             }
 
