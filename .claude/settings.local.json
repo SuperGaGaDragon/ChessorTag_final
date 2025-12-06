@@ -15,7 +15,10 @@
       "Bash(sips -g all:*)",
       "Bash(sips:*)",
       "Bash(cp:*)",
-      "Bash(git -C \"/Users/alex/Desktop/chess_report_page\" status)"
+      "Bash(git -C \"/Users/alex/Desktop/chess_report_page\" status)",
+      "Bash(git -C \"/Users/alex/Desktop/chess_report_page\" log --oneline -10)",
+      "Bash(git -C \"/Users/alex/Desktop/chess_report_page\" show ea25751 --stat)",
+      "Bash(git -C \"/Users/alex/Desktop/chess_report_page\" diff 113652d HEAD -- website/cat_royale/piece_deploy/piece_deploy.js)"
     ],
     "deny": [],
     "ask": []

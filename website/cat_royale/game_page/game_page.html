@@ -1135,13 +1135,28 @@
                 if (hp <= 0 && !entry._isDead) {
                     pieceDeployment.handleDeath(entry);
                 }
-                // Fallback: 在 CLIENT 端补播塔攻击动画，避免 tower_attack 丢失后无视觉
+                // Fallback: 在 CLIENT 端补播攻击动画，避免攻击事件丢失后无视觉
                 if (!isHost && entry && attackerId) {
                     const attacker = getPieceEntryById(attackerId, { warn: false });
-                    if (attacker && (attacker.type === 'solid_tower' || attacker.type === 'aggressive_tower')) {
-                        startTowerVisualAttack(attacker, entry, attacker.type);
-                    } else if (!attacker) {
+                    if (!attacker) {
                         console.warn('[damage fallback] attacker missing for id:', attackerId);
+                    } else {
+                        // 播放对应类型的攻击特效
+                        if (attacker.type === 'solid_tower' || attacker.type === 'aggressive_tower') {
+                            startTowerVisualAttack(attacker, entry, attacker.type);
+                        } else if (attacker.type === 'shouter' && window.startShouterAttack) {
+                            console.log('[CLIENT] Starting shouter visual attack:', attacker.id, '->', entry.id);
+                            window.startShouterAttack(attacker, entry, true);
+                        } else if (attacker.type === 'fighter' && window.startFighterAttack) {
+                            console.log('[CLIENT] Starting fighter visual attack:', attacker.id, '->', entry.id);
+                            window.startFighterAttack(attacker, entry, true);
+                        } else if (attacker.type === 'ruler' && window.startRulerAttack) {
+                            console.log('[CLIENT] Starting ruler visual attack:', attacker.id, '->', entry.id);
+                            window.startRulerAttack(attacker, entry, true);
+                        } else if (attacker.type === 'squirmer' && window.startSquirmerAttack) {
+                            console.log('[CLIENT] Starting squirmer visual attack:', attacker.id, '->', entry.id);
+                            window.startSquirmerAttack(attacker, entry, true);
+                        }
                     }
                 }
             }

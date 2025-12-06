@@ -18,7 +18,7 @@
         return isInQuarter(attacker, target);
     }
 
-    function startRulerAttack(attacker, target) {
+    function startRulerAttack(attacker, target, visualOnly = false) {
         if (!attacker || (attacker.hp !== undefined && attacker.hp <= 0)) return;
         if (!target || target.role !== 'troop' || (target.hp !== undefined && target.hp <= 0)) return;
         if (!isRulerInRange(attacker, target)) return;
@@ -42,7 +42,10 @@
                 attacker.currentTargetId = null;
                 return false;
             }
-            if (window.pieceDeployment) window.pieceDeployment.applyDamage(target, DAMAGE, attacker);
+            // Only apply damage if HOST and not visualOnly mode
+            if (!visualOnly && window.IS_HOST === true && window.pieceDeployment) {
+                window.pieceDeployment.applyDamage(target, DAMAGE, attacker);
+            }
             return true;
         };
 

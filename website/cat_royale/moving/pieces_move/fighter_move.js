@@ -12,7 +12,7 @@
         return (dr <= 1 && dc <= 1 && (dr + dc > 0));
     }
 
-    function startFighterAttack(attacker, target) {
+    function startFighterAttack(attacker, target, visualOnly = false) {
         if (!attacker || (attacker.hp !== undefined && attacker.hp <= 0)) return;
         if (!target || (target.hp !== undefined && target.hp <= 0)) return;
         if (attacker.attack && attacker._attackInterval && attacker.currentTargetId === (target && target.id)) {
@@ -49,7 +49,10 @@
                 });
             }
 
-            if (window.pieceDeployment) window.pieceDeployment.applyDamage(target, ATTACK_DAMAGE, attacker);
+            // Only apply damage if HOST and not visualOnly mode
+            if (!visualOnly && window.IS_HOST === true && window.pieceDeployment) {
+                window.pieceDeployment.applyDamage(target, ATTACK_DAMAGE, attacker);
+            }
             return true;
         };
 

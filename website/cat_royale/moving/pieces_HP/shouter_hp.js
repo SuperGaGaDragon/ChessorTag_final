@@ -1,7 +1,7 @@
 // Shouter HP definition and simple health bar helper.
-// Max HP: 150 (see pieces/shouter/shouter.txt)
+// Max HP: 60 (see pieces/shouter/shouter.txt)
 (function() {
-    const maxHP = 150;
+    const maxHP = 60;
     const barColor = '#DD2222'; // match time color
 
     function createHealthBar(container) {

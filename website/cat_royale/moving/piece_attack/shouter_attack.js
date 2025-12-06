@@ -12,7 +12,7 @@ function isInShouterAttackRange(shouter, target) {
     return inRow || inCol || inDiag;
 }
 
-function startShouterAttack(shouter, target) {
+function startShouterAttack(shouter, target, visualOnly = false) {
     if (!shouter || !shouter.element) return;
     if (shouter.shouter_lived === false || (shouter.hp !== undefined && shouter.hp <= 0)) return;
     if (shouter._attackInterval) {
@@ -42,7 +42,10 @@ function startShouterAttack(shouter, target) {
         const glyph = glyphs[glyphIndex % glyphs.length];
         glyphIndex++;
         spawnAttackGlyph(shouter, target, glyph, () => {
-            if (window.pieceDeployment) window.pieceDeployment.applyDamage(target, 75, shouter);
+            // Only apply damage if HOST and not visualOnly mode
+            if (!visualOnly && window.IS_HOST === true && window.pieceDeployment) {
+                window.pieceDeployment.applyDamage(target, 75, shouter);
+            }
         });
         return true;
     };

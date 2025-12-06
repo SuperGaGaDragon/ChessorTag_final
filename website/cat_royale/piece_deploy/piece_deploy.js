@@ -37,7 +37,7 @@ class PieceDeployment {
         if (type === 'aggressive_tower') return window.AggressiveTowerHP?.maxHP || 600;
         if (type === 'solid_tower') return window.SolidTowerHP?.maxHP || 1000;
         if (type === 'king_tower') return window.KingTowerHP?.maxHP || 1800;
-        if (type === 'shouter') return window.ShouterHP?.maxHP || 150;
+        if (type === 'shouter') return window.ShouterHP?.maxHP || 60;
         if (type === 'fighter') return window.FighterHP?.maxHP || 180;
         if (type === 'ruler') return window.RulerHP?.maxHP || 400;
         if (type === 'squirmer') return window.SquirmerHP?.maxHP || 400;
@@ -350,7 +350,7 @@ class PieceDeployment {
             lastAttackedAt: null,
             _beAttackedTimer: null,
             shouter_lived: type === 'shouter' ? true : undefined,
-            aggressive_tower_lived: type === 'aggressive_tower'
+            aggressive_tower_lived: type === 'aggressive_tower' ? true : undefined
         });
         const entry = this.boardPieces[this.boardPieces.length - 1];
         this.attachHealthBar(entry);
@@ -361,9 +361,24 @@ class PieceDeployment {
         if (!entry) return false;
         const fromNetwork = !!options.fromNetwork;
         const skipBroadcast = !!options.skipBroadcast;
+        const skipValidation = !!options.skipValidation;
         const eventType = options.eventType || 'move';
         const cell = document.querySelector(`.board-cell[data-row="${newPos.row}"][data-col="${newPos.col}"]`);
         if (!cell) return false;
+
+        if (!skipValidation) {
+            const occupied = this.boardPieces.some(p =>
+                p.id !== id &&
+                p.position?.row === newPos.row &&
+                p.position?.col === newPos.col &&
+                (p.hp === undefined || p.hp > 0) &&
+                !p._isDead
+            );
+            if (occupied) {
+                console.warn('[movePiece] Target cell occupied, abort move:', newPos);
+                return false;
+            }
+        }
 
         entry.position = { ...newPos };
 
@@ -386,6 +401,7 @@ class PieceDeployment {
                 tick: Date.now()
             });
         }
+        this.scanTowerAttacks(); // refresh tower targets after movement
         return true;
     }
 
@@ -660,6 +676,13 @@ class PieceDeployment {
             console.log('Not enough elixir!');
             return false;
         }
+        if (shouldSpendElixir) {
+            const spent = elixirManager.spend(cost, this.playerSide);
+            if (!spent) {
+                console.log('Spend failed, abort deploy');
+                return false;
+            }
+        }
 
         // HOST vs CLIENT branching: only one path should execute
         if (!fromNetwork) {
@@ -737,18 +760,10 @@ class PieceDeployment {
             lastAttackedAt: null,
             _beAttackedTimer: null,
             shouter_lived: pieceType === 'shouter' ? true : undefined,
-            aggressive_tower_lived: pieceType === 'aggressive_tower'
+            aggressive_tower_lived: pieceType === 'aggressive_tower' ? true : undefined
         };
         this.boardPieces.push(pieceEntry);
         this.attachHealthBar(pieceEntry);
-
-        if (shouldSpendElixir) {
-            const spent = elixirManager.spend(cost, this.playerSide);
-            if (!spent) {
-                console.log('Spend failed, abort deploy');
-                return false;
-            }
-        }
 
         // Broadcast spawn ASAP so CLIENT receives it before any attack/damage events
         // Only call handleLocalDeploy if HOST mode and not skipping broadcast
@@ -812,6 +827,7 @@ class PieceDeployment {
         });
 
         console.log(`[piece_deploy] ✓ Deployed ${pieceType} (${allegiance}) at ${square} (row=${row}, col=${col})`);
+        this.scanTowerAttacks(); // react immediately to new pieces (visual + damage on HOST)
         return pieceEntry;
     }
 
