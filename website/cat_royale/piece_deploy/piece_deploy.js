@@ -269,19 +269,30 @@ class PieceDeployment {
             entry._beAttackedTimer = null;
         }
 
+        // 清除攻击interval，停止所有攻击动画
+        if (entry._attackInterval) {
+            clearInterval(entry._attackInterval);
+            entry._attackInterval = null;
+        }
+
         // Call local death handlers
         if (entry.type === 'shouter') {
             if (typeof window.handleShouterDeath === 'function') {
                 window.handleShouterDeath(entry, this.activeMovers[entry.id]);
             }
+            if (window.stopShouterAttack) window.stopShouterAttack(entry);
         } else if (entry.type === 'fighter') {
             if (typeof window.handleFighterDeath === 'function') {
                 window.handleFighterDeath(entry, this.activeMovers[entry.id]);
             }
+            if (window.stopFighterAttack) window.stopFighterAttack(entry);
         } else if (entry.type === 'ruler') {
             if (typeof window.handleRulerDeath === 'function') {
                 window.handleRulerDeath(entry, this.activeMovers[entry.id]);
             }
+            if (window.stopRulerAttack) window.stopRulerAttack(entry);
+        } else if (entry.type === 'squirmer') {
+            if (window.stopSquirmerAttack) window.stopSquirmerAttack(entry);
         } else if (entry.type === 'aggressive_tower') {
             if (typeof window.handleAggressiveTowerDeath === 'function') {
                 window.handleAggressiveTowerDeath(entry);
@@ -671,26 +682,33 @@ class PieceDeployment {
             return false;
         }
 
-        const shouldSpendElixir = !fromNetwork && isPlayerOwned && !options.skipElixir;
-        if (shouldSpendElixir && !elixirManager.hasEnough(cost)) {
-            console.log('Not enough elixir!');
-            return false;
-        }
-        if (shouldSpendElixir) {
-            const spent = elixirManager.spend(cost, this.playerSide);
-            if (!spent) {
-                console.log('Spend failed, abort deploy');
-                return false;
-            }
-        }
-
         // HOST vs CLIENT branching: only one path should execute
         if (!fromNetwork) {
             if (window.IS_HOST === true) {
                 // HOST mode: deploy locally and broadcast
                 console.log('[piece_deploy] HOST mode: will deploy and broadcast');
+
+                // HOST端扣费
+                const shouldSpendElixir = isPlayerOwned && !options.skipElixir;
+                if (shouldSpendElixir && !elixirManager.hasEnough(cost)) {
+                    console.log('Not enough elixir!');
+                    return false;
+                }
+                if (shouldSpendElixir) {
+                    const spent = elixirManager.spend(cost, this.playerSide);
+                    if (!spent) {
+                        console.log('Spend failed, abort deploy');
+                        return false;
+                    }
+                }
             } else {
                 // CLIENT mode: send request to host
+                // CLIENT只检查elixir是否足够，不实际扣费
+                if (isPlayerOwned && !options.skipElixir && !elixirManager.hasEnough(cost)) {
+                    console.log('[CLIENT] Not enough elixir!', 'need:', cost, 'have:', elixirManager.currentElixir);
+                    return false;
+                }
+
                 console.log('[piece_deploy] CLIENT mode: calling handleLocalDeployRequest');
                 if (typeof window.handleLocalDeployRequest === 'function') {
                     window.handleLocalDeployRequest({

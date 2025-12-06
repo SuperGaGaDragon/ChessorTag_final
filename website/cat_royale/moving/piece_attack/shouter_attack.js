@@ -62,8 +62,22 @@ function startShouterAttack(shouter, target, visualOnly = false) {
     }, 500);
 }
 
+function stopShouterAttack(shouter) {
+    if (!shouter) return;
+    shouter.attack = false;
+    shouter.currentTargetId = null;
+    if (shouter._attackInterval) {
+        clearInterval(shouter._attackInterval);
+        shouter._attackInterval = null;
+    }
+    if (shouter.element) {
+        shouter.element.classList.remove('shouter-attack-shake');
+    }
+}
+
 window.isInShouterAttackRange = isInShouterAttackRange;
 window.startShouterAttack = startShouterAttack;
+window.stopShouterAttack = stopShouterAttack;
 
 // Internal helper to animate a flying glyph
 function spawnAttackGlyph(shouterEntry, targetEntry, glyphChar, onHit) {
