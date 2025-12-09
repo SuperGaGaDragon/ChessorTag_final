@@ -933,6 +933,9 @@
         let selectedTower = null;
         let opponentTowerType = null;
         let battleSocket = null;
+        let bothClickedStart = false;
+        let selfClickedStart = false;
+        let opponentClickedStart = false;
 
         // API base URL
         const API_BASE = window.location.hostname === 'chessortag.org' || window.location.hostname === 'www.chessortag.org'
@@ -990,6 +993,13 @@
                     break;
                 case 'players_connected':
                     console.log('[lobby] Both players connected');
+                    // Show "Click to Start" button when both players connected
+                    showStartButton();
+                    break;
+                case 'start_clicked':
+                    opponentClickedStart = true;
+                    console.log('[lobby] Opponent clicked start');
+                    checkBothClickedStart();
                     break;
                 case 'opponent_ready':
                     opponentReady = true;
@@ -1067,14 +1077,11 @@
                     currentSide = (data.side || 'a').toLowerCase();
                     isHost = true;
 
-                    document.getElementById('gameIdDisplay').textContent = currentGameId;
-                    showPage('createGamePage');
-
-                    // Connect WebSocket
-                    connectWebSocket();
-
-                    // Start polling for opponent
-                    pollGameState();
+                    // Open in new tab
+                    const newTab = window.open(`lobby.html?game=${currentGameId}&side=${currentSide}`, '_blank');
+                    if (!newTab) {
+                        alert('Please allow popups for this site');
+                    }
                 } else {
                     alert('Failed to create game');
                 }
@@ -1098,35 +1105,10 @@
                 return;
             }
 
-            try {
-                const response = await fetch(`${BATTLE_API}/join`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ game_id: gameId })
-                });
-
-                const data = await response.json();
-
-                if (data.side) {
-                    currentGameId = (data.game_id || gameId).toUpperCase();
-                    currentSide = data.side.toLowerCase();
-                    isHost = false;
-
-                    // Connect WebSocket
-                    connectWebSocket();
-
-                    // Hide all pages and show tower selection immediately for joiner
-                    document.getElementById('mainLobby').classList.add('hidden');
-                    document.getElementById('createGamePage').classList.add('hidden');
-                    document.getElementById('joinGamePage').classList.add('hidden');
-
-                    showTowerSelection();
-                } else {
-                    alert(data.error || 'Failed to join game');
-                }
-            } catch (error) {
-                console.error('Error joining game:', error);
-                alert('Failed to join game');
+            // Open in new tab
+            const newTab = window.open(`lobby.html?game=${gameId}`, '_blank');
+            if (!newTab) {
+                alert('Please allow popups for this site');
             }
         }
 
@@ -1204,36 +1186,105 @@
             }
         }
 
-        // Poll game state
-        async function pollGameState() {
-            if (!currentGameId) return;
+        // Initialize from URL parameters
+        async function initFromUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const gameIdParam = params.get('game');
+            const sideParam = params.get('side');
 
-            try {
-                const response = await fetch(`${BATTLE_API}/game_info?game=${encodeURIComponent(currentGameId)}`);
-                const data = await response.json();
+            if (gameIdParam) {
+                currentGameId = gameIdParam.toUpperCase();
 
-                // Host waits for player B to arrive, then show tower selection
-                if (isHost && data.has_player_b && !selectedTower) {
-                    document.getElementById('startGameBtn').classList.remove('hidden');
-                    // Show tower selection when opponent joins
-                    showTowerSelection();
-                    return; // Stop polling, wait for tower selection
+                // Try to join the game
+                try {
+                    const response = await fetch(`${BATTLE_API}/join`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ game_id: currentGameId })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.side) {
+                        currentSide = data.side.toLowerCase();
+                        isHost = (currentSide === 'a');
+
+                        // Connect WebSocket
+                        connectWebSocket();
+
+                        // Show appropriate page based on host status
+                        if (isHost) {
+                            showPage('createGamePage');
+                            document.getElementById('gameIdDisplay').textContent = currentGameId;
+                        } else {
+                            showPage('joinGamePage');
+                            document.getElementById('gameIdInput').value = currentGameId;
+                        }
+
+                        // Don't show tower selection yet - wait for both to click start
+                        console.log('[lobby] Joined game from URL:', currentGameId, 'side:', currentSide);
+                    } else {
+                        alert(data.error || 'Failed to join game from URL');
+                        showPage('mainLobby');
+                    }
+                } catch (error) {
+                    console.error('Error joining from URL:', error);
+                    alert('Failed to join game');
+                    showPage('mainLobby');
                 }
+            }
+        }
 
-                // Continue polling if still waiting
-                if (!data.has_player_b || !selectedTower) {
-                    setTimeout(pollGameState, 1000);
-                }
-            } catch (error) {
-                console.error('Error polling game state:', error);
-                setTimeout(pollGameState, 2000);
+        // Show start button
+        function showStartButton() {
+            const startBtn = document.getElementById('startGameBtn');
+            const joinStartBtn = document.getElementById('joinStartGameBtn');
+            if (startBtn) startBtn.classList.remove('hidden');
+            if (joinStartBtn) joinStartBtn.classList.remove('hidden');
+        }
+
+        // Send start clicked message
+        function sendStartClicked() {
+            if (!battleSocket || battleSocket.readyState !== WebSocket.OPEN) {
+                console.error('[lobby] WebSocket not connected');
+                return;
+            }
+            const message = { type: 'start_clicked' };
+            console.log('[lobby] Sending start_clicked:', message);
+            battleSocket.send(JSON.stringify(message));
+        }
+
+        // Check if both players clicked start
+        function checkBothClickedStart() {
+            if (selfClickedStart && opponentClickedStart) {
+                console.log('[lobby] Both players clicked start, showing tower selection');
+                bothClickedStart = true;
+                hideLoadingOverlay();
+                showTowerSelection();
             }
         }
 
         // Click to start
         async function startGame() {
             if (!currentGameId) return;
-            startGameNow();
+
+            // Mark self as clicked start
+            selfClickedStart = true;
+
+            // Disable start button
+            const startBtn = document.getElementById('startGameBtn');
+            const joinStartBtn = document.getElementById('joinStartGameBtn');
+            if (startBtn) startBtn.disabled = true;
+            if (joinStartBtn) joinStartBtn.disabled = true;
+
+            // Send start clicked message
+            sendStartClicked();
+
+            // Show loading screen while waiting for opponent
+            showLoadingOverlay();
+
+            // Check if opponent already clicked
+            checkBothClickedStart();
         }
 
         // Start the actual game
@@ -1244,6 +1295,13 @@
             const opponentTowerParam = opponentTowerType ? `&opponentTower=${encodeURIComponent(opponentTowerType)}` : '';
 
             window.location.href = `game_page.html?game=${encodeURIComponent(currentGameId)}${sideParam}${towerParam}${opponentTowerParam}`;
+        }
+
+        // Initialize from URL on page load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initFromUrlParams);
+        } else {
+            initFromUrlParams();
         }
     </script>
 </body>
