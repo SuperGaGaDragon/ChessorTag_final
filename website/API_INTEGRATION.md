@@ -27,6 +27,9 @@
 - **"Generate report (demo mode)"**: 保留的演示功能
 - **"Use sample player: TestYuYaochen"**: 加载示例PGN数据
 
+### 4. 新增“速胜猎场”界面
+在 `new_report.html` 中新增 `section.card.quick-win-card`，提供快速筛选等级区间、最高手数和 Engine depth 的表单，并实时呈现符合 “获胜方错误数 < 2（每次跌幅超过 60 cp）” 条件的速胜复盘。前端逻辑由 `findQuickWins()` 发起请求、`renderQuickWinMatches()` 渲染结果、`clearQuickWinMatches()` 重置列表，以及 `parseNumberField()` 统一数值解析，状态文本通过 `quickWinStatus` 控制。
+
 ## 如何配置
 
 ### 步骤1: 修改API地址
@@ -99,6 +102,45 @@ body: JSON.stringify({
 }
 ```
 
+### POST `/api/study/quick_wins`
+**请求体示例:**
+```json
+{
+  "pgn_text": "[Event \"Example\"] 1. e4 e5 2. Nf3 Nc6",
+  "min_rating": 1800,
+  "max_rating": 2600,
+  "max_moves": 40,
+  "depth": 14,
+  "threshold_cp": 60,
+  "max_errors": 1,
+  "max_results": 6
+}
+```
+
+该接口会遍历所有 PGN 游戏，依次调用 FastAPI 内的 Stockfish 引擎，统计每方在前/后评估差值的 “错误” 数（跌幅大于 `threshold_cp` 计一次），只返回胜方错误数不超过 `max_errors` 并且符合等级/步数筛选的速胜对局。
+
+**成功响应 (200 OK):**
+```json
+{
+  "total_games_scanned": 2,
+  "qualifying_games": [
+    {
+      "title": "Example Match",
+      "result": "1-0",
+      "winner": "white",
+      "move_count": 18,
+      "white_elo": 1850,
+      "black_elo": 1720,
+      "errors": { "white": 1, "black": 5 },
+      "pgn": "[Event \"Example\"] 1. e4 e5 ..."
+    }
+  ],
+  "engine_info": "stockfish depth=14"
+}
+```
+
+Engine 调用失败或参数不合法时返回 4xx/5xx，前端需显示 `detail` 字段。
+
 ## FastAPI后端示例代码
 
 ```python
@@ -156,6 +198,56 @@ uvicorn main:app --reload --port 7000
 3. 观察状态行的变化
 4. 检查浏览器控制台(F12)查看网络请求
 5. 成功后应该自动跳转到 home/ 页面
+
+## 快胜检测接口（`/api/study/quick_wins`）
+
+`new_report.html` 中的“速胜猎场”面板直接调用这个 POST 接口，传入：
+
+- `pgn_text`：批量 PGN 文本
+- `min_rating` / `max_rating`：双方等级过滤
+- `max_moves`：最大步数
+- `depth`、`threshold_cp`：引擎深度与 cp 掉落阈值
+- `max_errors`：获胜方容忍错误次数（默认 1）
+- `engine_path`：可选的 Stockfish 路径（为空则使用后端默认）
+- `max_results`：期望返回的快胜数量上限
+
+用户可用表单里的“下载 PGN”和“Open PGN”按钮查看每局详情，状态行会持续反映请求状态，配合“清空”按钮重置结果。
+
+**示例请求：**
+```json
+{
+  "pgn_text": "[Event \"Example\"] 1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Qxf7#",
+  "min_rating": 1800,
+  "max_rating": 2600,
+  "max_moves": 40,
+  "depth": 14,
+  "threshold_cp": 60,
+  "max_errors": 1,
+  "max_results": 6
+}
+```
+
+**成功响应（200）：**
+```json
+{
+  "total_games_scanned": 2,
+  "qualifying_games": [
+    {
+      "title": "Example Match",
+      "result": "1-0",
+      "winner": "white",
+      "move_count": 18,
+      "white_elo": 1850,
+      "black_elo": 1720,
+      "errors": { "white": 1, "black": 5 },
+      "pgn": "[Event \"Example\"] 1. e4 e5 ..."
+    }
+  ],
+  "engine_info": "stockfish depth=14"
+}
+```
+
+请求成功后接口会将筛选条件与匹配结果以新的 `Study` 记录写入后端数据库（无论是否有匹配），方便后续在 Study 列表或调试日志中回溯。
 
 ## 常见问题
 

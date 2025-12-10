@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quick Win Detector · Chessortag</title>
+  <style>
+    :root {
+      --bg: #f5f6fb;
+      --card: #ffffff;
+      --border-soft: #d1d5db;
+      --text-main: #111827;
+      --text-sub: #6b7280;
+      --green: #10b981;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+    .shell {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 24px 48px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .logo-mark {
+      width: 36px;
+      height: 36px;
+      background: var(--green);
+      border-radius: 50%;
+      color: #fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+    }
+    .page-title {
+      font-size: 26px;
+      font-weight: 700;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 18px;
+      border: 1px solid var(--border-soft);
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+    }
+    .hero-sub {
+      color: var(--text-sub);
+      max-width: 600px;
+    }
+    .quick-win-card {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      align-items: start;
+    }
+    .quick-win-form, .quick-win-results {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    textarea {
+      min-height: 150px;
+      border-radius: 12px;
+      border: 1px solid var(--border-soft);
+      resize: vertical;
+      padding: 12px;
+      font-family: inherit;
+    }
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+    }
+    .field-block input {
+      border: 1px solid var(--border-soft);
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 13px;
+      background: #fff;
+      color: var(--text-main);
+    }
+    .field-label {
+      font-size: 11px;
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: #ffffff;
+      color: var(--text-main);
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .btn.primary {
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff;
+    }
+    .btn.primary:hover {
+      background:#059669;
+    }
+    .status-line {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+    .results-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .results-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      font-size: 13px;
+    }
+    .match-row {
+      border: 1px solid var(--border-soft);
+      border-radius: 16px;
+      padding: 10px;
+      background:#f7fafc;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .match-title {
+      font-weight:600;
+      font-size:14px;
+    }
+    .match-meta {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      font-size:12px;
+    }
+    .match-meta span {
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid var(--border-soft);
+      background:#fff;
+    }
+    .match-row pre {
+      margin:0;
+      padding:10px;
+      border-radius:10px;
+      background:#e5e7eb;
+      font-size:12px;
+      white-space:pre-wrap;
+    }
+    .match-actions {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .match-actions .btn.ghost {
+      border-color: transparent;
+      border: 1px solid var(--border-soft);
+    }
+    @media (max-width: 640px) {
+      .quick-win-card {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="logo-mark">Q</div>
+      <div>
+        <div class="page-title">Quick Win Detector</div>
+        <div class="hero-sub">
+          Paste your PGNs, pick a rating range and engine depth, and the backend identifies “quick win” games using the same Stockfish-powered filter as the study API.
+        </div>
+      </div>
+    </header>
+
+    <section class="card quick-win-card">
+      <div class="quick-win-form">
+        <div class="section-title">速胜猎场</div>
+        <div class="section-desc" style="color:#475467;font-size:13px;">
+          输入 PGN 批量文本、等级区间、最多步数、错误容忍值与引擎参数，然后发送到 `/api/study/quick_wins`。
+        </div>
+        <textarea id="quickWinPgnInput" placeholder="Paste PGNs for quick-win hunting..."></textarea>
+        <div class="field-grid">
+          <div class="field-block">
+            <span class="field-label">最小等级</span>
+            <input id="quickWinMinRating" type="number" value="1800" min="0" />
+          </div>
+          <div class="field-block">
+            <span class="field-label">最大等级</span>
+            <input id="quickWinMaxRating" type="number" value="2600" min="0" />
+          </div>
+          <div class="field-block">
+            <span class="field-label">最多步数</span>
+            <input id="quickWinMaxMoves" type="number" value="40" min="1" />
+          </div>
+          <div class="field-block">
+            <span class="field-label">引擎深度</span>
+            <input id="quickWinDepth" type="number" value="14" min="6" />
+          </div>
+          <div class="field-block">
+            <span class="field-label">容忍跌幅（cp）</span>
+            <input id="quickWinThreshold" type="number" value="60" min="10" />
+          </div>
+          <div class="field-block">
+            <span class="field-label">最多结果</span>
+            <input id="quickWinMaxResults" type="number" value="6" min="1" />
+          </div>
+          <div class="field-block">
+            <span class="field-label">最多错误（获胜方）</span>
+            <input id="quickWinMaxErrors" type="number" value="1" min="0" />
+          </div>
+          <div class="field-block" style="grid-column: 1 / -1;">
+            <span class="field-label">引擎路径（可选）</span>
+            <input id="quickWinEnginePath" type="text" placeholder="/usr/local/bin/stockfish" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" type="button" onclick="findQuickWins()">扫描速胜</button>
+          <button class="btn ghost" type="button" onclick="clearQuickWinMatches()">清空</button>
+        </div>
+        <div class="status-line" id="quickWinStatus">Status: idle – waiting for PGNs.</div>
+      </div>
+      <div class="quick-win-results">
+        <div class="results-title">匹配对局</div>
+        <div id="quickWinMatches" class="results-list">
+          <div class="results-empty">No quick wins yet.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const resolveApiBase = () => {
+      const queryBase = new URLSearchParams(window.location.search).get("api_base");
+      const lsBase = window.localStorage.getItem("studyApiBase");
+      const devFallback = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+        ? ((window.location.port === "4000" || window.location.port === "3000") ? "http://localhost:7000" : null)
+        : null;
+      return (
+        (window.STUDY_API_BASE && window.STUDY_API_BASE.trim()) ||
+        (queryBase && queryBase.trim()) ||
+        (lsBase && lsBase.trim()) ||
+        devFallback ||
+        (window.location.port ? window.location.origin : null) ||
+        "http://localhost:7000"
+      );
+    };
+    const API_BASE_URL = resolveApiBase();
+
+    const quickWinPgnInput = document.getElementById("quickWinPgnInput");
+    const quickWinMinRating = document.getElementById("quickWinMinRating");
+    const quickWinMaxRating = document.getElementById("quickWinMaxRating");
+    const quickWinMaxMoves = document.getElementById("quickWinMaxMoves");
+    const quickWinDepth = document.getElementById("quickWinDepth");
+    const quickWinThreshold = document.getElementById("quickWinThreshold");
+    const quickWinMaxResults = document.getElementById("quickWinMaxResults");
+    const quickWinMaxErrors = document.getElementById("quickWinMaxErrors");
+    const quickWinEnginePath = document.getElementById("quickWinEnginePath");
+    const quickWinStatus = document.getElementById("quickWinStatus");
+    const quickWinMatches = document.getElementById("quickWinMatches");
+
+    const parseNumberField = (value, fallback) => {
+      const parsed = parseInt(value, 10);
+      return Number.isNaN(parsed) ? fallback : parsed;
+    };
+
+    function renderQuickWinMatches(matches) {
+      quickWinMatches.innerHTML = "";
+      if (!matches || matches.length === 0) {
+        quickWinMatches.innerHTML = '<div class="results-empty">No quick wins found yet.</div>';
+        return;
+      }
+      matches.forEach((match) => {
+        const row = document.createElement("div");
+        row.className = "match-row";
+
+        const title = document.createElement("div");
+        title.className = "match-title";
+        title.textContent = `${match.title} · ${match.result}`;
+
+        const meta = document.createElement("div");
+        meta.className = "match-meta";
+        const winnerTag = document.createElement("span");
+        const winnerName = match.winner ? match.winner[0].toUpperCase() + match.winner.slice(1) : "Winner";
+        winnerTag.textContent = `${winnerName} quick win`;
+        const movesTag = document.createElement("span");
+        movesTag.textContent = `Moves ${match.move_count}`;
+        const ratingTag = document.createElement("span");
+        ratingTag.textContent = `W:${match.white_elo ?? "?"} B:${match.black_elo ?? "?"}`;
+        const errorsTag = document.createElement("span");
+        const whiteErrors = match.errors?.white ?? 0;
+        const blackErrors = match.errors?.black ?? 0;
+        errorsTag.textContent = `Errors W:${whiteErrors} B:${blackErrors}`;
+        meta.append(winnerTag, movesTag, ratingTag, errorsTag);
+
+        const actions = document.createElement("div");
+        actions.className = "match-actions";
+        const downloadBtn = document.createElement("button");
+        downloadBtn.type = "button";
+        downloadBtn.className = "btn ghost";
+        downloadBtn.textContent = "Download PGN";
+        downloadBtn.addEventListener("click", () => {
+          const blob = new Blob([match.pgn || ""], { type: "application/x-chess-pgn" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          const safeTitle = (match.title || "quick_win").replace(/[^a-z0-9]+/gi, "_").slice(0, 32);
+          link.download = `${safeTitle}.pgn`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        });
+        const openBtn = document.createElement("button");
+        openBtn.type = "button";
+        openBtn.className = "btn ghost";
+        openBtn.textContent = "Open PGN";
+        openBtn.addEventListener("click", () => {
+          const popup = window.open("", "_blank");
+          if (!popup) return;
+          popup.document.write(`<pre>${match.pgn || ""}</pre>`);
+          popup.document.title = match.title || "Quick Win PGN";
+          popup.document.close();
+        });
+        actions.append(downloadBtn, openBtn);
+
+        const details = document.createElement("details");
+        const summary = document.createElement("summary");
+        summary.textContent = "View PGN";
+        const pre = document.createElement("pre");
+        pre.textContent = match.pgn || "";
+        details.append(summary, pre);
+
+        row.append(title, meta, actions, details);
+        quickWinMatches.append(row);
+      });
+    }
+
+    function clearQuickWinMatches() {
+      renderQuickWinMatches([]);
+      quickWinStatus.textContent = "Status: idle – ready to search quick wins.";
+    }
+
+    async function findQuickWins() {
+      const pgnText = quickWinPgnInput.value.trim();
+      if (!pgnText) {
+        quickWinStatus.textContent = "Status: please paste PGN text for quick-win hunting.";
+        return;
+      }
+      const payload = {
+        pgn_text: pgnText,
+        min_rating: parseNumberField(quickWinMinRating.value, 1200),
+        max_rating: parseNumberField(quickWinMaxRating.value, 2600),
+        max_moves: Math.max(1, parseNumberField(quickWinMaxMoves.value, 40)),
+        depth: Math.max(6, parseNumberField(quickWinDepth.value, 14)),
+        threshold_cp: Math.max(10, parseNumberField(quickWinThreshold.value, 60)),
+        max_errors: Math.max(0, parseNumberField(quickWinMaxErrors.value, 1)),
+        engine_path: quickWinEnginePath.value.trim() || undefined,
+        max_results: Math.max(1, parseNumberField(quickWinMaxResults.value, 6)),
+      };
+      quickWinStatus.textContent = `Status: scanning quick wins (max ${payload.max_results})...`;
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/study/quick_wins`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.detail || `HTTP error ${response.status}`);
+        }
+        const result = await response.json();
+        quickWinStatus.textContent = `Status: found ${result.qualifying_games.length} quick wins (scanned ${result.total_games_scanned}).`;
+        renderQuickWinMatches(result.qualifying_games);
+      } catch (error) {
+        quickWinStatus.textContent = `Status: error – ${error.message}`;
+        quickWinMatches.innerHTML = '<div class="results-empty">Unable to fetch quick wins.</div>';
+        console.error("Quick-win search failed:", error);
+      }
+    }
+
+    clearQuickWinMatches();
+  </script>
+</body>
+</html>

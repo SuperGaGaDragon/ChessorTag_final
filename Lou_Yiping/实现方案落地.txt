@@ -1,0 +1,21 @@
+
+目标：
+我希望新加一个功能。当用户 input 多局 PGN，我们输出满足彩色等级（xxxx-yyyy）限定与步数上限（zz 步以内）的“速胜”对局。等级范围与步数上限由用户传参，判断“速胜”时调用当前 FastAPI 里的引擎（stockfish）；定义是：整局比赛中某一方的“错误”次数少于 2 次，“错误”指的是该方的一手导致评估下降超过 60 cp。
+调用现有 FastAPI 包装的引擎接口，结果贴到 chessortag 站点上。
+
+- [x] 1.1 继承 `backend/study_api.py` 的 python-chess + engine 运行环境，在后端新增 `QuickWinRequest/QuickWinResponse` 等 Pydantic 模型，定义字段：PGN 批量文本、评分下限/上限、步数上限、评估深度与容错阈值（默认 60 cp）。
+- [x] 1.2 设计引擎调用逻辑：依次解析每局 PGN，过滤掉 rating 不在范围或总步数超过 zz 的对局；对每手棋调用 `chess.engine.SimpleEngine` 分析前/后评分变化并累加每方的 “错误” 次数，确保所选快胜对局的某一方错误数 < 2，并在 `backend/study_api.py` 的 `_evaluate_for_quick_win` 中实现聚合逻辑（`_score_cp` 复用引擎分析结果、`threshold_cp` 作为掉点阈值），由 `/api/study/quick_wins` 接口批量执行后再返回符合条件的 `QuickWinMatch`s。
+
+- [x] 2.1 在 FastAPI `router` 中新增 `/api/study/quick_wins` POST 接口，返回通过 rating/步数筛选后的快胜列表（包含 PGN 头信息、赢家、步数、错误统计等），并复用现有引擎配置（`ENGINE_DEFAULT`、可传 `engine_path`），该接口已在 `backend/study_api.py` 中实现，返回 `QuickWinsResponse` 并使用 `QuickWinMatch` 封装每局数据。
+- [x] 2.2 在 `website/new_report/index.html`（或合适的 chessortag 部分）加入“速胜检测”表单，收集 PGN 文本、等级区间、最大步数、最大错误数、引擎路径等参数，并通过 `fetch` 调用新接口，将返回的结果渲染为 match row（包含下载/打开按钮、评分与错误统计）。
+- [x] 2.3 更新 `website/API_INTEGRATION.md` 记录新接口的请求/响应格式，以及前端如何调用，并着重说明状态行、清空、下载与弹窗细节。
+- [x] 2.4 提供专门的 `https://chessortag.org/quickwindetector` 页面（`website/quickwindetector/index.html`），并在 `/developers/` 里让 `logo2.png` 的点击/双击跳转到该页面以便快速调出 UI。
+
+Phase3：落地与验证
+- [x] 3.1 在 backend 端贴合现有 `Study` 逻辑，如需缓存可考虑新增 quick win 记录，但初期仅返回分析结果即可。现已在 `/api/study/quick_wins` 中将筛选条件和 `QuickWinsResponse` 进入 `studies` 表，方便后续追踪。
+- [x] 3.2 增设前端提示（例如 status line）以反馈异步分析状态与错误信息，并在 UI 中列出满足条件的快胜对局摘要。界面有完整的状态行、清空按钮、PGN 下载/查看操作，并支持多个输入字段/引擎路径。
+- [x] 3.3 执行基本 smoke test：用 sample PGN 调用新接口确认 engine 正常、rating/step 限制生效，并更新文档中“使用示例”段落。终端 CLI `quick_win_cli.py` 已用 `Lou_Yiping/sample.pgn` 启动 Stockfish 验证，输出匹配数据并写入 `sample_output.pgn`（测试后删除）。
+
+PhaseX：终端补充方案
+- [x] X.1 在 `Lou_Yiping/quick_win_cli.py` 中提供完整命令行版本，依据评分与步数限值用 Stockfish 统计错误并输出符合条件的 PGN 文件，允许通过 `--engine-path` 指定引擎、`--output` 控制结果文件、`--metadata` 导出 JSON 统计。
+- [x] X.2 同目录提供 `sample.pgn` 与 `README.md` 供验证与说明，确保用户只需该目录即可运行“速胜”筛选。

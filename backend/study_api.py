@@ -1,7 +1,7 @@
 import os
 import io
 import uuid
-from typing import Optional, List, Any, Dict
+from typing import Optional, List, Any, Dict, Iterator
 import json
 from pathlib import Path
 import sys
@@ -137,6 +137,35 @@ class StudyGetResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class QuickWinRequest(BaseModel):
+    pgn_text: str
+    min_rating: int = 0
+    max_rating: int = 4000
+    max_moves: int = 40
+    max_errors: int = 1
+    depth: int = 14
+    threshold_cp: int = 60
+    engine_path: Optional[str] = None
+    max_results: int = 20
+
+
+class QuickWinMatch(BaseModel):
+    title: str
+    pgn: str
+    result: str
+    winner: str
+    move_count: int
+    white_elo: Optional[int]
+    black_elo: Optional[int]
+    errors: Dict[str, int]
+
+
+class QuickWinsResponse(BaseModel):
+    total_games_scanned: int
+    qualifying_games: List[QuickWinMatch]
+    engine_info: str
 
 # lazy-loaded predictor deps
 _predictor_ready = False
@@ -394,6 +423,107 @@ def _log_predictor_call(fen: str, result: AnalyzeResponse, engine_path: Optional
         pass
 
 
+def _parse_rating(value: Optional[str]) -> Optional[int]:
+    if not value:
+        return None
+    try:
+        return int(value)
+    except ValueError:
+        digits = "".join(ch for ch in value if ch.isdigit())
+        return int(digits) if digits else None
+
+
+def _winner_from_result(result: Optional[str]) -> Optional[str]:
+    if result == "1-0":
+        return "white"
+    if result == "0-1":
+        return "black"
+    return None
+
+
+def _score_cp(engine: chess.engine.SimpleEngine, board: chess.Board, limit: chess.engine.Limit) -> Optional[int]:
+    try:
+        info = engine.analyse(board, limit)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Engine analysis failed: {exc}")
+    score = info.get("score")
+    if not score:
+        return None
+    try:
+        if score.is_cp():
+            return score.white().score()
+    except Exception:
+        return None
+    return None
+
+
+def _iterate_pgn_games(pgn_text: str) -> Iterator[chess.pgn.Game]:
+    stream = io.StringIO(pgn_text)
+    while True:
+        game = chess.pgn.read_game(stream)
+        if game is None:
+            break
+        yield game
+
+
+def _export_game_pgn(game: chess.pgn.Game) -> str:
+    exporter = chess.pgn.StringExporter(headers=True, variations=False, comments=False)
+    return game.accept(exporter)
+
+
+def _evaluate_for_quick_win(
+    game: chess.pgn.Game,
+    engine: chess.engine.SimpleEngine,
+    limit: chess.engine.Limit,
+    req: QuickWinRequest,
+) -> Optional[QuickWinMatch]:
+    moves = list(game.mainline_moves())
+    move_count = len(moves)
+    max_moves = req.max_moves if req.max_moves > 0 else None
+    if max_moves and move_count > max_moves:
+        return None
+    white_elo = _parse_rating(game.headers.get("WhiteElo"))
+    black_elo = _parse_rating(game.headers.get("BlackElo"))
+    if white_elo is None or black_elo is None:
+        return None
+    if white_elo < req.min_rating or white_elo > req.max_rating:
+        return None
+    if black_elo < req.min_rating or black_elo > req.max_rating:
+        return None
+    winner = _winner_from_result(game.headers.get("Result"))
+    if not winner:
+        return None
+
+    errors = {"white": 0, "black": 0}
+    board = game.board()
+    for move in moves:
+        turn_color = board.turn
+        before_cp = _score_cp(engine, board, limit)
+        board.push(move)
+        after_cp = _score_cp(engine, board, limit)
+        if before_cp is None or after_cp is None:
+            continue
+        turn_sign = 1 if turn_color == chess.WHITE else -1
+        delta = (after_cp - before_cp) * turn_sign
+        if delta < -req.threshold_cp:
+            side = "white" if turn_color == chess.WHITE else "black"
+            errors[side] += 1
+
+    if errors[winner] > req.max_errors:
+        return None
+
+    return QuickWinMatch(
+        title=game.headers.get("Event") or game.headers.get("Site") or "Imported Quick Win",
+        pgn=_export_game_pgn(game),
+        result=game.headers.get("Result") or "*",
+        winner=winner,
+        move_count=move_count,
+        white_elo=white_elo,
+        black_elo=black_elo,
+        errors=errors,
+    )
+
+
 # ----------------------------
 # Endpoint: import PGN
 # ----------------------------
@@ -428,6 +558,86 @@ def import_pgn(req: ImportPGNRequest):
         raw_pgn=req.pgn.strip(),
         san_moves=san_moves,
     )
+
+
+def _record_quick_win_study(
+    db: Session,
+    response: QuickWinsResponse,
+    req: QuickWinRequest,
+    current_user: Optional[User],
+):
+    filters = req.model_dump()
+    filters.pop("pgn_text", None)
+    record = {
+        "quick_win_response": jsonable_encoder(response),
+        "filters": filters,
+        "engine_info": response.engine_info,
+    }
+    study = Study(
+        title=f"Quick wins snapshot {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}",
+        data=record,
+        owner_id=current_user.id if current_user else None,
+        is_public=False,
+    )
+    try:
+        db.add(study)
+        db.commit()
+        db.refresh(study)
+    except Exception:
+        db.rollback()
+
+
+@router.post("/quick_wins", response_model=QuickWinsResponse)
+def quick_wins(
+    req: QuickWinRequest,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
+    pgn_text = (req.pgn_text or "").strip()
+    if not pgn_text:
+        raise HTTPException(status_code=400, detail="PGN text is empty.")
+    if req.min_rating > req.max_rating:
+        raise HTTPException(status_code=400, detail="min_rating cannot exceed max_rating.")
+    if req.depth <= 0:
+        raise HTTPException(status_code=400, detail="depth must be positive.")
+    if req.threshold_cp <= 0:
+        raise HTTPException(status_code=400, detail="threshold_cp must be positive.")
+    if req.max_errors < 0:
+        raise HTTPException(status_code=400, detail="max_errors must be non-negative.")
+    if req.max_results <= 0:
+        raise HTTPException(status_code=400, detail="max_results must be positive.")
+
+    engine_path = req.engine_path or ENGINE_DEFAULT
+    try:
+        engine = chess.engine.SimpleEngine.popen_uci(engine_path)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Engine not available: {exc}")
+
+    limit = chess.engine.Limit(depth=req.depth)
+    total_games = 0
+    matches: List[QuickWinMatch] = []
+
+    try:
+        for game in _iterate_pgn_games(pgn_text):
+            total_games += 1
+            match = _evaluate_for_quick_win(game, engine, limit, req)
+            if match:
+                matches.append(match)
+                if len(matches) >= req.max_results:
+                    break
+    finally:
+        engine.quit()
+
+    if total_games == 0:
+        raise HTTPException(status_code=400, detail="No valid PGN games were parsed.")
+
+    payload = QuickWinsResponse(
+        total_games_scanned=total_games,
+        qualifying_games=matches,
+        engine_info=f"{engine_path} depth={req.depth}",
+    )
+    _record_quick_win_study(db, payload, req, current_user)
+    return payload
 
 
 # ----------------------------

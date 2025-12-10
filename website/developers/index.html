@@ -210,7 +210,9 @@
     <!-- Hero -->
     <section class="hero">
       <div class="hero-cat">
-        <img src="../assets/logo2.png" alt="Lead developer cat" />
+        <a href="/quickwindetector" class="cat-link" title="Open Quick Win Detector">
+          <img src="../assets/logo2.png" alt="Lead developer cat" id="heroCatLogo" />
+        </a>
         <a href="../cat-gallary/">
           <button type="button">
             📸 <span>Click to see more developer's photo</span>
@@ -263,10 +265,16 @@
       </div>
     </section>
 
-    <div class="footer">
-      <div>ChessorTag — built with engines, cats, and questionable sanity.</div>
-      <a href="../index.html">← Back to home</a>
-    </div>
+  <div class="footer">
+    <div>ChessorTag — built with engines, cats, and questionable sanity.</div>
+    <a href="../index.html">← Back to home</a>
   </div>
+</div>
+<script>
+  const heroCatLogo = document.getElementById("heroCatLogo");
+  heroCatLogo?.addEventListener("dblclick", () => {
+    window.location.href = "/quickwindetector";
+  });
+</script>
 </body>
 </html>
