@@ -178,7 +178,7 @@ _compute_move_probabilities = None
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-ENGINE_DEFAULT = os.getenv("STOCKFISH_PATH", "/usr/games/stockfish")
+ENGINE_DEFAULT = os.getenv("STOCKFISH_PATH", "/usr/local/bin/stockfish")
 
 # Optional auth helper: returns user when token present/valid, else None (keeps public access working)
 def get_current_user_optional(request: Request, db: Session = Depends(get_db)) -> Optional[User]:
