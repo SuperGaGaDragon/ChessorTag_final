@@ -263,7 +263,7 @@
         (queryBase && queryBase.trim()) ||
         (lsBase && lsBase.trim()) ||
         devFallback ||
-        (window.location.port ? window.location.origin : null) ||
+        window.location.origin ||
         "http://localhost:7000"
       );
     };
