@@ -258,12 +258,17 @@
       const devFallback = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
         ? ((window.location.port === "4000" || window.location.port === "3000") ? "http://localhost:7000" : null)
         : null;
+      const productionFallback = window.location.hostname.endsWith("chessortag.org")
+        ? "https://api.chessortag.org"
+        : null;
+      const originFallback = window.location.port ? window.location.origin : null;
       return (
         (window.STUDY_API_BASE && window.STUDY_API_BASE.trim()) ||
         (queryBase && queryBase.trim()) ||
         (lsBase && lsBase.trim()) ||
         devFallback ||
-        window.location.origin ||
+        productionFallback ||
+        originFallback ||
         "http://localhost:7000"
       );
     };
