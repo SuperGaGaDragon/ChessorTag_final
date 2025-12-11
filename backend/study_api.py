@@ -484,11 +484,9 @@ def _evaluate_for_quick_win(
         return None
     white_elo = _parse_rating(game.headers.get("WhiteElo"))
     black_elo = _parse_rating(game.headers.get("BlackElo"))
-    if white_elo is None or black_elo is None:
+    if white_elo is not None and (white_elo < req.min_rating or white_elo > req.max_rating):
         return None
-    if white_elo < req.min_rating or white_elo > req.max_rating:
-        return None
-    if black_elo < req.min_rating or black_elo > req.max_rating:
+    if black_elo is not None and (black_elo < req.min_rating or black_elo > req.max_rating):
         return None
     winner = _winner_from_result(game.headers.get("Result"))
     if not winner:

@@ -22,7 +22,8 @@
       "Bash(lsof:*)",
       "Bash(kill:*)",
       "Bash(pkill:*)",
-      "Bash(pip3 install:*)"
+      "Bash(pip3 install:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
